@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { ArrowLeft, FileText, Loader2, Check, X, ArrowRight } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { FileText, Loader2, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -12,141 +12,163 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { useToast } from "@/hooks/use-toast"
-import { generateFile } from "@/lib/file-generator"
-import Markdown from 'markdown-to-jsx'
-import { MarkdownComponents } from '@/lib/markdown-components'
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { generateFile } from "@/lib/file-generator";
+import { MarkdownComponents } from "@/lib/markdown-components";
+import ReactMarkdown from "react-markdown";
+import { FileFormat } from "@/lib/file-generator";
+
+// Fix emoji headings so that emojis after heading markers
+function fixEmojiHeadings(markdown: string): string {
+  // Move leading emoji(s) to after heading marker(s) for headings
+  // Example: '✍🏻 ## General tips' => '## ✍🏻 General tips'
+  return markdown.replace(
+    /^([\p{Emoji_Presentation}\p{Extended_Pictographic}]+)\s*(#+)/gmu,
+    (_match, emoji, hashes) => {
+      return `${hashes} ${emoji}`;
+    }
+  );
+}
 
 export default function FullAccessPage() {
-  const router = useRouter()
-  const { toast } = useToast()
-  const [copied, setCopied] = useState(false)
-  const [showNotionInstructions, setShowNotionInstructions] = useState(false)
-  const [generatedStyleGuide, setGeneratedStyleGuide] = useState<string | null>(null)
-  const [brandDetails, setBrandDetails] = useState<any>(null)
-  const [isDownloading, setIsDownloading] = useState(false)
-  const [downloadFormat, setDownloadFormat] = useState<string | null>(null)
-  const [showDownloadOptions, setShowDownloadOptions] = useState(false)
-  const [fadeIn, setFadeIn] = useState(false)
-  const [guideType, setGuideType] = useState<string>("core")
-  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter();
+  const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
+  const [showNotionInstructions, setShowNotionInstructions] = useState(false);
+  const [generatedStyleGuide, setGeneratedStyleGuide] = useState<string | null>(
+    null
+  );
+  const [brandDetails, setBrandDetails] = useState<any>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadFormat, setDownloadFormat] = useState<string | null>(null);
+  const [showDownloadOptions, setShowDownloadOptions] = useState(false);
+  const [fadeIn, setFadeIn] = useState(false);
+  const [guideType, setGuideType] = useState<string>("core");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Check payment status
-    const paymentStatus = localStorage.getItem("styleGuidePaymentStatus")
+    const paymentStatus = localStorage.getItem("styleGuidePaymentStatus");
     if (paymentStatus !== "completed") {
-      router.push("/preview")
-      return
+      router.push("/preview");
+      return;
     }
 
     // Load brand details, style guide, and guide type
-    const savedBrandDetails = localStorage.getItem("brandDetails")
-    const savedStyleGuide = localStorage.getItem("generatedStyleGuide")
-    const savedGuideType = localStorage.getItem("styleGuidePlan")
-    
-    console.log("Loading full access page...")
-    console.log("Guide type:", savedGuideType)
-    console.log("Style guide content length:", savedStyleGuide?.length)
-    console.log("Brand details:", savedBrandDetails)
-    
+    const savedBrandDetails = localStorage.getItem("brandDetails");
+    const savedStyleGuide = localStorage.getItem("generatedStyleGuide");
+    const savedGuideType = localStorage.getItem("styleGuidePlan");
+
     if (savedBrandDetails) {
-      setBrandDetails(JSON.parse(savedBrandDetails))
+      setBrandDetails(JSON.parse(savedBrandDetails));
     }
-    
+
     if (savedStyleGuide) {
-      console.log("Style guide content preview:", savedStyleGuide.substring(0, 200) + "...")
-      setGeneratedStyleGuide(savedStyleGuide)
+      console.log(
+        "Style guide content preview:",
+        savedStyleGuide.substring(0, 200) + "..."
+      );
+      setGeneratedStyleGuide(savedStyleGuide);
     } else {
-      console.log("No style guide content found in localStorage")
+      console.log("No style guide content found in localStorage");
       // If no style guide, redirect to brand details to generate it
-      router.push("/brand-details?paymentComplete=true")
-      return
+      router.push("/brand-details?paymentComplete=true");
+      return;
     }
 
     if (savedGuideType) {
-      setGuideType(savedGuideType)
+      setGuideType(savedGuideType);
     }
 
-    setIsLoading(false)
+    setIsLoading(false);
 
     // Trigger fade-in animation
     const timer = setTimeout(() => {
-      setFadeIn(true)
-    }, 100)
+      setFadeIn(true);
+    }, 100);
 
-    return () => clearTimeout(timer)
-  }, [router])
+    return () => clearTimeout(timer);
+  }, [router]);
 
   const handleCopy = () => {
-    setCopied(true)
-    const shareableLink = window.location.href
+    setCopied(true);
+    const shareableLink = window.location.href;
 
     navigator.clipboard
       .writeText(shareableLink)
       .then(() => {
         toast({
           title: "Copied to clipboard",
-          description: "The style guide link has been copied to your clipboard.",
-        })
+          description:
+            "The style guide link has been copied to your clipboard.",
+        });
       })
       .catch((err) => {
-        console.error("Could not copy text: ", err)
+        console.error("Could not copy text: ", err);
         toast({
           title: "Copy failed",
           description: "Could not copy to clipboard. Please try again.",
           variant: "destructive",
-        })
+        });
       })
       .finally(() => {
-        setTimeout(() => setCopied(false), 2000)
-      })
-  }
+        setTimeout(() => setCopied(false), 2000);
+      });
+  };
 
-  const handleDownload = async (format: string) => {
-    if (!generatedStyleGuide || !brandDetails) return
+  const handleDownload = async (format: FileFormat) => {
+    // [TODO] - Add brand details are not being properly saved to localStorage
+    // if (!generatedStyleGuide || !brandDetails) return;
+    if (!generatedStyleGuide) return;
 
-    setIsDownloading(true)
-    setDownloadFormat(format)
+    setIsDownloading(true);
+    setDownloadFormat(format);
 
     try {
-      const file = await generateFile(generatedStyleGuide, brandDetails, format)
-      const url = window.URL.createObjectURL(file)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `style-guide.${format}`
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
+      // [TODO] - The whole branddetails object is not needed for the file generation
+      // Just the brandname, given that this feature is broken. I will default the brandname "Your Brand"
+      const file = await generateFile(
+        format as FileFormat,
+        generatedStyleGuide,
+        "Your Brand"
+      );
+      const url = window.URL.createObjectURL(file);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `style-guide.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
 
       toast({
         title: "Download started",
         description: `Your style guide is downloading in ${format.toUpperCase()} format.`,
-      })
+      });
     } catch (error) {
-      console.error("Error generating file:", error)
+      console.error("Error generating file:", error);
       toast({
         title: "Download failed",
         description: "Could not generate the file. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsDownloading(false)
-      setDownloadFormat(null)
-      setShowDownloadOptions(false)
+      setIsDownloading(false);
+      setDownloadFormat(null);
+      setShowDownloadOptions(false);
     }
-  }
+  };
 
   // Get guide content based on plan type
   const getGuideContent = () => {
-    if (!generatedStyleGuide) return null
-    
-    // Always return full content - the template itself handles the content limits
-    return generatedStyleGuide
-  }
+    if (!generatedStyleGuide) return null;
 
-  const guideContent = getGuideContent()
+    // Always return full content - the template itself handles the content limits
+    return generatedStyleGuide;
+  };
+
+  const guideContent = getGuideContent();
 
   if (isLoading) {
     return (
@@ -154,7 +176,7 @@ export default function FullAccessPage() {
         <Loader2 className="h-8 w-8 animate-spin" />
         <p className="mt-4">Loading your style guide...</p>
       </div>
-    )
+    );
   }
 
   if (!guideContent) {
@@ -163,7 +185,7 @@ export default function FullAccessPage() {
         <Loader2 className="h-8 w-8 animate-spin" />
         <p className="mt-4">Loading style guide...</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -171,9 +193,14 @@ export default function FullAccessPage() {
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:bg-gray-950/95 dark:border-gray-800">
         <div className="container px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 min-w-0 max-w-[180px] sm:max-w-none">
+          <Link
+            href="/"
+            className="flex items-center gap-2 min-w-0 max-w-[180px] sm:max-w-none"
+          >
             <FileText className="h-5 w-5 flex-shrink-0" />
-            <span className="text-lg font-semibold truncate whitespace-nowrap">Style Guide AI</span>
+            <span className="text-lg font-semibold truncate whitespace-nowrap">
+              Style Guide AI
+            </span>
           </Link>
           <div className="flex items-center gap-4">
             <div className="px-4 py-2 text-sm font-medium rounded-md bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 border border-green-200 dark:border-green-800">
@@ -196,11 +223,16 @@ export default function FullAccessPage() {
       </header>
 
       {/* Notion Instructions Dialog */}
-      <Dialog open={showNotionInstructions} onOpenChange={setShowNotionInstructions}>
+      <Dialog
+        open={showNotionInstructions}
+        onOpenChange={setShowNotionInstructions}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Import to Notion</DialogTitle>
-            <DialogDescription>Follow these steps to import your style guide into Notion</DialogDescription>
+            <DialogDescription>
+              Follow these steps to import your style guide into Notion
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <ol className="list-decimal ml-5 space-y-2">
@@ -212,7 +244,9 @@ export default function FullAccessPage() {
             </ol>
           </div>
           <DialogFooter>
-            <Button onClick={() => setShowNotionInstructions(false)}>Got it</Button>
+            <Button onClick={() => setShowNotionInstructions(false)}>
+              Got it
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -222,15 +256,14 @@ export default function FullAccessPage() {
         <div className="bg-white rounded-xl border shadow-sm overflow-hidden dark:bg-gray-950 dark:border-gray-800 relative">
           <div className="p-8">
             <div className="max-w-3xl mx-auto">
-              <div className={`prose prose-slate dark:prose-invert max-w-none ${fadeIn ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}>
-                <Markdown
-                  className="markdown-content"
-                  options={{
-                    overrides: MarkdownComponents
-                  }}
-                >
-                  {guideContent}
-                </Markdown>
+              <div
+                className={`prose prose-slate dark:prose-invert max-w-none ${
+                  fadeIn ? "opacity-100" : "opacity-0"
+                } transition-opacity duration-500`}
+              >
+                <ReactMarkdown components={MarkdownComponents}>
+                  {fixEmojiHeadings(guideContent)}
+                </ReactMarkdown>
               </div>
             </div>
           </div>
@@ -285,5 +318,5 @@ export default function FullAccessPage() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

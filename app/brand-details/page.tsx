@@ -26,6 +26,7 @@ import { ArrowLeft, FileText, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { useSearchParams } from "next/navigation";
+import { apiPost } from "@/lib/api-client";
 
 // Default brand details
 const defaultBrandDetails = {
@@ -262,20 +263,13 @@ export default function BrandDetailsPage() {
     try {
       // For preview mode, use the preview template
       if (!paymentComplete) {
-        const response = await fetch("/api/preview", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            brandDetails: brandDetails,
-          }),
+        const data = await apiPost<{
+          success: boolean;
+          error?: string;
+          preview: string;
+        }>("/api/preview", {
+          brandDetails: brandDetails,
         });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to generate preview");
-        }
-
-        const data = await response.json();
 
         if (!data.success) {
           throw new Error(data.error || "Failed to generate preview");
@@ -291,21 +285,14 @@ export default function BrandDetailsPage() {
       }
 
       // For paid users, generate full style guide
-      const response = await fetch("/api/generate-styleguide", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          brandInfo: brandDetails,
-          plan: guideType,
-        }),
+      const data = await apiPost<{
+        success: boolean;
+        error?: string;
+        styleGuide: string;
+      }>("/api/generate-styleguide", {
+        brandInfo: brandDetails,
+        plan: guideType,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to generate style guide");
-      }
-
-      const data = await response.json();
 
       if (!data.success) {
         throw new Error(data.error || "Failed to generate style guide");
@@ -316,6 +303,7 @@ export default function BrandDetailsPage() {
 
       // Save brand details and redirect to full access page
       sessionStorage.setItem("brandDetails", JSON.stringify(brandDetails));
+
       router.push("/full-access");
     } catch (error) {
       console.error("Error:", error);

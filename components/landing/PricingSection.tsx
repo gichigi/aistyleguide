@@ -25,7 +25,7 @@ export function PricingSection() {
           <Card className="relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-background"></div>
             <CardContent className="p-6 relative z-10">
-              <div className="flex flex-col items-center space-y-4 text-center">
+              <div className="flex flex-col items-center space-y-7 text-center">
                 <h3 className="text-2xl font-bold">Core Style Guide</h3>
                 <div className="space-y-1">
                   <p className="text-5xl font-bold">$99</p>
