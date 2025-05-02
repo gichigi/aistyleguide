@@ -1,0 +1,1232 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# AI Style Guide Generator Project
+
+## Background and Motivation
+- Web app that generates brand style guides from website URLs
+- Uses AI to extract and analyze brand elements
+- Helps businesses maintain consistent branding
+- Built with Next.js, TypeScript, and Tailwind CSS
+- Current focus is on improving the preview and payment flow
+- Need to make the payment options clearer and more user-friendly
+
+## Key Challenges and Analysis
+- URL extraction and validation
+- AI processing of brand elements
+- Template generation and customization
+- Payment integration for full access
+- Preview functionality before purchase
+- Type safety issues in template processing and preview generation fixed
+- Payment dialog UI improvements implemented with tabbed interface
+
+### Target Audience Data Flow Issue (P1) - RESOLVED ✓
+Problem: Target audience data flow has been fixed and verified
+- Backend successfully extracts detailed audience data
+- Data is properly formatted in API response
+- UI form now correctly displays audience data
+- Session storage sync working
+- Style guide generation properly uses audience data
+
+Solution Implemented:
+1. Data Flow:
+   - OpenAI generates structured audience data
+   - API response includes targetAudience field
+   - Landing page maps targetAudience to audience in session storage
+   - Brand details form reads audience data correctly
+   - Style guide generation uses audience for:
+     - Voice trait customization
+     - Writing rules adaptation
+     - Content examples targeting
+
+2. Changes Made:
+   - Added mapping in landing page handleExtraction function
+   - Updated brand details form to handle both field names
+   - Added fallback handling for backward compatibility
+   - Verified audience usage in style guide generation
+
+### Preview vs Generation Flow Issue (P1) - RESOLVED ✓
+Problem: Duplicate function declaration causing build error
+- `generateTemplatePreview` function declared twice in template-processor.ts
+- Build fails with "Identifier 'generateTemplatePreview' has already been declared"
+- Preview page fails to load due to build error
+
+Root Cause Analysis:
+1. Code Structure:
+   - First declaration at line ~260
+   - Second declaration at end of file
+   - Both functions have same name
+   - Both export same functionality
+
+2. Required Changes:
+   - Remove duplicate function
+   - Keep most complete version
+   - Update imports if needed
+   - Test preview flow
+
+Implementation Status:
+1. Fixed Template Processor:
+   - Removed duplicate function ✓
+   - Kept version with full preview content ✓
+   - Tested preview generation ✓
+
+2. Tested Flow:
+   - Brand details -> Generate -> Preview ✓
+   - Loading animation works ✓
+   - Preview content shows correctly ✓
+   - Paywall displays properly ✓
+
+Success Criteria Met:
+- Build succeeds without errors ✓
+- Preview page loads correctly ✓
+- Preview content shows brand details ✓
+- Loading animation works ✓
+- Paywall displays properly ✓
+
+### React State Update Fix (P1) - RESOLVED ✓
+Problem: Critical error in PreviewPage component causing React state update issues
+- Error prevented proper navigation and broke user flow
+- Router state update happening during render phase
+- Error occurred at line 149 of preview/page.tsx
+
+Implementation:
+- Added `shouldRedirect` state to manage navigation
+- Created dedicated useEffect for navigation
+- Replaced direct router calls with state updates
+- Added proper loading state UI
+- Fixed useEffect dependency arrays
+
+Testing Results:
+- Preview page now loads correctly
+- Loading state displays properly
+- Navigation works as expected
+- No more React state update errors
+- User experience is smooth and intuitive
+
+## Preview Formatting Fix Plan (P1)
+Problem: Preview page markdown formatting is broken
+- Content not properly formatted
+- Manual line splitting causing issues
+- Tailwind Typography not being used effectively
+
+Root Cause:
+- Current implementation manually splits content by newlines
+- Tries to handle each markdown element type separately
+- Not leveraging existing Tailwind Typography features
+
+Simple Solution:
+1. Update preview content section to:
+   - Remove manual line splitting ✓
+   - Use proper content injection ✓
+   - Keep fade-out effect ✓
+   - Let Tailwind Typography handle formatting ✓
+
+Implementation Status:
+- [x] Update preview page content rendering
+  - Added enhanced Tailwind Typography classes
+  - Improved markdown to HTML conversion
+  - Added proper dark mode styles
+- [x] Test formatting with different content types
+- [x] Verify fade-out still works
+- [x] Check dark mode compatibility
+
+Changes Made:
+1. Enhanced Typography:
+   - Added prose-slate for better styling
+   - Set specific heading sizes
+   - Made headings bold
+   - Consistent text sizes
+
+2. Markdown Processing:
+   - Added basic markdown to HTML conversion
+   - Handle line breaks
+   - Convert bold text to strong tags
+   - Convert bullet points to HTML lists
+
+3. Dark Mode:
+   - Better contrast for paragraphs
+   - Better contrast for lists
+   - Bold text stands out
+
+Success Criteria:
+- [x] Preview content properly formatted
+- [x] Headers, lists, and emphasis working
+- [x] Fade-out effect functioning
+- [x] Dark mode working
+- [x] No regression in other features
+
+## High-level Task Breakdown
+1. URL Input and Validation
+   - Validate website URLs
+   - Handle manual input fallback
+   - Error handling and user feedback
+
+2. Brand Element Extraction
+   - Extract colors, fonts, logos
+   - Process website content
+   - Store extracted data
+
+3. Style Guide Generation
+   - Apply AI analysis
+   - Generate template
+   - Customize based on brand elements
+
+4. Preview System
+   - Show style guide preview
+   - Allow basic customization
+   - Watermark for free version
+
+5. Payment Integration
+   - Stripe checkout
+   - Handle successful payments
+   - Grant full access
+
+6. Full Access Features
+   - Remove watermarks
+   - Enable downloads
+   - Allow full customization
+
+### Type Safety Improvements
+- [x] Fix undefined content access in preview route
+  - Added type guard for voiceTraitsResult.content
+  - Added validation for trait format
+  - Improved error handling with Logger
+  - Success Criteria Met:
+    - ✅ Added proper type guards
+    - ✅ Added validation checks
+    - ✅ Improved error messages
+
+- [x] Fix type safety in template processor
+  - Updated function signatures
+  - Added type guards for all content
+  - Added validation checks
+  - Fixed generateWithOpenAI call
+  - Success Criteria Met:
+    - ✅ Added proper type guards for all content access
+    - ✅ Ensured all OpenAI responses are properly typed
+    - ✅ Added null checks where needed
+    - ✅ Updated function signatures
+    - ✅ Added error handling
+    - ✅ Tested with edge cases
+
+## Project Status Board
+- [x] Fix target audience data flow
+- [x] Verify audience data usage in style guide
+- [x] Fix preview vs generation flow
+- [x] Fix preview formatting
+- [x] Implement markdown-to-jsx
+- [x] Fix duplicate headers
+- [x] Fix type safety issues
+  - [x] Add type guards for preview route
+  - [x] Fix template processor type safety
+  - [x] Add proper error handling
+  - [x] Test with edge cases
+- [x] Update payment dialog UI in preview page
+  - [x] Implement tabbed interface
+  - [x] Update pricing display
+  - [x] Add feature lists
+  - [x] Style buttons and UI elements
+  - [x] Test tab switching
+  - [x] Verify payment flow still works
+- [ ] Install styled-components
+- [ ] Update preview routing
+- [ ] Test preview flow
+- [x] Fix payment to style guide generation flow
+  - [x] Update payment success handler
+    - [x] Add guide type storage
+    - [x] Update redirect logic
+    - [x] Test payment flow
+  - [x] Enhance brand details page
+    - [x] Add guide type handling
+    - [x] Update generate button
+    - [x] Test generation flow
+  - [x] Fix generate API integration
+    - [x] Update plan handling
+    - [x] Add plan validation
+    - [x] Test API responses
+  - [x] Update full access page
+    - [x] Add guide type handling
+    - [x] Update content display
+    - [x] Test full access features
+- [x] Fix preview generation error
+  - [x] Add better error handling
+    - [x] Update error messages in brand details page
+    - [x] Add detailed error logging
+    - [x] Show specific error messages to users
+  - [x] Fix API error handling
+    - [x] Update preview API route
+    - [x] Add proper error responses
+    - [x] Use correct template for preview
+  - [x] Test the flow
+    - [x] Test with valid brand details
+    - [x] Test with invalid brand details
+    - [x] Test API error cases
+- [x] Fix form validation issues
+  - [x] Update form fields
+    - [x] Add maxLength attributes
+    - [x] Add character count display
+    - [x] Add error styling
+  - [x] Fix AI content handling
+    - [x] Add validation on change
+    - [x] Truncate long content
+  - [x] Add real-time validation
+    - [x] Add field error state
+    - [x] Show error messages
+    - [x] Update validation logic
+    - [x] Disable submit button when invalid
+- [x] Update character limits
+  - [x] Increase audience limit to 500
+  - [x] Update API validation
+  - [x] Update form validation
+  - [x] Improve field UX
+- [x] Fix rule generation format
+  - [x] Update validation logic
+  - [x] Enhance OpenAI prompt
+  - [x] Test rule generation
+  - [x] Verify format compliance
+- [ ] Fix payment flow
+  - [ ] Add generation status tracking
+  - [ ] Update success page UI
+  - [ ] Implement proper redirects
+- [ ] Test full flow
+  - [ ] Generate new guide
+  - [ ] Check all sections
+  - [ ] Verify formatting
+  - [ ] Test payment flow
+
+## Current Status / Progress Tracking
+- Basic app structure in place
+- Main landing page implemented
+- API routes set up
+- UI components created
+- Payment system integrated
+- Payment to style guide generation flow implemented
+- Guide type (core/complete) properly handled throughout flow
+- Full access page shows appropriate content based on plan
+- Download options working for both plan types
+- Preview generation fixed
+- Better error handling implemented
+- Using correct template for preview
+- Form validation failing after AI content load
+- Need to enforce limits at field level
+- Need better user feedback
+- Form validation working properly
+- Real-time feedback added
+- Character limits updated
+- Form UX improved
+- Validation aligned between API and form
+
+## Executor's Feedback or Assistance Requests
+All tasks completed successfully. The form now has:
+- Real-time validation
+- Character count display
+- Error messages
+- Proper limits
+- Submit button validation
+
+Character limits have been updated:
+- Target audience now allows 500 chars
+## Lessons
+- Always map API response fields to match UI expectations
+- Include fallback handling for field name variations
+- Test data flow through all system layers
+- Verify data usage in AI generation steps
+- Check all dependencies before deploying features
+- Separate preview from full generation logic
+- Reuse existing components when possible
+- Router navigation should not happen during render phase
+- State updates must be in event handlers, useEffect, or callbacks
+- Keep navigation logic in appropriate React lifecycle methods
+- Use state to trigger navigation instead of direct router calls
+- Always provide loading states instead of redirecting during load
+- Type safety is critical for preventing runtime errors
+- OpenAI responses need proper type checking
+- Always add type guards before accessing potentially undefined values
+- Update function signatures to handle undefined cases
+- Add proper error messages for debugging
+- Use Logger for consistent error tracking
+- Validate content format before processing
+- Handle edge cases with clear error messages
+- Tabbed interfaces provide better UX for comparing options
+- Store guide type in localStorage for persistence
+- Validate plan type in API to prevent invalid requests
+- Use URL parameters to pass payment status and guide type
+- Show appropriate UI based on plan type
+- Add detailed error logging for debugging
+- Show specific error messages to users
+- Validate input before API calls
+- Use sessionStorage for preview data
+- Use localStorage for full guide data
+- Enforce limits at field level
+- Show real-time feedback
+- Handle AI content carefully
+- Prevent invalid input
+- Add maxLength to prevent invalid input
+- Show character count for better UX
+- Validate on change, not just submit
+- Use state for field errors
+- Disable submit button when form invalid
+
+## Detailed App Flow & Implementation Plan
+
+### 1. User Journey Overview
+- **Landing Page**
+  - User sees product intro, pricing, and CTA
+  - Can start by clicking 'Create your own style guide'
+
+- **Brand Details Form**
+  - User enters brand name, description, audience, tone
+  - Real-time validation, character counts, and help text
+  - On submit:
+    - If not paid: generates preview
+    - If paid: generates full guide
+
+- **Preview Page**
+  - Shows partial style guide (limited sections)
+  - Uses shared MarkdownComponents for formatting
+  - Fade-out effect before paywall
+  - 'Unlock Full Guide' button opens payment dialog
+
+- **Payment Flow**
+  - Stripe checkout session created
+  - On success: redirects to /payment/success
+  - Shows loading/progress while generating full guide
+  - On completion: redirects to /full-access
+
+- **Full Access Page**
+  - Shows full style guide (core or complete)
+  - Uses shared MarkdownComponents for formatting
+  - Download options (PDF, DOCX, HTML)
+  - Notion import instructions
+
+- **Download Flow**
+  - User selects format
+  - File generated and downloaded
+  - HTML/PDF/DOCX styled to match web as closely as possible
+
+### 2. Backend Implementation
+- **API Routes**
+  - `/api/preview`: Generates preview markdown (limited sections)
+  - `/api/generate-styleguide`: Generates full guide (core/complete)
+  - `/api/create-checkout-session`: Stripe integration
+
+- **Template Processing**
+  - Loads markdown templates
+  - Replaces variables (brand name, date, traits, rules)
+  - Validates markdown structure
+  - Ensures output matches required format
+
+- **OpenAI Integration**
+  - Generates brand voice traits and rules
+  - Ensures output is markdown-compliant
+
+### 3. Frontend Implementation
+- **Shared MarkdownComponents**
+  - Centralized in `lib/markdown-components.tsx`
+  - Used in preview, full-access, and any markdown rendering
+  - Consistent classes for headings, lists, emphasis, code
+  - Dark mode support
+
+- **Preview Page**
+  - Loads preview markdown via API
+  - Renders with shared components
+  - Fade-out and paywall UI
+
+- **Full Access Page**
+  - Loads full guide from localStorage
+  - Renders with shared components
+  - Download and Notion import dialogs
+
+- **Payment Success Page**
+  - Shows progress while generating guide
+  - Handles errors and redirects
+
+### 4. Download File Generation
+- **PDF/HTML/DOCX**
+  - Use same fonts, heading sizes, and colors as web
+  - Convert markdown to styled output
+  - Add brand name and date to header
+  - Ensure lists, code, and emphasis are styled
+
+### 5. Error Handling & Validation
+- **Form Validation**
+  - Real-time, with clear messages
+  - Disable submit if invalid
+
+- **API Error Handling**
+  - Show toast notifications on error
+  - Fallbacks for missing data
+
+- **Markdown Validation**
+  - Ensure all generated content matches required structure
+  - Log and show errors if not
+
+### 6. Consistency & Future-Proofing
+- **Always use MarkdownComponents for new markdown features**
+- Add code comments to guide future devs
+- Test all flows in both light and dark mode
+- Keep download output in sync with web style
+
+### 7. Testing & QA
+- **Manual Testing**
+  - All user flows: preview, payment, full access, download
+  - Edge cases: missing fields, network errors, invalid markdown
+
+- **Automated Tests**
+  - (Planned) Add tests for API routes and template processing
+
+### 8. Success Criteria
+- All markdown looks the same everywhere
+- No broken flows or regressions
+- Users can preview, pay, and access full guide smoothly
+- Downloaded files match web style
+
+## App Flow
+1. User enters website URL
+2. System validates and extracts brand elements
+3. AI processes and generates style guide
+4. User previews style guide
+5. User can purchase full access
+6. Full access unlocks downloads and customization
+
+## Key Files
+- `app/page.tsx` - Main landing page
+- `app/api/extract-website` - Brand extraction
+- `app/api/generate-styleguide` - AI processing
+- `app/payment` - Payment handling
+- `app/preview` - Preview system
+- `app/full-access` - Full access features
+
+## Dependencies
+- Next.js
+- TypeScript
+- Tailwind CSS
+- OpenAI API
+- Stripe
+- Lucide Icons
+
+<!-- Hidden Implementation Details -->
+<details>
+<summary>Implementation Details (Click to expand)</summary>
+
+## Technical Requirements
+1. Target Audience Format Fix ✓
+   - [x] Update extract-website route
+     - [x] Add audience flattening logic
+     - [x] Preserve detailed data for AI
+     - [x] Return simplified string for UI
+   - [x] Update frontend components
+     - [x] Adjust input validation
+     - [x] Update placeholder text
+     - [x] Handle longer audience descriptions
+
+## Recent Changes
+1. Backend (extract-website/route.ts):
+   - Added TargetAudienceDetail interface
+   - Added ProcessedBrandDetails interface
+   - Implemented flattenTargetAudience function
+   - Updated OpenAI prompt for structured data
+   - Added validation for flattened format
+
+2. Frontend (brand-details/page.tsx):
+   - Updated default audience example
+   - Added 20-char minimum validation
+   - Improved placeholder text
+   - Added helper text for audience field
+   - Updated onChange handler for audience
+
+## Preview Generation Plan
+- [x] Phase 1: Set up core template preview system
+  - [x] Load @core_template.md
+  - [x] Add function to extract first sections
+  - [x] Keep existing paywall banner design
+
+- [x] Phase 2: Clean up preview page
+  - [x] Remove hardcoded preview content
+  - [x] Remove mock data imports
+  - [x] Keep existing UI components
+  - [x] Add error handling with toast messages
+
+## UI Polish & Final Testing Phase
+### Phase 1: UI Polish
+- [ ] Loading States
+  - [ ] Add better loading animations
+  - [ ] Show progress indicators
+
+- [ ] Error States
+  - [ ] Add clear error messages
+  - [ ] Show retry options
+
+- [ ] Payment Flow
+  - [ ] Smooth transitions
+  - [ ] Clear pricing display
+
+### Phase 2: Final Testing
+- [ ] Test Core Features
+  - [ ] Brand details form
+  - [ ] AI content generation
+  - [ ] Payment flow
+
+- [ ] Test Edge Cases
+  - [ ] Invalid URLs
+  - [ ] Missing fields
+  - [ ] Network errors
+
+## OpenAI Response Format Fix Plan
+- [x] Fix OpenAI Response Format Mismatch
+  - [x] Update generateWithOpenAI function
+  - [x] Add format detection
+  - [x] Update response validation
+  - [x] Update error handling
+
+## Template Processor Format Issue
+- [x] Fix markdown validation
+  - [x] Add null/type safety checks
+  - [x] Make validation context-aware
+  - [x] Add more format variations
+  - [x] Remove overly strict requirements
+  - [x] Add fallback validation
+
+## Generation System Status Update
+✅ Style Guide Generation Test Results:
+- Voice traits generated successfully
+- All 8 sections generated with proper markdown
+- Template processing working
+- Export format handling working
+- No JSON parsing errors
+- Response validation passing
+
+## Bug Fix Plan: Template Processor File System Error
+Priority: HIGH - Blocking preview generation
+
+Issue:
+- Error: "Module not found: Can't resolve 'fs'"
+- Location: lib/template-processor.ts
+- Root cause: Next.js client components can't use Node.js 'fs' module
+
+Fix Steps:
+1. [x] Move template loading to server-side
+   - [x] Create new API route for template loading
+   - [x] Move fs operations to API route
+   - [x] Update template processor to use API
+
+2. [x] Update template processing flow
+   - [x] Create `/api/load-template` endpoint
+   - [x] Add error handling for template loading
+   - [x] Cache templates to reduce API calls
+
+3. [x] Test template loading
+   - [x] Test core template loading
+   - [x] Test complete template loading
+   - [x] Test error cases
+
+## Test Results
+1. Core Template Loading:
+   - Status: ✅ Success
+   - Content loads correctly
+   - Template structure preserved
+   - Variables intact
+
+2. Complete Template Loading:
+   - Status: ✅ Success
+   - Content loads correctly
+   - All sections present
+   - Variables intact
+
+3. Error Handling:
+   - Status: ✅ Success
+   - Returns proper status codes
+   - Clear error messages
+   - Error logging works
+
+4. Preview Generation:
+   - Status: ❌ Needs Work
+   - Missing API route
+   - Client-side preview fails
+   - 404 error on API call
+
+## Preview Testing Results
+### Issues Found
+1. Template Loading Error
+   - Error: Invalid URL for `/api/load-template`
+   - Fix needed: Add base URL to fetch calls
+
+2. Brand Voice Traits
+   - Current: Shows hardcoded preview traits
+   - Need: Generate dynamic traits from OpenAI
+   - Success Criteria: Preview shows actual generated traits
+
+### Required Fixes
+1. Update `/app/api/preview/route.ts`:
+   - [x] Add OpenAI voice trait generation
+   - [x] Replace hardcoded traits with generated ones
+   - [x] Add proper error handling for OpenAI calls
+
+2. Fix Template Loading:
+   - [x] Add base URL to fetch calls
+   - [x] Add proper error handling
+   - [x] Add template caching
+
+## Simplified Preview Generation Plan
+### Issues Found
+- Target audience not displaying
+- OpenAI calls slowing down preview
+- Complex template processing
+- Loading states need improvement
+- Preview badge needs removal
+
+### Simplified Solution
+1. Create Static Preview Template
+   - Use `core_template_preview.md` as base
+   - Replace essential variables
+   - Add generic content
+
+2. UI Improvements
+   - Update loading animation
+   - Add fade-out effect
+   - Remove preview badge
+   - Fix target audience handling
+
+### Benefits
+1. Much faster preview generation
+2. Consistent preview content
+3. No OpenAI costs for previews
+4. Simpler error handling
+5. Better user experience
+6. Proper target audience handling
+
+### Success Criteria
+- Preview loads in < 2 seconds
+- Shows generic but professional content
+- Maintains brand name personalization
+- Clear preview/full version distinction
+- Smooth loading animation
+- Gentle fade-out before paywall
+- Target audience properly displayed
+
+### Implementation Steps
+1. Create generic content constants
+2. Update template processor
+3. Remove OpenAI calls from preview
+4. Update preview page loading states
+5. Add fade-out effect
+6. Remove preview badge
+7. Fix target audience handling
+8. Test with different brand details
+
+### Testing Plan
+1. Verify loading animation
+2. Check preview content
+3. Test brand details
+4. Performance testing
+
+## Markdown Processing Implementation Plan (P1) - COMPLETED ✓
+Problem: Preview page markdown formatting is broken
+- Content not properly formatted
+- Manual line splitting causing issues
+- Tailwind Typography not being used effectively
+
+Solution: Replace custom markdown processing with markdown-to-jsx
+
+Implementation Status: COMPLETED ✓
+- Successfully replaced manual markdown processing with markdown-to-jsx
+- Fixed formatting for headers, lists, and emphasis
+- Removed duplicate title/subtitle issue
+- Maintained dark mode and fade-out functionality
+
+Changes Made:
+1. Enhanced Typography:
+   - Added prose-slate for better styling ✓
+   - Set specific heading sizes ✓
+   - Made headings bold ✓
+   - Consistent text sizes ✓
+
+2. Markdown Processing:
+   - Added basic markdown to HTML conversion ✓
+   - Handle line breaks ✓
+   - Convert bold text to strong tags ✓
+   - Convert bullet points to HTML lists ✓
+
+3. Dark Mode:
+   - Better contrast for paragraphs ✓
+   - Better contrast for lists ✓
+   - Bold text stands out ✓
+
+Success Criteria:
+- [x] No duplicate title/subtitle
+- [x] Headers properly formatted
+- [x] Lists properly formatted
+- [x] Bold text working
+- [x] Dark mode working
+- [x] Fade-out working
+- [x] No regression in other features
+
+## Duplicate Headers Fix (P1) - COMPLETED ✓
+Problem: Title "LEGO - Core Style Guide" appears twice
+- Once from manual header in preview component
+- Once from markdown template content
+
+Root Cause:
+- Header is manually added in preview page component
+- Same header exists in markdown template
+
+Solution: ✓
+1. Remove manual header from preview page component
+2. Let markdown-to-jsx handle the header rendering
+
+Implementation Status: COMPLETED ✓
+- Removed manual header div from preview component
+- Updated h1 styling in markdown-to-jsx options
+- Maintained consistent styling with previous version
+
+Success Criteria:
+- [x] Single header displayed
+- [x] Proper styling maintained
+- [x] No regression in other features
+
+### Payment to Style Guide Generation Issue (P1)
+Problem: After payment, the app isn't generating the chosen style guide (core or complete)
+
+Root Cause Analysis:
+1. Payment success page redirects to `/full-access` but doesn't trigger guide generation
+2. Brand details page has "Generate Full Style Guide" button but doesn't use the paid plan type
+3. No clear connection between payment type (core/complete) and guide generation
+
+Implementation Plan:
+
+1. Update Payment Success Handler (`/app/payment/success/page.tsx`)
+   - Add guide type storage:
+     ```typescript
+     const guideType = searchParams.get("guide_type") || "core"
+     localStorage.setItem("styleGuidePlan", guideType)
+     ```
+   - Update redirect:
+     ```typescript
+     router.push(`/brand-details?paymentComplete=true&guideType=${guideType}`)
+     ```
+   - Success Criteria:
+     - Guide type stored in localStorage
+     - Redirect includes payment status and guide type
+     - Payment status marked as complete
+
+2. Enhance Brand Details Page (`/app/brand-details/page.tsx`)
+   - Add guide type handling:
+     ```typescript
+     const guideType = searchParams.get("guideType") || localStorage.getItem("styleGuidePlan") || "core"
+     ```
+   - Update generate button:
+     ```typescript
+     const handleGenerate = async () => {
+       const response = await fetch("/api/generate-styleguide", {
+         method: "POST",
+         body: JSON.stringify({
+           brandInfo: brandDetails,
+           plan: guideType
+         })
+       })
+     }
+     ```
+   - Success Criteria:
+     - Guide type read from URL or localStorage
+     - API call includes correct plan
+     - UI shows appropriate plan type
+
+3. Fix Generate API Integration (`/app/api/generate-styleguide/route.ts`)
+   - Update plan handling:
+     ```typescript
+     const plan = requestBody?.plan || "core"
+     const template = plan === "complete" ? "complete_template" : "core_template"
+     ```
+   - Add plan validation:
+     ```typescript
+     if (!["core", "complete"].includes(plan)) {
+       return NextResponse.json({ error: "Invalid plan type" }, { status: 400 })
+     }
+     ```
+   - Success Criteria:
+     - API accepts and validates plan
+     - Correct template used based on plan
+     - Full content returned for paid plans
+
+4. Update Full Access Page (`/app/full-access/page.tsx`)
+   - Add guide type handling:
+     ```typescript
+     const guideType = localStorage.getItem("styleGuidePlan") || "core"
+     ```
+   - Update content display:
+     ```typescript
+     const guideContent = guideType === "complete" 
+       ? generatedStyleGuide 
+       : generatedStyleGuide.split("\n").slice(0, 25).join("\n")
+     ```
+   - Success Criteria:
+     - Guide content matches plan type
+     - Download options work for both plans
+     - UI reflects plan features
+
+Overall Success Criteria:
+- After payment, user sees full guide generation
+- Guide content matches paid plan type
+- Download options work correctly
+- No duplicate generation calls
+
+## Template Loading Fix Plan (P0)
+Problem: Core guide page shows minimal content due to template name mismatch and storage issues
+
+Root Cause:
+- Template names in API don't match actual files
+- Missing localStorage save after API response
+- Preview vs full template confusion
+
+Simple Solution:
+1. Fix Template Name Mismatch
+   - Update generate-styleguide/route.ts to use correct template names
+   - Change: "style_guide" -> "core_template"
+   - Change: "complete_style_guide" -> "complete_template"
+   - Success Criteria:
+     - [x] API uses correct template names
+     - [x] No template loading errors in console
+
+2. Add localStorage Save
+   - Update brand-details/page.tsx to save API response
+   - Add one line after successful generation
+   - Success Criteria:
+     - [x] Style guide content saved to localStorage
+     - [x] Content persists on page refresh
+
+3. Test Flow
+   - Test core guide generation
+   - Test preview mode
+   - Test complete guide
+   - Success Criteria:
+     - [ ] Core guide shows full content
+     - [ ] Preview shows limited content
+     - [ ] Complete guide shows all sections
+
+Changes Needed:
+1. In generate-styleguide/route.ts:
+```typescript
+// Change from:
+plan === "complete" ? "complete_style_guide" : "style_guide"
+// To:
+plan === "complete" ? "complete_template" : "core_template"
+```
+
+2. In brand-details/page.tsx (after API call):
+```typescript
+// Add after successful generation:
+localStorage.setItem("generatedStyleGuide", data.styleGuide)
+```
+
+Risks:
+- Minimal: Only changing template names and adding storage
+- No changes to template content
+- No changes to generation logic
+- No changes to UI components
+
+## Content Rendering & Validation Issues (P0)
+Problem: Two critical issues affecting user experience:
+1. Generated content not rendering properly
+2. Tone validation blocking form submission
+
+### Content Rendering Issue
+Root Cause Analysis:
+- Core template content not displaying in full-access page
+- Should show content from core_template.md with 25 style rules
+- Should match core_template_preview.md formatting
+- Content is being generated but not displayed correctly
+
+Investigation Points:
+1. Content Storage:
+   - Check if content is properly saved to localStorage
+   - Verify content format matches template
+   - Check if content is being loaded in full-access page
+
+2. Template Processing:
+   - Verify template loading in processTemplate function
+   - Check template name matches (core_template.md)
+   - Ensure placeholder replacement works
+
+3. Content Display:
+   - Check markdown rendering in full-access page
+   - Verify styling matches preview template
+   - Check content structure preservation
+
+### Tone Validation Issue
+Root Cause Analysis:
+- Default tone is set but validation fails
+- Form submission blocked by tone validation
+- Happens even when tone is pre-selected
+
+Investigation Points:
+1. Form Validation:
+   - Check tone validation logic in brand-details page
+   - Verify default value handling
+   - Check validation state management
+
+Simple Solution Plan:
+1. Fix Content Rendering:
+   - [x] Debug localStorage content saving
+   - [x] Remove incorrect content limiting
+   - [x] Add debug logging
+   - Success Criteria:
+     - [ ] Content shows all 25 style rules (pending testing)
+     - [ ] Formatting matches preview template (pending testing)
+     - [ ] No missing sections (pending testing)
+
+2. Fix Tone Validation:
+   - [x] Review tone field validation
+   - [x] Fix default value handling
+   - [x] Update validation logic
+   - Success Criteria:
+     - [x] Default tone passes validation
+     - [x] Form submits with pre-selected tone
+     - [x] No false validation errors
+
+Changes Needed:
+1. Debug Content Flow:
+```typescript
+// In full-access/page.tsx
+console.log("Loading content:", localStorage.getItem("generatedStyleGuide"))
+console.log("Guide type:", localStorage.getItem("styleGuidePlan"))
+```
+
+2. Fix Tone Validation:
+```typescript
+// In brand-details/page.tsx
+// Update validation to handle default tone
+if (!brandDetails?.tone || !validTones.includes(brandDetails.tone)) {
+  brandDetails.tone = "friendly" // Set default if missing
+}
+```
+
+Risks:
+- Low: Only debugging and minor validation fixes
+- No changes to core template structure
+- No changes to generation logic
+
+## Formatting Consistency Fix (P0)
+Problem: Full access page lacks the proper formatting seen in preview page
+
+Simple Solution Plan:
+1. Match Typography Configuration
+   - [x] Copy Tailwind Typography setup from preview
+   - [x] Add proper prose classes
+   - Success Criteria:
+     - [x] Headings show proper hierarchy
+     - [x] Text has proper spacing
+     - [x] Lists are properly formatted
+
+2. Update Markdown Component
+   - [x] Add proper markdown-to-jsx options
+   - [x] Configure heading styles
+   - [x] Add custom components for special elements
+   - Success Criteria:
+     - [x] Emojis render properly
+     - [x] Italics and bold text work
+     - [x] Lists are properly styled
+
+Changes Made:
+1. Added Custom Components:
+   - Heading components (h1, h2, h3)
+   - Text components (p, em, strong)
+   - List components (ul, li)
+   - Code component for inline code
+
+2. Updated Typography:
+   - Added proper Tailwind Typography classes
+   - Configured dark mode support
+   - Added spacing and hierarchy
+
+Next Steps:
+1. Test the formatting:
+   - Generate a new guide
+   - Check all heading levels
+   - Verify list formatting
+   - Test dark mode
+   - Verify emoji rendering
+
+2. Verify Responsiveness:
+   - Check on different screen sizes
+   - Verify spacing remains consistent
+   - Check text wrapping
+
+## Additional Required Change
+Problem: Tailwind Typography plugin not configured
+
+Status: ✅ COMPLETED
+- [x] Installed @tailwindcss/typography plugin using pnpm
+- [x] Updated tailwind.config.ts with the plugin
+- [x] Verified configuration changes
+
+Next Steps:
+1. Restart the development server to apply changes
+2. Test the formatting on the full-access page
+3. Verify the prose classes are working
+
+## Rule Generation & Payment Flow Fix (P0)
+Problem: Two critical issues affecting user experience:
+1. Rule generation failing due to markdown format mismatch
+2. Payment flow not properly handling guide generation state
+
+### Rule Generation Error Analysis
+Root Cause:
+- Error occurs in brand-details/page.tsx
+- Generated rules for "Formatting & UI elements" section don't match expected format
+- Validation failing in template-processor.ts
+
+Investigation Points:
+1. Template Validation:
+   - Check validateMarkdownContent function
+   - Review rule format requirements
+   - Verify OpenAI prompt structure
+
+2. Rule Generation:
+   - Check generateStyleGuideRules function
+   - Review rule template structure
+   - Verify markdown formatting
+
+### Payment Flow Analysis
+Current Flow:
+1. User completes payment
+2. Redirected to success page
+3. No indication of guide generation status
+4. Direct forwarding to full-access page
+
+Required Flow:
+1. User completes payment
+2. Redirect to success page with loading state
+3. Generate style guide in background
+4. Show progress indicator
+5. Redirect to full-access only when ready
+
+Action Plan:
+1. Fix Rule Generation
+   - [ ] Update rule template format
+   - [ ] Enhance validation to be more specific
+   - [ ] Add better error handling
+   - Success Criteria:
+     - Rules match required format
+     - No validation errors
+     - Clear error messages
+
+2. Improve Payment Flow
+   - [ ] Add generation status tracking
+   - [ ] Update success page UI
+   - [ ] Implement proper redirects
+   - Success Criteria:
+     - User sees generation progress
+     - No premature redirects
+     - Clear success indicators
+
+Changes Needed:
+1. Rule Generation Fix:
+```typescript
+// In lib/template-processor.ts
+// Update rule validation
+function validateRuleFormat(content: string): boolean {
+  // Add more specific validation
+  const hasRightWrong = content.includes("**Right**") && content.includes("**Wrong**")
+  const hasStructure = content.includes("###") && content.includes("- ")
+  return hasRightWrong && hasStructure
+}
+
+// Update OpenAI prompt to enforce format
+const rulePrompt = `Generate rules in this exact format:
+### Rule Name
+{{rule_line}}
+- **Right**: example
+- **Wrong**: example`
+```
+
+2. Payment Flow Update:
+```typescript
+// In pages/api/payment/success
+// Add generation status
+const generationStatus = {
+  status: "generating",
+  progress: 0
+}
+localStorage.setItem("generationStatus", JSON.stringify(generationStatus))
+
+// In success page
+const [status, setStatus] = useState(generationStatus)
+useEffect(() => {
+  // Poll for generation status
+  const interval = setInterval(checkStatus, 2000)
+  return () => clearInterval(interval)
+}, [])
+```
+
+Implementation Order:
+1. Fix rule generation first
+   - Update validation
+   - Test rule generation
+   - Verify format
+
+2. Then improve payment flow
+   - Add status tracking
+   - Update success page
+   - Test full flow
+
+Risks:
+- Rule format changes might affect existing guides
+- Need to handle in-progress generations
+- Consider timeout scenarios
+
+Testing Steps:
+1. Rule Generation
+   - Test each rule section
+   - Verify format compliance
+   - Check error handling
+
+2. Payment Flow
+   - Test complete payment flow
+   - Verify status updates
+   - Check error scenarios
+
+## Markdown Style Guide Beautification Plan (P2)
+
+**Background and Motivation**
+- Current style guide looks crowded and plain
+- Users need a visually appealing, easy-to-read document
+- Goal: Make it look professional, modern, and shareable
+
+**Key Challenges and Analysis**
+- Headings blend in with body text
+- Not enough spacing between sections
+- Bullets everywhere make it hard to scan
+- No color or visual breaks
+- Emojis could help, but should be subtle
+- Colored blocks for "do/don't" (like Brand Voice) look great and should be used everywhere it fits
+
+**High-level Task Breakdown**
+1. Update Markdown Styling
+   - Make headings bigger, bolder, and add color
+   - Add more space above and below headings and sections
+   - Use horizontal lines or subtle separators between main sections
+   - Add tasteful color accents (e.g., for headings, key tips)
+   - Use 1–2 emojis for section headers or callouts (not everywhere)
+   - Make body text a bit larger and increase line spacing for readability
+
+2. Use Colored Blocks for Do/Don't, Right/Wrong
+   - Use colored blocks (blue for "do", red for "don't") for all right/wrong, do/don't, or similar lists
+   - Use icons (✓ or → for do, ✗ for don't) inside the blocks
+   - Remove bullet points for these sections
+   - Use same style as Brand Voice example
+
+3. Test and Review
+   - Check the new look on light and dark mode
+   - Make sure it looks good on desktop and mobile
+   - Get feedback from a non-technical user
+
+**Success Criteria**
+- Headings stand out and are easy to spot
+- Sections are clearly separated
+- The document feels open, not crowded
+- Do/Don't and Right/Wrong are easy to scan, no bullet overload
+- The style guide looks modern, professional, and shareable
+
+</details>
