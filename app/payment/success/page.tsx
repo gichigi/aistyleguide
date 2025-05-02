@@ -26,8 +26,8 @@ export default function SuccessPage() {
     }
 
     // Store payment status and guide type
-    localStorage.setItem("styleGuidePaymentStatus", "completed")
-    localStorage.setItem("styleGuidePlan", guideType)
+    sessionStorage.setItem("styleGuidePaymentStatus", "completed")
+    sessionStorage.setItem("styleGuidePlan", guideType)
 
     // Start generation process
     const generateGuide = async () => {
@@ -58,7 +58,7 @@ export default function SuccessPage() {
         }
 
         // Save generated style guide
-        localStorage.setItem("generatedStyleGuide", data.styleGuide)
+        sessionStorage.setItem("generatedStyleGuide", data.styleGuide)
         
         // Update status
         setGenerationStatus('complete')

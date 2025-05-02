@@ -1,7 +1,7 @@
 ---
 description: 
 globs: 
-alwaysApply: true
+alwaysApply: false
 ---
 # AI Style Guide Generator Project
 
@@ -1187,46 +1187,205 @@ Testing Steps:
    - Verify status updates
    - Check error scenarios
 
-## Markdown Style Guide Beautification Plan (P2)
+## Markdown Style Guide Beautification Plan (P2) - PARTIALLY ACTIVE
+
+Note: Template and emoji changes are cancelled. Only update lib/markdown-components.tsx for:
+- Bigger, bolder headings
+- More spacing
+- Color accents
+- Consistent use of markdown components
+
+No changes to templates or markdown content. Only shared component styling will be improved.
+
+## Rule Generation Error Plan (P1)
 
 **Background and Motivation**
-- Current style guide looks crowded and plain
-- Users need a visually appealing, easy-to-read document
-- Goal: Make it look professional, modern, and shareable
+- Error: Failed to generate rules for Spelling conventions: Failed to get valid markdown after 3 attempts: Invalid markdown format - missing headers or formatting
+- This blocks style guide generation and user flow
 
 **Key Challenges and Analysis**
-- Headings blend in with body text
-- Not enough spacing between sections
-- Bullets everywhere make it hard to scan
-- No color or visual breaks
-- Emojis could help, but should be subtle
-- Colored blocks for "do/don't" (like Brand Voice) look great and should be used everywhere it fits
+- OpenAI sometimes returns markdown that does not match the expected format
+- The validation function is strict and may reject valid content
+- No fallback or retry logic for partial or slightly malformed markdown
 
 **High-level Task Breakdown**
-1. Update Markdown Styling
-   - Make headings bigger, bolder, and add color
-   - Add more space above and below headings and sections
-   - Use horizontal lines or subtle separators between main sections
-   - Add tasteful color accents (e.g., for headings, key tips)
-   - Use 1–2 emojis for section headers or callouts (not everywhere)
-   - Make body text a bit larger and increase line spacing for readability
+1. Review OpenAI Prompt
+   - Check if the prompt for rule generation is clear and specific enough
+   - Make sure it asks for the right markdown structure (headers, examples, etc.)
 
-2. Use Colored Blocks for Do/Don't, Right/Wrong
-   - Use colored blocks (blue for "do", red for "don't") for all right/wrong, do/don't, or similar lists
-   - Use icons (✓ or → for do, ✗ for don't) inside the blocks
-   - Remove bullet points for these sections
-   - Use same style as Brand Voice example
+2. Review Validation Logic
+   - Check the validateMarkdownContent and validateRuleFormat functions
+   - Loosen validation if needed to accept more valid markdown
+   - Add better error messages for debugging
 
-3. Test and Review
-   - Check the new look on light and dark mode
-   - Make sure it looks good on desktop and mobile
+3. Add Fallback Handling
+   - If OpenAI output is close but not perfect, try to auto-correct or accept it
+   - Add a warning but allow generation to continue if possible
+
+4. Test and Review
+   - Test rule generation for all sections
+   - Check for edge cases and failures
    - Get feedback from a non-technical user
 
+**Next Steps**
+- Review and update the OpenAI prompt for rule generation
+- Review and update the validation logic
+- Add fallback handling for near-miss markdown
+- Test the output and confirm the error is resolved
+
 **Success Criteria**
-- Headings stand out and are easy to spot
-- Sections are clearly separated
-- The document feels open, not crowded
-- Do/Don't and Right/Wrong are easy to scan, no bullet overload
-- The style guide looks modern, professional, and shareable
+- Rule generation works for all sections
+- No more blocking errors
+- Users can generate and access full style guides
+
+## Chunked Rule Generation Plan (P1)
+
+**Background and Motivation**
+- Generating 100+ rules in one AI call is unreliable (misses, cutoffs, formatting issues)
+- Generating rules in small chunks (by section) is more robust and easier to debug
+
+**Key Challenges and Analysis**
+- Need to break rule generation into logical sections (e.g., Spelling, Grammar, Punctuation, etc.)
+- Need to loop through each section, generate rules, and combine results
+- Need to handle errors for individual sections without failing the whole guide
+
+**High-level Task Breakdown**
+1. List All Sections
+   - Define an array of all rule sections (e.g., Spelling, Grammar, etc.)
+
+2. Generate Rules for Each Section
+   - Loop through each section
+   - Call AI to generate rules for that section
+   - Store each result
+
+3. Combine All Rules
+   - Join all section results into one markdown string
+
+4. Insert Into Template
+   - Replace the rules placeholder in the template with the combined rules
+
+5. Test and Review
+   - Test with different brands and sections
+   - Check for missing or malformed sections
+   - Get feedback from a non-technical user
+
+**Next Steps**
+- Implement chunked rule generation in the codebase
+- Test the output and confirm all sections are present
+- Only mark as complete after visually confirming the changes in the UI
+
+**Success Criteria**
+- All rule sections are present in the final guide
+- No more missing or cut-off rules
+- The style guide is reliable and easy to maintain
+
+## One-Time Style Guide Generation Plan (P1) - SIMPLE
+
+**Goal:**
+- User pays once, gets one full style guide.
+- Brand details page always generates a preview (never a full guide).
+- After payment, user gets a permalink to their paid guide.
+- If they want another, they pay again.
+
+**How it works:**
+- Preview is always available for any details.
+- Full guide is only generated after payment, one time per payment.
+- Permalink is the only way to revisit the paid guide.
+- No checks, blocks, or special messages needed.
+
+**Success Criteria:**
+- User can preview as much as they want.
+- User can only generate/download one full guide per payment.
+- User gets a permalink to their paid guide.
+- Everything else is always a preview.
+
+## Plan: Enforce core_template.md as Single Source of Truth
+
+### Background and Motivation
+- The template file (core_template.md) should always define the structure and order of the style guide.
+- This avoids mismatches, manual updates, and keeps everything in sync.
+
+### Key Challenges and Analysis
+- The code must parse section headers and placeholders directly from core_template.md.
+- No hardcoded section lists in code—template is always the source.
+- OpenAI prompts must be generated for each section or placeholder found in the template.
+
+### High-level Task Breakdown
+1. **Parse Section Headers and Placeholders from Template**
+   - Read core_template.md and extract all section headers (e.g. ### Spelling conventions) and placeholders (e.g. {{voice_trait_1}}, {{rule_line}}) in order.
+   - Success: Extracted list matches the template exactly.
+
+2. **Generate Content for Each Section/Placeholder**
+   - For each header or placeholder, create a focused OpenAI prompt (e.g. "Write the rule for 'Active voice' in this format: ...").
+   - Success: Each OpenAI call returns content for only that section/placeholder.
+
+3. **Insert Content in Template Order**
+   - Replace each placeholder or section in the template with the generated content, in order.
+   - Success: Output matches the template structure exactly, with no extra or missing sections.
+
+4. **Test with Multiple Brands**
+   - Run the process for several brands and check the output structure.
+   - Success: All outputs match the template, no extra rules or sections.
+
+5. **Add Error Handling and Logging**
+   - If OpenAI returns extra content, log a warning and only use the first valid response.
+   - Success: No extra content is inserted, and issues are logged for review.
+
+### Project Status Board
+- [x] Parse section headers and placeholders from template
+- [ ] Generate content for each section/placeholder
+- [ ] Insert content in template order
+- [ ] Test with multiple brands
+- [ ] Add error handling and logging
+
+### Success Criteria
+- Output always matches the structure and order of core_template.md
+- No extra or missing rules/sections
+- Easy to maintain and debug
+
+### Executor Progress Update
+
+#### Step 1: Parse Section Headers and Placeholders from Template
+- Read templates/core_template.md
+- Extracted section headers (in order):
+  - Brand Voice: {{voice_trait_1}}, {{voice_trait_2}}, {{voice_trait_3}}
+  - 25 rule sections (each with a header and a {{rule_line}} placeholder):
+    - Spelling conventions
+    - Active voice
+    - Contractions
+    - Sentence length
+    - Oxford comma
+    - Jargon and filler
+    - Numerals 1‑9
+    - Time format
+    - Heading case
+    - Document titles
+    - Dashes (em/en)
+    - Compound adjectives
+    - Inclusive language
+    - Brand point of view
+    - Reader address
+    - Link style
+    - Emoji usage
+    - Emphasis (bold / italic)
+    - Bullet lists
+    - ALL CAPS
+    - Alt text
+    - Decorative symbols
+    - Ellipses
+    - Tone & voice alignment
+    - Consistency check
+- Placeholders found: {{voice_trait_1}}, {{voice_trait_2}}, {{voice_trait_3}}, and 25 {{rule_line}} (one per rule section)
+- Order matches the template exactly.
+
+#### Project Status Board
+- [x] Parse section headers and placeholders from template
+- [ ] Generate content for each section/placeholder
+- [ ] Insert content in template order
+- [ ] Test with multiple brands
+- [ ] Add error handling and logging
+
+#### Executor's Feedback or Assistance Requests
+- Extraction complete. Ready to move to content generation for each section/placeholder.
 
 </details>

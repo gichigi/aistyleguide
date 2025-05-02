@@ -185,8 +185,8 @@ export default function GeneratePage() {
             console.log("Style guide generated successfully")
 
             // Save generated guide and brand details
-            localStorage.setItem("generatedStyleGuide", data.styleGuide)
-            localStorage.setItem("brandDetails", JSON.stringify(brandDetails))
+            sessionStorage.setItem("generatedStyleGuide", data.styleGuide)
+            sessionStorage.setItem("brandDetails", JSON.stringify(brandDetails))
 
             // Navigate to preview
             router.push("/preview")
@@ -200,9 +200,6 @@ export default function GeneratePage() {
                 : "Something went wrong generating the style guide. Please try again."
 
             setError(errorMessage)
-
-            // Save the brand details anyway so they don't have to re-enter them
-            localStorage.setItem("brandDetails", JSON.stringify(brandDetails))
 
             // Check if it's an API key error
             const isApiKeyError = errorMessage.toLowerCase().includes("api key") || 
@@ -219,7 +216,7 @@ export default function GeneratePage() {
 
             // If it's an API key error, use fallback content
             if (isApiKeyError) {
-              localStorage.setItem("generatedStyleGuide", FALLBACK_CONTENT)
+              sessionStorage.setItem("generatedStyleGuide", FALLBACK_CONTENT)
             }
 
             // Navigate to preview

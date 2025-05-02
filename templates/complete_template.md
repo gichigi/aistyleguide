@@ -9,17 +9,17 @@ This document outlines the rules for brand voice, spelling, grammar, and formatt
 
 ### Short‑form content (social, ads, web snippets)
 
-- **Be brief** – aim for 10‑15 words per sentence. Use short, familiar words and break text into 2‑ or 3‑sentence paragraphs.  
-- **Be an authority** – sound confident and optimistic; show you know what you’re talking about.  
-- **Write like a human** – use everyday language and avoid jargon.
+**Be brief**: aim for 10‑15 words per sentence. Use short, familiar words and break text into 2‑ or 3‑sentence paragraphs.  
+**Be an authority**: sound confident and optimistic; show you know what you’re talking about.  
+**Write like a human**: use everyday language and avoid jargon.
 
 ### Long‑form content (blogs, newsletters, articles)
 
-- **Humanise the story** – start with why it matters now, then show the solution.  
-- **Use line breaks & white space** – keep paragraphs to two or three sentences to improve readability.  
-- **Break up with sub‑heads** – draft first, add headings where they help scanning; strong headings keep readers engaged.  
-- **Use bullet lists** – for three or more points so ideas stand out.  
-- **Use numbers thoughtfully** – the brain notices numerals; lead with key figures but don’t overload the reader.
+**Humanise the story**: start with why it matters now, then show the solution.  
+**Use line breaks & white space**: keep paragraphs to two or three sentences to improve readability.  
+**Break up with sub‑heads**: draft first, add headings where they help scanning; strong headings keep readers engaged.  
+**Use bullet lists**: for three or more points so ideas stand out.  
+**Use numbers thoughtfully**: the brain notices numerals; lead with key figures but don’t overload the reader.
 
 
 ## Brand Voice
@@ -39,27 +39,27 @@ This document outlines the rules for brand voice, spelling, grammar, and formatt
 
 ### Company name spelling  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Proper nouns  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Hyphenation in heritage terms  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 ### Numbers 1–9  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Complex vs. simple words  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ---
 
@@ -67,68 +67,68 @@ This document outlines the rules for brand voice, spelling, grammar, and formatt
 
 ### Abbreviations  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Acronyms  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Active vs. passive voice  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Capitalisation  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Title case  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Sentence case  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Upper case  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Contractions  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Compound adjectives  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### eg / ie / etc.  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Emojis  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Job titles  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Languages  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ---
 
@@ -136,93 +136,93 @@ This document outlines the rules for brand voice, spelling, grammar, and formatt
 
 ### Accents  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Apostrophes  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Ampersands  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Colons  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Commas  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Em dash  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### En dash  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Ellipses  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Exclamation points  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Slashes ( /  \\ )  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Hyphens  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Periods / full stops  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Parentheses / brackets  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Pipes  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Semicolons  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Special characters  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Question marks  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Quotation marks  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ---
 
@@ -230,78 +230,78 @@ This document outlines the rules for brand voice, spelling, grammar, and formatt
 
 ### Alignment  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Alt text  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Bold / italics / underlines  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Bullet points  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Buttons  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Coloured text  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Checkboxes  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Email addresses  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### File extensions  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Forms  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Links  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Numbered lists  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Radio buttons  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Spacing  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Strikethrough  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ---
 
@@ -309,78 +309,78 @@ This document outlines the rules for brand voice, spelling, grammar, and formatt
 
 ### 1–9  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Big numbers  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Dates  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Decimals  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Fractions  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Measurements  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Millions & billions  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Money  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Percentages  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Ranges  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Telephone numbers  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Temperature  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Time & time zones  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Weights  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Whole numbers  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ---
 
@@ -388,38 +388,38 @@ This document outlines the rules for brand voice, spelling, grammar, and formatt
 
 ### Person‑first language  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Disability‑related terms  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Gender & sexuality terminology  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Heritage & nationality terminology  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Age references  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Neurodiversity references  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Socio‑economic references  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ---
 
@@ -427,13 +427,13 @@ This document outlines the rules for brand voice, spelling, grammar, and formatt
 
 ### First vs. third person  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Pronouns  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ---
 
@@ -441,27 +441,27 @@ This document outlines the rules for brand voice, spelling, grammar, and formatt
 
 ### Serial comma  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 ### Slang & jargon  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Titles, headings & subheadings  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Trademarks  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ### Consistency review  
 {{rule_line}}  
-- **Right**:  
-- **Wrong**:  
+**Right**:  
+**Wrong**:  
 
 ---
 
@@ -472,9 +472,9 @@ This document outlines the rules for brand voice, spelling, grammar, and formatt
 {{example_blog}}
 
 **Brand voice breakdown**  
-- {{breakdown_blog_1}}  
-- {{breakdown_blog_2}}  
-- {{breakdown_blog_3}}
+{{breakdown_blog_1}}  
+{{breakdown_blog_2}}  
+{{breakdown_blog_3}}
 
 ---
 
@@ -482,9 +482,9 @@ This document outlines the rules for brand voice, spelling, grammar, and formatt
 {{example_linkedin}}
 
 **Brand voice breakdown**  
-- {{breakdown_linkedin_1}}  
-- {{breakdown_linkedin_2}}  
-- {{breakdown_linkedin_3}}
+{{breakdown_linkedin_1}}  
+{{breakdown_linkedin_2}}  
+{{breakdown_linkedin_3}}
 
 ---
 
@@ -492,10 +492,10 @@ This document outlines the rules for brand voice, spelling, grammar, and formatt
 {{example_email}}
 
 **Brand voice breakdown**  
-- {{breakdown_email_1}}  
-- {{breakdown_email_2}}  
-- {{breakdown_email_3}}
+{{breakdown_email_1}}  
+{{breakdown_email_2}}  
+{{breakdown_email_3}}
 
 ---
 
-Questions? Contact **{{brand_contact_email}}**
+Style questions? Contact us.

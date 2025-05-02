@@ -258,12 +258,12 @@ export default function LandingPage() {
                     {isExtracting ? (
                       <>
                         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Analyzing your website...
+                        Checking your site...
                       </>
                     ) : isSuccess ? (
                       <>
                         <CheckCircle className="mr-2 h-5 w-5" />
-                        Success! Redirecting...
+                        Success
                       </>
                     ) : (
                       <>

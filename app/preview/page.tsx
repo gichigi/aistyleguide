@@ -60,13 +60,6 @@ export default function PreviewPage() {
   const [shouldRedirect, setShouldRedirect] = useState(false)
 
   useEffect(() => {
-    // Check if user has already paid
-    const paymentStatus = localStorage.getItem("styleGuidePaymentStatus")
-    if (paymentStatus === "completed") {
-      setShouldRedirect(true)
-      return
-    }
-
     // Load brand details
     const savedBrandDetails = sessionStorage.getItem("brandDetails")
     if (savedBrandDetails) {

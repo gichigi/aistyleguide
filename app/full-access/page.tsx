@@ -33,17 +33,10 @@ export default function FullAccessPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Check payment status
-    const paymentStatus = localStorage.getItem("styleGuidePaymentStatus")
-    if (paymentStatus !== "completed") {
-      router.push("/preview")
-      return
-    }
-
-    // Load brand details, style guide, and guide type
-    const savedBrandDetails = localStorage.getItem("brandDetails")
-    const savedStyleGuide = localStorage.getItem("generatedStyleGuide")
-    const savedGuideType = localStorage.getItem("styleGuidePlan")
+    // Load brand details, style guide, and guide type from sessionStorage
+    const savedBrandDetails = sessionStorage.getItem("brandDetails")
+    const savedStyleGuide = sessionStorage.getItem("generatedStyleGuide")
+    const savedGuideType = sessionStorage.getItem("styleGuidePlan")
     
     console.log("Loading full access page...")
     console.log("Guide type:", savedGuideType)
@@ -58,7 +51,7 @@ export default function FullAccessPage() {
       console.log("Style guide content preview:", savedStyleGuide.substring(0, 200) + "...")
       setGeneratedStyleGuide(savedStyleGuide)
     } else {
-      console.log("No style guide content found in localStorage")
+      console.log("No style guide content found in sessionStorage")
       // If no style guide, redirect to brand details to generate it
       router.push("/brand-details?paymentComplete=true")
       return

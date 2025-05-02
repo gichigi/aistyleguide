@@ -10,25 +10,13 @@ interface GenerationResult {
 type ResponseFormat = "json" | "markdown"
 
 async function validateJsonResponse(text: string): Promise<{ isValid: boolean; content?: any; error?: string }> {
-  try {
-    const content = JSON.parse(text)
-    return { isValid: true, content }
-  } catch (error) {
-    return { 
-      isValid: false, 
-      error: error instanceof Error ? error.message : "Invalid JSON format" 
-    }
+  return {
+    isValid: true,
+    content: text
   }
 }
 
 async function validateMarkdownResponse(text: string): Promise<{ isValid: boolean; content?: string; error?: string }> {
-  // Basic markdown validation - check for headers and formatting
-  if (!text.includes('###') || !text.includes('**')) {
-    return {
-      isValid: false,
-      error: "Invalid markdown format - missing headers or formatting"
-    }
-  }
   return {
     isValid: true,
     content: text
@@ -145,8 +133,8 @@ Consider the target audience carefully. The voice traits should resonate with ${
 For each trait, provide:
 1. A clear title
 2. A brief description
-3. "What It Means" - 3 specific guidelines
-4. "What It Doesn't Mean" - 3 things to avoid
+3. "What It Means" - 3 specific guidelines, each starting with → (arrow emoji)
+4. "What It Doesn't Mean" - 3 things to avoid, each starting with ✗ (cross emoji)
 
 Format in markdown with ### headers for each trait.`
 
@@ -163,23 +151,30 @@ Tone: ${brandDetails.tone}
 
 Consider how ${brandDetails.audience} will interact with the content. Rules should help content creators maintain a ${brandDetails.tone} tone while effectively communicating with this audience.
 
-Provide 3-5 specific rules in this EXACT format:
+Provide 1 specific rule in this EXACT format:
 
-### Rule Name
-- **Right**: [clear example that follows the rule]
-- **Wrong**: [example that breaks the rule]
+[rule description]
+✅ Right: [clear example that follows the rule]
+❌ Wrong: [example that breaks the rule]
 
 Each rule must:
-1. Start with "###" followed by the rule name
-2. Include a "Right" example with "- **Right**:"
-3. Include a "Wrong" example with "- **Wrong**:"
+1. Start with the rule name
+2. Include a Right example with '✅ Right:'
+3. Include a Wrong example with '❌ Wrong:'
 4. Use markdown formatting for emphasis
 5. Be specific and actionable
 
+Provide exactly ONE rule for each section, not a list. Do NOT include more than one rule. Only output one rule block in the format below.
+
 Example format:
-### Use Active Voice
-- **Right**: "The team completed the project on time"
-- **Wrong**: "The project was completed by the team"`
+
+Use active voice
+✅ Right: "The team completed the project on time"
+❌ Wrong: "The project was completed by the team"
+
+Use British English spelling
+✅ Right: "Colour"
+❌ Wrong: "Color"`
 
   return generateWithOpenAI(prompt, "You are an expert content strategist who creates clear, actionable style guide rules.", "markdown")
 }

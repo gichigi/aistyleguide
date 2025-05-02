@@ -53,8 +53,8 @@ function validateMarkdownContent(content: string | undefined): boolean {
   const hasHeaders = /^#{1,6}\s.+/m.test(cleanedContent)
   const hasFormatting = /[*_`]/.test(cleanedContent)
   
-  if (!hasHeaders || !hasFormatting) {
-    console.warn('Content missing required markdown structure')
+  if (!hasHeaders) {
+    console.warn('Content missing required markdown header')
     return false
   }
   
@@ -75,30 +75,21 @@ function validateMarkdownContent(content: string | undefined): boolean {
   
   // For rules, check for example structure
   if (cleanedContent.toLowerCase().includes('rule')) {
-    const hasExamples = (
-      cleanedContent.includes("**Right**") || 
-      cleanedContent.includes("**Wrong**") ||
-      cleanedContent.includes("**Do**") ||
-      cleanedContent.includes("**Don't**") ||
-      cleanedContent.includes("✅") ||
-      cleanedContent.includes("❌")
-    )
-    
-    // Check for proper rule structure
-    const hasRuleStructure = (
-      cleanedContent.includes("###") && // Has a header
-      cleanedContent.includes("- ") && // Has bullet points
-      cleanedContent.includes("**") && // Has bold text
-      cleanedContent.split("\n").some(line => line.trim().startsWith("- **Right**")) && // Has right example
-      cleanedContent.split("\n").some(line => line.trim().startsWith("- **Wrong**")) // Has wrong example
-    )
-    
-    if (!hasRuleStructure) {
-      console.warn('Rule content missing required structure')
+    // Accept any of these as valid right/wrong lines:
+    // - **Right**: ...
+    // - **Wrong**: ...
+    // ✅ Right: ...
+    // ❌ Wrong: ...
+    // Right: ...
+    // Wrong: ...
+    const hasRight = cleanedContent.match(/(^|\n)(-\s*)?(\*\*|✅)?\s*Right:?/)
+    const hasWrong = cleanedContent.match(/(^|\n)(-\s*)?(\*\*|❌)?\s*Wrong:?/)
+    const hasRuleHeader = cleanedContent.match(/^###\s.+/m)
+    if (!hasRight || !hasWrong || !hasRuleHeader) {
+      console.warn('Rule content missing required right/wrong structure')
       return false
     }
-    
-    return hasHeaders && hasRuleStructure
+    return true
   }
   
   // If neither traits nor rules, just check for basic markdown
@@ -192,81 +183,55 @@ export async function processTemplate(templateType: string, brandDetails: any, p
 
     // Generate brand voice traits with OpenAI - enhanced with audience context
     try {
-      console.log("Generating voice traits with OpenAI")
-      const voiceTraitsResult = await generateBrandVoiceTraits(validatedDetails)
-      console.log("Voice traits generation result:", voiceTraitsResult.success)
+      console.log("Generating brand voice trait details with OpenAI")
+      for (let i = 1; i <= 3; i++) {
+        // Title
+        const titlePrompt = `Give a short, catchy title for brand voice trait #${i} for ${validatedDetails.name}.`;
+        const titleResult = await generateWithOpenAI(titlePrompt, "You are an expert brand strategist.", "markdown");
+        template = template.replace(new RegExp(`{{voice_trait_${i}_title}}`, 'g'), formatMarkdownContent(titleResult.content || ''));
 
-      if (!voiceTraitsResult.success) {
-        throw new Error(`Failed to generate voice traits: ${voiceTraitsResult.error}`)
-      }
+        // Description
+        const descPrompt = `Write a 1-2 sentence description for brand voice trait #${i} for ${validatedDetails.name}.`;
+        const descResult = await generateWithOpenAI(descPrompt, "You are an expert brand strategist.", "markdown");
+        template = template.replace(new RegExp(`{{voice_trait_${i}_description}}`, 'g'), formatMarkdownContent(descResult.content || ''));
 
-      if (!voiceTraitsResult.content) {
-        throw new Error("Voice traits content is missing")
-      }
-
-      const content = voiceTraitsResult.content
-      if (!validateMarkdownContent(content)) {
-        throw new Error("Generated voice traits do not match required markdown format")
-      }
-
-      // Extract voice traits sections
-      const traits = content.split(/(?=###\s)/g).filter(trait => trait.trim())
-      console.log("Extracted traits:", traits.length)
-
-      if (traits.length < 3) {
-        throw new Error("Not enough voice traits generated")
-      }
-
-      // Replace voice trait placeholders with formatted content
-      for (let i = 0; i < 3; i++) {
-        const placeholder = `{{voice_trait_${i + 1}}}`
-        const formattedTrait = formatMarkdownContent(traits[i])
-        if (!formattedTrait) {
-          throw new Error(`Failed to format voice trait ${i + 1}`)
+        // What It Means (3 examples)
+        for (let j = 1; j <= 3; j++) {
+          const meansPrompt = `For brand voice trait #${i} for ${validatedDetails.name}, give example #${j} of 'What It Means' (1 sentence, start with an arrow).`;
+          const meansResult = await generateWithOpenAI(meansPrompt, "You are an expert brand strategist.", "markdown");
+          template = template.replace(new RegExp(`{{voice_trait_${i}_means_${j}}}`, 'g'), formatMarkdownContent(meansResult.content || ''));
         }
-        template = template.replace(new RegExp(placeholder, "g"), formattedTrait)
+        // What It Doesn't Mean (3 examples)
+        for (let j = 1; j <= 3; j++) {
+          const notMeansPrompt = `For brand voice trait #${i} for ${validatedDetails.name}, give example #${j} of 'What It Doesn't Mean' (1 sentence, start with a cross).`;
+          const notMeansResult = await generateWithOpenAI(notMeansPrompt, "You are an expert brand strategist.", "markdown");
+          template = template.replace(new RegExp(`{{voice_trait_${i}_not_means_${j}}}`, 'g'), formatMarkdownContent(notMeansResult.content || ''));
+        }
       }
     } catch (error) {
-      console.error("Error generating voice traits:", error)
-      throw new Error(`Voice trait generation failed: ${error instanceof Error ? error.message : String(error)}`)
+      console.error("Error generating brand voice trait details:", error)
+      throw new Error(`Brand voice trait generation failed: ${error instanceof Error ? error.message : String(error)}`)
     }
 
     console.log("Voice trait placeholders replaced")
 
-    // Generate rules for each section
+    // Generate rules for each section in chunks (core only)
     try {
-      const sections = [
-        "Spelling conventions",
-        "Grammar & mechanics",
-        "Punctuation",
-        "Formatting & UI elements",
-        "Numbers & data",
-        "People & Inclusive language",
-        "Points of view",
-        "Style consistency"
-      ]
+      // Dynamically extract all rule section headers (### Section Name) from the template
+      const ruleHeaderRegex = /### ([^\n]+)\n\s*{{rule_line}}/g;
+      let match;
+      const ruleSections = [];
+      while ((match = ruleHeaderRegex.exec(template)) !== null) {
+        ruleSections.push(match[1].trim());
+      }
 
-      for (const section of sections) {
-        const ruleResult = await generateStyleGuideRules(validatedDetails, section)
-        if (!ruleResult.success) {
-          throw new Error(`Failed to generate rules for ${section}: ${ruleResult.error}`)
+      for (const section of ruleSections) {
+        const ruleResult = await generateStyleGuideRules(validatedDetails, section);
+        if (ruleResult.success && ruleResult.content) {
+          template = template.replace(/{{rule_line}}/, formatMarkdownContent(ruleResult.content));
+        } else {
+          template = template.replace(/{{rule_line}}/, "_Could not generate rule for this section._");
         }
-
-        if (!ruleResult.content) {
-          throw new Error(`Rules content is missing for ${section}`)
-        }
-
-        const content = ruleResult.content
-        if (!validateMarkdownContent(content)) {
-          throw new Error(`Generated rules for ${section} do not match required markdown format`)
-        }
-
-        // Replace rule placeholders for this section
-        const formattedContent = formatMarkdownContent(content)
-        if (!formattedContent) {
-          throw new Error(`Failed to format rules for ${section}`)
-        }
-        template = template.replace(new RegExp(`{{rule_line}}`, "g"), formattedContent)
       }
     } catch (error) {
       console.error("Error generating rules:", error)

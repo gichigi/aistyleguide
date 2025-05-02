@@ -193,78 +193,44 @@ export default function BrandDetailsPage() {
     return true
   }
 
-  // Update the handleSubmit function to include validation
+  // Update the handleSubmit function to always generate a preview
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
     try {
-      // For preview mode, use the preview template
-      if (!paymentComplete) {
-        const response = await fetch("/api/preview", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            brandDetails: brandDetails
-          })
-        })
-
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.error || "Failed to generate preview")
-        }
-
-        const data = await response.json()
-        
-        if (!data.success) {
-          throw new Error(data.error || "Failed to generate preview")
-        }
-
-        // Save brand details and preview
-        sessionStorage.setItem("brandDetails", JSON.stringify(brandDetails))
-        sessionStorage.setItem("previewContent", data.preview)
-
-        // Redirect to preview page
-        router.push("/preview")
-        return
-      }
-
-      // For paid users, generate full style guide
-      const response = await fetch("/api/generate-styleguide", {
+      const response = await fetch("/api/preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          brandInfo: brandDetails,
-          plan: guideType
+          brandDetails: brandDetails
         })
       })
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to generate style guide")
+        throw new Error(errorData.error || "Failed to generate preview")
       }
 
       const data = await response.json()
-      
       if (!data.success) {
-        throw new Error(data.error || "Failed to generate style guide")
+        throw new Error(data.error || "Failed to generate preview")
       }
 
-      // Save generated style guide to localStorage
-      localStorage.setItem("generatedStyleGuide", data.styleGuide)
-      
-      // Save brand details and redirect to full access page
+      // Save brand details and preview
       sessionStorage.setItem("brandDetails", JSON.stringify(brandDetails))
-      router.push("/full-access")
+      sessionStorage.setItem("previewContent", data.preview)
+
+      // Redirect to preview page
+      router.push("/preview")
     } catch (error) {
+      setLoading(false)
       console.error("Error:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
         variant: "destructive",
       })
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -288,15 +254,6 @@ export default function BrandDetailsPage() {
           >
             <ArrowLeft className="h-4 w-4" /> Back
           </Link>
-
-          {paymentComplete && (
-            <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 dark:bg-green-900/20 dark:border-green-800">
-              <h3 className="font-medium text-green-800 dark:text-green-400">Full Access Unlocked</h3>
-              <p className="text-sm text-green-700 dark:text-green-500 mt-1">
-                You've purchased full access to the style guide. Complete your brand details to generate your guide.
-              </p>
-            </div>
-          )}
 
           {fromExtraction && (
             <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 dark:bg-blue-900/20 dark:border-blue-800">
@@ -401,8 +358,6 @@ export default function BrandDetailsPage() {
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Processing...
                       </>
-                    ) : paymentComplete ? (
-                      "Generate Full Style Guide"
                     ) : (
                       "Generate Style Guide Preview"
                     )}
