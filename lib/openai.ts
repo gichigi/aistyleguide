@@ -1,139 +1,162 @@
-import { OpenAI } from "openai"
-import Logger from "./logger"
+import { OpenAI } from "openai";
+import Logger from "./logger";
 
 interface GenerationResult {
-  success: boolean
-  content?: string
-  error?: string
+  success: boolean;
+  content?: string;
+  error?: string;
 }
 
-type ResponseFormat = "json" | "markdown"
+type ResponseFormat = "json" | "markdown";
 
-async function validateJsonResponse(text: string): Promise<{ isValid: boolean; content?: any; error?: string }> {
+async function validateJsonResponse(
+  text: string
+): Promise<{ isValid: boolean; content?: any; error?: string }> {
   try {
-    const content = JSON.parse(text)
-    return { isValid: true, content }
+    const content = JSON.parse(text);
+    return { isValid: true, content };
   } catch (error) {
-    return { 
-      isValid: false, 
-      error: error instanceof Error ? error.message : "Invalid JSON format" 
-    }
+    return {
+      isValid: false,
+      error: error instanceof Error ? error.message : "Invalid JSON format",
+    };
   }
 }
 
-async function validateMarkdownResponse(text: string): Promise<{ isValid: boolean; content?: string; error?: string }> {
+async function validateMarkdownResponse(
+  text: string
+): Promise<{ isValid: boolean; content?: string; error?: string }> {
   // Basic markdown validation - check for headers and formatting
-  if (!text.includes('###') || !text.includes('**')) {
+  if (!text.includes("###") || !text.includes("**")) {
     return {
       isValid: false,
-      error: "Invalid markdown format - missing headers or formatting"
-    }
+      error: "Invalid markdown format - missing headers or formatting",
+    };
   }
   return {
     isValid: true,
-    content: text
-  }
+    content: text,
+  };
 }
 
-async function cleanResponse(text: string, format: ResponseFormat): Promise<string> {
+async function cleanResponse(
+  text: string,
+  format: ResponseFormat
+): Promise<string> {
   // Remove any markdown code block syntax if it exists
-  text = text.replace(/```json\n?/g, "").replace(/```\n?/g, "")
-  
+  text = text.replace(/```json\n?/g, "").replace(/```\n?/g, "");
+
   // Remove any leading/trailing whitespace
-  text = text.trim()
+  text = text.trim();
 
   // For JSON responses, try to extract JSON if wrapped in markdown
   if (format === "json") {
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
-      text = jsonMatch[0]
+      text = jsonMatch[0];
     }
   }
-  
-  return text
+
+  return text;
 }
 
 export async function generateWithOpenAI(
-  prompt: string, 
+  prompt: string,
   systemPrompt: string,
   responseFormat: ResponseFormat = "json"
 ): Promise<GenerationResult> {
-  const maxAttempts = 3
-  Logger.info("Starting OpenAI generation", { prompt: prompt.substring(0, 100) + "...", format: responseFormat })
+  const maxAttempts = 3;
+  Logger.info("Starting OpenAI generation", {
+    prompt: prompt.substring(0, 100) + "...",
+    format: responseFormat,
+  });
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      Logger.debug(`OpenAI attempt ${attempt}/${maxAttempts}`)
-      
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+      Logger.debug(`OpenAI attempt ${attempt}/${maxAttempts}`);
+
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
       const response = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: prompt }
+          { role: "user", content: prompt },
         ],
         temperature: 0.7,
-        max_tokens: 2000
-      })
+        max_tokens: 2000,
+      });
 
-      const rawResponse = response.choices[0]?.message?.content
+      const rawResponse = response.choices[0]?.message?.content;
       if (!rawResponse) {
-        throw new Error("Empty response from OpenAI")
+        throw new Error("Empty response from OpenAI");
       }
 
-      Logger.debug("Raw OpenAI response", { response: rawResponse })
+      Logger.debug("Raw OpenAI response", { response: rawResponse });
 
       // Clean the response based on expected format
-      const cleanedResponse = await cleanResponse(rawResponse, responseFormat)
-      Logger.debug("Cleaned response", { response: cleanedResponse })
+      const cleanedResponse = await cleanResponse(rawResponse, responseFormat);
+      Logger.debug("Cleaned response", { response: cleanedResponse });
 
       // Validate based on expected format
-      const validation = responseFormat === "json" 
-        ? await validateJsonResponse(cleanedResponse)
-        : await validateMarkdownResponse(cleanedResponse)
+      const validation =
+        responseFormat === "json"
+          ? await validateJsonResponse(cleanedResponse)
+          : await validateMarkdownResponse(cleanedResponse);
 
       if (!validation.isValid) {
         if (attempt === maxAttempts) {
-          throw new Error(`Failed to get valid ${responseFormat} after ${maxAttempts} attempts: ${validation.error}`)
+          throw new Error(
+            `Failed to get valid ${responseFormat} after ${maxAttempts} attempts: ${validation.error}`
+          );
         }
-        Logger.warn(`Invalid ${responseFormat} response, retrying`, { attempt, error: validation.error })
-        continue
+        Logger.warn(`Invalid ${responseFormat} response, retrying`, {
+          attempt,
+          error: validation.error,
+        });
+        continue;
       }
 
-      Logger.info("OpenAI generation successful", { length: cleanedResponse.length, format: responseFormat })
+      Logger.info("OpenAI generation successful", {
+        length: cleanedResponse.length,
+        format: responseFormat,
+      });
       return {
         success: true,
-        content: cleanedResponse
-      }
-
+        content: cleanedResponse,
+      };
     } catch (error) {
       if (attempt === maxAttempts) {
         Logger.error(
           "OpenAI generation failed",
           error instanceof Error ? error : new Error("Unknown error"),
           { attempt }
-        )
+        );
         return {
           success: false,
-          error: error instanceof Error ? error.message : "Failed to generate content"
-        }
+          error:
+            error instanceof Error
+              ? error.message
+              : "Failed to generate content",
+        };
       }
       Logger.warn("OpenAI generation attempt failed, retrying", {
         attempt,
-        error: error instanceof Error ? error.message : "Unknown error"
-      })
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   }
 
   // This should never be reached due to the error handling above
   return {
     success: false,
-    error: "Unexpected error in generation"
-  }
+    error: "Unexpected error in generation",
+  };
 }
 
 // Function to generate brand voice traits
-export async function generateBrandVoiceTraits(brandDetails: any): Promise<GenerationResult> {
+export async function generateBrandVoiceTraits(
+  brandDetails: any
+): Promise<GenerationResult> {
   const prompt = `Create three distinct brand voice traits for ${brandDetails.name}.
   
 Brand Description: ${brandDetails.description}
@@ -148,13 +171,20 @@ For each trait, provide:
 3. "What It Means" - 3 specific guidelines
 4. "What It Doesn't Mean" - 3 things to avoid
 
-Format in markdown with ### headers for each trait.`
+Format in markdown with ### headers for each trait.`;
 
-  return generateWithOpenAI(prompt, "You are an expert brand strategist.", "markdown")
+  return generateWithOpenAI(
+    prompt,
+    "You are an expert brand strategist.",
+    "markdown"
+  );
 }
 
 // Function to generate style guide rules
-export async function generateStyleGuideRules(brandDetails: any, section: string): Promise<GenerationResult> {
+export async function generateStyleGuideRules(
+  brandDetails: any,
+  section: string
+): Promise<GenerationResult> {
   const prompt = `Create style guide rules for ${brandDetails.name}'s ${section} section.
   
 Brand Description: ${brandDetails.description}
@@ -179,7 +209,11 @@ Each rule must:
 Example format:
 ### Use Active Voice
 - **Right**: "The team completed the project on time"
-- **Wrong**: "The project was completed by the team"`
+- **Wrong**: "The project was completed by the team"`;
 
-  return generateWithOpenAI(prompt, "You are an expert content strategist who creates clear, actionable style guide rules.", "markdown")
+  return generateWithOpenAI(
+    prompt,
+    "You are an expert content strategist who creates clear, actionable style guide rules.",
+    "markdown"
+  );
 }

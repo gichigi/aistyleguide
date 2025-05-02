@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -35,6 +35,21 @@ const defaultBrandDetails = {
     "marketing professionals aged 25-45 who are interested in branding, content creation, and efficiency",
   tone: "friendly",
 };
+
+// Custom hook for auto-resizing textarea
+function useAutoResizeTextarea(value: string) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const textarea = ref.current;
+    if (textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  }, [value]);
+
+  return ref;
+}
 
 export default function BrandDetailsPage() {
   const router = useRouter();
@@ -143,6 +158,14 @@ export default function BrandDetailsPage() {
     });
   };
 
+  const descriptionRef = useAutoResizeTextarea(brandDetails.description || "");
+  const audienceValue = Array.isArray(brandDetails.audience)
+    ? brandDetails.audience
+        .map((item: string) => (item.startsWith("•") ? item : `• ${item}`))
+        .join("\n")
+    : brandDetails.audience || "";
+  const audienceRef = useAutoResizeTextarea(audienceValue);
+
   // Add character count display component
   const CharacterCount = ({ value, max }: { value: string; max: number }) => {
     const count = value.length;
@@ -214,7 +237,7 @@ export default function BrandDetailsPage() {
     if (
       !brandDetails?.name?.trim() ||
       !brandDetails?.description?.trim() ||
-      !brandDetails?.audience?.trim()
+      !brandDetails?.audience
     ) {
       return false;
     }
@@ -392,11 +415,11 @@ export default function BrandDetailsPage() {
                       What does your brand do?
                     </Label>
                     <Textarea
+                      ref={descriptionRef}
                       id="description"
                       name="description"
                       value={brandDetails.description || ""}
                       onChange={handleChange}
-                      rows={3}
                       maxLength={500}
                       className={
                         fieldErrors.description ? "border-red-500" : ""
@@ -416,19 +439,16 @@ export default function BrandDetailsPage() {
                   <div className="grid gap-3">
                     <Label htmlFor="target-audience">Target audience</Label>
                     <Textarea
+                      ref={audienceRef}
                       id="target-audience"
                       name="audience"
                       placeholder="e.g., marketing professionals aged 25-45 interested in branding and content creation"
-                      value={brandDetails.audience || ""}
+                      value={audienceValue}
                       onChange={handleChange}
                       maxLength={500}
                       className={fieldErrors.audience ? "border-red-500" : ""}
-                      rows={4}
                     />
-                    <CharacterCount
-                      value={brandDetails.audience || ""}
-                      max={500}
-                    />
+                    <CharacterCount value={audienceValue} max={500} />
                     {fieldErrors.audience && (
                       <p className="text-sm text-red-500">
                         {fieldErrors.audience}

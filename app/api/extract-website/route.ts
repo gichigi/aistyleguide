@@ -27,7 +27,7 @@ interface BrandDetails {
 }
 
 interface ProcessedBrandDetails extends Omit<BrandDetails, "targetAudience"> {
-  targetAudience: string;
+  targetAudience: string[];
   _rawTargetAudience?: TargetAudienceDetail;
 }
 
@@ -43,7 +43,7 @@ const REQUIRED_FIELDS = [
 ] as const;
 
 // Function to flatten target audience object into a string
-function flattenTargetAudience(audience: TargetAudienceDetail): string {
+function flattenTargetAudience(audience: TargetAudienceDetail): string[] {
   const parts = [];
 
   // Add demographic info
@@ -54,20 +54,22 @@ function flattenTargetAudience(audience: TargetAudienceDetail): string {
     if (audience.demographic.age) demo.push(`aged ${audience.demographic.age}`);
     if (audience.demographic.location)
       demo.push(`in ${audience.demographic.location}`);
-    if (demo.length) parts.push(demo.join(" "));
+    if (demo.length) parts.push(`${demo.join(" ")}`);
   }
 
   // Add interests and values
   if (audience.interestsValues?.length) {
-    parts.push(`interested in ${audience.interestsValues.join(", ")}`);
+    parts.push(
+      `Common interests include ${audience.interestsValues.join(", ")}`
+    );
   }
 
   // Add context if available
   if (audience.context) {
-    parts.push(audience.context);
+    parts.push(`${audience.context}`);
   }
 
-  return parts.join(" who are ");
+  return parts;
 }
 
 export async function POST(request: Request) {
@@ -92,6 +94,7 @@ export async function POST(request: Request) {
 
     // Validate URL
     const urlValidation = validateUrl(body.url);
+
     if (!urlValidation.isValid) {
       Logger.error("Invalid URL provided", new Error(urlValidation.error));
       return NextResponse.json(
@@ -122,29 +125,34 @@ export async function POST(request: Request) {
     {
       "name": "Brand name",
       "industry": "Industry category",
-      "description": "Brief description",
+      "description": "A detailed brand description of approximately 100 words.",
       "values": ["Core value 1", "Core value 2"],
       "targetAudience": {
         "demographic": {
           "age": "Age range (e.g., 25-45)",
-          "occupation": "Professional background",
-          "location": "Geographic focus"
+          "occupation": "Common professional backgrounds",
+          "location": "Primary geographic regions"
         },
         "interestsValues": ["Key interests", "Core values"],
-        "context": "Brief description of their situation or needs",
-        "needsPainPoints": "Key challenges or needs they face"
+        "context": ""A brief overview (~20 words) of typical customer context or use case.",
+        "needsPainPoints": "Main challenges or needs (~30 words) faced by the audience."
       },
-      "tone": "Brand tone",
+      "tone": "The brand's communication tone (e.g., friendly, professional, bold)",
       "competitors": ["Competitor 1", "Competitor 2"],
       "uniqueSellingPoints": ["USP 1", "USP 2"]
-    }`;
+    }
+
+    Requirements:
+      - "description" must be approximately 100 words.
+      - "needsPainPoints" and "context" combined should total ~50 words.
+      - Response must be pure JSON. Do not include markdown, comments, or explanations.
+    `;
 
     const result = await generateWithOpenAI(
       prompt,
-      `You are an expert brand analyst. Always respond with valid JSON. Provide detailed target audience information in the structured format.
-        - Description should be around 100 words
-        - Target audience should be around 50 words
-      `
+      `You are a senior brand analyst. Always respond ONLY with valid JSON. 
+      Ensure fields like "description" and "targetAudience" meet required word counts. 
+      Use precise and informative language. Do not include explanations or any extra text.`
     );
 
     if (!result.success || !result.content) {
@@ -177,16 +185,18 @@ export async function POST(request: Request) {
           _rawTargetAudience:
             brandDetails.targetAudience as TargetAudienceDetail,
         };
+
+        console.log("Processed details", processedDetails);
       } else {
-        processedDetails = brandDetails as ProcessedBrandDetails;
+        processedDetails = brandDetails as unknown as ProcessedBrandDetails;
       }
 
       // Validate target audience format
-      if (processedDetails.targetAudience.length < 10) {
-        throw new Error(
-          "Target audience description is too brief. Please provide more details."
-        );
-      }
+      // if (processedDetails.targetAudience.length < 10) {
+      //   throw new Error(
+      //     "Target audience description is too brief. Please provide more details."
+      //   );
+      // }
     } catch (parseError) {
       Logger.error(
         "Error parsing OpenAI response",
