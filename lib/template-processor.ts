@@ -1,4 +1,5 @@
-import { generateBrandVoiceTraits, generateWithOpenAI, generateStyleGuideRules } from "./openai"
+import { generateBrandVoiceTraits, generateWithOpenAI, generateFullCoreStyleGuide } from "./openai"
+import { marked } from 'marked'
 
 // Function to load a template file via API
 export async function loadTemplate(templateName: string): Promise<string> {
@@ -28,11 +29,94 @@ function formatMarkdownContent(content: string | undefined): string {
     console.warn('Empty content passed to formatMarkdownContent')
     return ''
   }
-  return content
+
+  // Step 1: Clean up basic whitespace
+  let formatted = content
     .replace(/\n{3,}/g, "\n\n") // Replace multiple newlines with double newlines
     .replace(/\s+$/gm, "") // Remove trailing whitespace
     .replace(/^\s+/gm, "") // Remove leading whitespace
     .trim()
+
+  // Step 2: Ensure brand voice traits have H3 headers
+  // Look for bold trait names that aren't already headers
+  formatted = formatted.replace(/^(\*\*([^*\n]+)\*\*)(?!\n#)/gm, '### $2')
+  
+  // Step 3: Convert "What It Means" and "What It Doesn't Mean" to H4 with proper spacing
+  formatted = formatted
+    .replace(/^(?:\*\*)?(What It (?:Doesn't )?Means?)(?:\*\*)?/gm, '#### $1')
+    .replace(/(####\s+What It (?:Doesn't )?Means?)/g, '\n$1\n')
+  
+  // Step 4: Fix spacing for headings
+  formatted = formatted
+    // Add newline after headings if not present
+    .replace(/^(#{1,6}\s[^\n]+)(?!\n)/gm, '$1\n')
+    // Ensure exactly one blank line before headings (except at start)
+    .replace(/([^\n])\n(#{1,6}\s)/g, '$1\n\n$2')
+
+  // Step 5: Number the 25 core rules
+  // Find the section with core rules
+  let ruleCount = 0;
+  let inRulesSection = false;
+  const lines = formatted.split('\n');
+  const newLines = [];
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    
+    // Detect start of core rules section
+    if (line.includes('Core Rules') || line.includes('core rules')) {
+      inRulesSection = true;
+      newLines.push(line);
+      continue;
+    }
+    
+    // Check for H3 rule headers when in the core rules section
+    if (inRulesSection && line.match(/^###\s+([A-Z][a-z]+)$/)) {
+      ruleCount++;
+      // Replace H3 header with numbered H3 header
+      newLines.push(`### ${ruleCount}. ${line.substring(4).trim()}`);
+    } else {
+      newLines.push(line);
+    }
+  }
+  
+  formatted = newLines.join('\n');
+
+  // Step 6: Fix spacing for Right/Wrong examples
+  formatted = formatted
+    // Normalize spacing after ✅ and ❌
+    .replace(/(✅|❌)\s*([Rr]ight|[Ww]rong):\s*/g, '$1 $2: ')
+    // Add newline after each example if not present
+    .replace(/(✅[^\n]+|❌[^\n]+)(?!\n)/g, '$1\n')
+    // Ensure examples are grouped together with single line spacing
+    .replace(/(✅[^\n]+)\n\n(❌)/g, '$1\n$2')
+
+  // Step 7: Fix spacing for lists and arrows
+  formatted = formatted
+    // Normalize arrow spacing
+    .replace(/^→\s*/gm, '→ ')
+    // Normalize x mark spacing
+    .replace(/^✗\s*/gm, '✗ ')
+    // Add newline after list items if not present
+    .replace(/^([-→✗]\s[^\n]+)(?!\n)/gm, '$1\n')
+
+  // Step 8: Fix punctuation issues - prevent quotes/periods from breaking to new lines
+  formatted = formatted
+    // Fix dangling quotes and punctuation
+    .replace(/(\w+)\s+([,.!?:;"])(\s*\n)/g, '$1$2$3')
+    // Ensure there's no space before periods/commas
+    .replace(/\s+([,.!?:;"])/g, '$1')
+    // Fix word breaking with non-breaking space for single character endings
+    .replace(/(\w+)(\s*\n\s*)([a-z])(\s*\n)/g, '$1$3$4')
+
+  // Step 9: Fix section spacing
+  formatted = formatted
+    // Ensure sections are separated by exactly one blank line
+    .replace(/\n{3,}/g, '\n\n')
+    // Extra spacing before/after What It Means/Doesn't Mean sections
+    .replace(/(####\s+What It (?:Doesn't )?Means?)\n/g, '$1\n\n')
+
+  return formatted;
 }
 
 // Function to validate markdown content
@@ -130,6 +214,14 @@ function validateBrandDetails(details: any) {
   return errors
 }
 
+// Function to convert markdown to HTML
+async function markdownToHtml(markdown: string): Promise<string> {
+  return marked(markdown, {
+    gfm: true,
+    breaks: true
+  })
+}
+
 // Main function to process a template with brand details
 export async function processTemplate(templateType: string, brandDetails: any, plan: string): Promise<string> {
   try {
@@ -181,61 +273,32 @@ export async function processTemplate(templateType: string, brandDetails: any, p
 
     console.log("Basic placeholders replaced")
 
-    // Generate brand voice traits with OpenAI - enhanced with audience context
+    // Generate all brand voice traits at once and insert into template
     try {
-      console.log("Generating brand voice trait details with OpenAI")
-      for (let i = 1; i <= 3; i++) {
-        // Title
-        const titlePrompt = `Give a short, catchy title for brand voice trait #${i} for ${validatedDetails.name}.`;
-        const titleResult = await generateWithOpenAI(titlePrompt, "You are an expert brand strategist.", "markdown");
-        template = template.replace(new RegExp(`{{voice_trait_${i}_title}}`, 'g'), formatMarkdownContent(titleResult.content || ''));
-
-        // Description
-        const descPrompt = `Write a 1-2 sentence description for brand voice trait #${i} for ${validatedDetails.name}.`;
-        const descResult = await generateWithOpenAI(descPrompt, "You are an expert brand strategist.", "markdown");
-        template = template.replace(new RegExp(`{{voice_trait_${i}_description}}`, 'g'), formatMarkdownContent(descResult.content || ''));
-
-        // What It Means (3 examples)
-        for (let j = 1; j <= 3; j++) {
-          const meansPrompt = `For brand voice trait #${i} for ${validatedDetails.name}, give example #${j} of 'What It Means' (1 sentence, start with an arrow).`;
-          const meansResult = await generateWithOpenAI(meansPrompt, "You are an expert brand strategist.", "markdown");
-          template = template.replace(new RegExp(`{{voice_trait_${i}_means_${j}}}`, 'g'), formatMarkdownContent(meansResult.content || ''));
-        }
-        // What It Doesn't Mean (3 examples)
-        for (let j = 1; j <= 3; j++) {
-          const notMeansPrompt = `For brand voice trait #${i} for ${validatedDetails.name}, give example #${j} of 'What It Doesn't Mean' (1 sentence, start with a cross).`;
-          const notMeansResult = await generateWithOpenAI(notMeansPrompt, "You are an expert brand strategist.", "markdown");
-          template = template.replace(new RegExp(`{{voice_trait_${i}_not_means_${j}}}`, 'g'), formatMarkdownContent(notMeansResult.content || ''));
-        }
+      const brandVoiceResult = await generateBrandVoiceTraits(validatedDetails);
+      if (brandVoiceResult.success && brandVoiceResult.content) {
+        template = template.replace(/{{brand_voice_traits}}/g, formatMarkdownContent(brandVoiceResult.content));
+      } else {
+        template = template.replace(/{{brand_voice_traits}}/g, "_Could not generate brand voice traits for this brand._");
       }
     } catch (error) {
-      console.error("Error generating brand voice trait details:", error)
-      throw new Error(`Brand voice trait generation failed: ${error instanceof Error ? error.message : String(error)}`)
+      console.error("Error generating brand voice traits:", error)
+      template = template.replace(/{{brand_voice_traits}}/g, "_Could not generate brand voice traits for this brand._");
     }
 
     console.log("Voice trait placeholders replaced")
 
-    // Generate rules for each section in chunks (core only)
+    // Generate all 25 rules at once and insert into template
     try {
-      // Dynamically extract all rule section headers (### Section Name) from the template
-      const ruleHeaderRegex = /### ([^\n]+)\n\s*{{rule_line}}/g;
-      let match;
-      const ruleSections = [];
-      while ((match = ruleHeaderRegex.exec(template)) !== null) {
-        ruleSections.push(match[1].trim());
-      }
-
-      for (const section of ruleSections) {
-        const ruleResult = await generateStyleGuideRules(validatedDetails, section);
-        if (ruleResult.success && ruleResult.content) {
-          template = template.replace(/{{rule_line}}/, formatMarkdownContent(ruleResult.content));
-        } else {
-          template = template.replace(/{{rule_line}}/, "_Could not generate rule for this section._");
-        }
+      const coreRulesResult = await generateFullCoreStyleGuide(validatedDetails);
+      if (coreRulesResult.success && coreRulesResult.content) {
+        template = template.replace(/{{core_rules}}/g, formatMarkdownContent(coreRulesResult.content));
+      } else {
+        template = template.replace(/{{core_rules}}/g, "_Could not generate core rules for this brand._");
       }
     } catch (error) {
-      console.error("Error generating rules:", error)
-      throw new Error(`Rule generation failed: ${error instanceof Error ? error.message : String(error)}`)
+      console.error("Error generating full core style guide rules:", error)
+      template = template.replace(/{{core_rules}}/g, "_Could not generate core rules for this brand._");
     }
 
     // Generate examples if needed for complete template
@@ -285,7 +348,8 @@ export async function processTemplate(templateType: string, brandDetails: any, p
     console.log("All placeholders replaced, template ready")
 
     // Final formatting pass to ensure consistent markdown
-    return formatMarkdownContent(template)
+    const formattedMarkdown = formatMarkdownContent(template)
+    return await markdownToHtml(formattedMarkdown)
   } catch (error) {
     console.error("Error processing template:", error)
     throw error
@@ -302,14 +366,29 @@ function formatDate(): string {
 }
 
 // Generic content for preview
-const GENERIC_VOICE_TRAIT_1 = `Professional & Clear
-We communicate with confidence and clarity, making complex ideas simple.`;
+const GENERIC_VOICE_TRAIT_1 = `**Clear & Concise**
 
-const GENERIC_VOICE_TRAIT_2 = `Friendly & Approachable
-We use conversational language that makes our audience feel welcome and understood.`;
+What It Means
+→ Use simple, direct language that anyone can understand.
+→ Break down complex ideas into easy steps.
+→ Keep sentences short and to the point.
 
-const GENERIC_RULE_LINE = `✅ Right: "Keep your message clear and direct"
-❌ Wrong: "Utilize complex terminology to convey meaning"`;
+What It Doesn't Mean
+✗ Leaving out important details for the sake of brevity.
+✗ Using jargon or technical terms without explanation.
+✗ Oversimplifying topics that need nuance.`;
+
+const GENERIC_VOICE_TRAIT_2 = `**Friendly & Approachable**
+
+What It Means
+→ Write as if you're talking to a real person.
+→ Use a warm, welcoming tone in every message.
+→ Encourage questions and feedback.
+
+What It Doesn't Mean
+✗ Being overly casual or unprofessional.
+✗ Using slang that not everyone will understand.
+✗ Ignoring the needs or concerns of your audience.`;
 
 // Function to generate a preview of the core template
 export async function generateTemplatePreview(brandDetails: any): Promise<string> {
@@ -331,11 +410,84 @@ export async function generateTemplatePreview(brandDetails: any): Promise<string
       .replace(/{{brand_name}}/g, brandDetails.name || 'Your Brand')
       .replace(/{{voice_trait_1}}/g, GENERIC_VOICE_TRAIT_1)
       .replace(/{{voice_trait_2}}/g, GENERIC_VOICE_TRAIT_2)
-      .replace(/{{rule_line}}/g, GENERIC_RULE_LINE);
+      .replace(/{{rule_line}}/g, brandDetails.ruleLine || '');
     
-    return preview;
+    return await markdownToHtml(preview);
   } catch (error) {
     console.error('Preview generation failed:', error);
     throw new Error(`Preview generation failed: ${error}`);
   }
+}
+
+// Shared function to render style guide template
+export async function renderStyleGuideTemplate({
+  brandDetails,
+  useAIContent = false,
+  templateType = "preview"
+}: {
+  brandDetails: any,
+  useAIContent?: boolean,
+  templateType?: "preview" | "core" | "complete"
+}): Promise<string> {
+  // Pick template name
+  let templateName = "core_template_preview";
+  if (templateType === "core") templateName = "core_template";
+  if (templateType === "complete") templateName = "complete_template";
+
+  // Load template
+  const template = await loadTemplate(templateName);
+
+  // Format date
+  const currentDate = new Date();
+  const formattedDate = currentDate.toLocaleDateString('en-US', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+
+  // Replace basic placeholders
+  let result = template
+    .replace(/{{DD MONTH YYYY}}/g, formattedDate)
+    .replace(/{{brand_name}}/g, brandDetails.name || 'Your Brand');
+
+  // Fill in brand_voice_traits and core_rules
+  if (useAIContent) {
+    // AI-generated content (like processTemplate)
+    try {
+      const validatedDetails = {
+        name: brandDetails.name?.trim() || '',
+        description: brandDetails.description?.trim() || '',
+        audience: brandDetails.audience?.trim() || '',
+        tone: brandDetails.tone || '',
+      };
+      // Brand voice traits
+      const brandVoiceResult = await generateBrandVoiceTraits(validatedDetails);
+      if (brandVoiceResult.success && brandVoiceResult.content) {
+        result = result.replace(/{{brand_voice_traits}}/g, formatMarkdownContent(brandVoiceResult.content));
+      } else {
+        result = result.replace(/{{brand_voice_traits}}/g, "_Could not generate brand voice traits for this brand._");
+      }
+      // Core rules
+      const coreRulesResult = await generateFullCoreStyleGuide(validatedDetails);
+      if (coreRulesResult.success && coreRulesResult.content) {
+        result = result.replace(/{{core_rules}}/g, formatMarkdownContent(coreRulesResult.content));
+      } else {
+        result = result.replace(/{{core_rules}}/g, "_Could not generate core rules for this brand._");
+      }
+    } catch (error) {
+      result = result.replace(/{{brand_voice_traits}}/g, "_Could not generate brand voice traits for this brand._");
+      result = result.replace(/{{core_rules}}/g, "_Could not generate core rules for this brand._");
+    }
+  } else {
+    // Generic content (like generateTemplatePreview)
+    result = result
+      .replace(/{{brand_voice_traits}}/g, `${GENERIC_VOICE_TRAIT_1}\n\n${GENERIC_VOICE_TRAIT_2}`)
+      .replace(/{{core_rules}}/g, brandDetails.ruleLine || '')
+      .replace(/{{voice_trait_1}}/g, GENERIC_VOICE_TRAIT_1)
+      .replace(/{{voice_trait_2}}/g, GENERIC_VOICE_TRAIT_2)
+      .replace(/{{rule_line}}/g, brandDetails.ruleLine || '');
+  }
+
+  // Convert to HTML
+  return await markdownToHtml(result);
 }

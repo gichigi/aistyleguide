@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { processTemplate } from "@/lib/template-processor"
+import { renderStyleGuideTemplate } from "@/lib/template-processor"
 
 // Add validation function
 function validateBrandDetails(details: any) {
@@ -108,12 +108,12 @@ export async function POST(request: Request) {
 
     try {
       // Process the template with OpenAI
-      console.log("Calling processTemplate with:", brandDetails, plan)
-      const styleGuide = await processTemplate(
-        plan === "complete" ? "complete_template" : "core_template",
+      console.log("Calling renderStyleGuideTemplate with:", brandDetails, plan)
+      const styleGuide = await renderStyleGuideTemplate({
         brandDetails,
-        plan
-      )
+        useAIContent: true,
+        templateType: plan === "complete" ? "complete" : "core"
+      })
 
       if (!styleGuide || styleGuide.trim() === "") {
         throw new Error("Generated style guide is empty")

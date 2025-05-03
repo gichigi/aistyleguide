@@ -60,7 +60,8 @@ async function generatePDF(content: string, brandName: string): Promise<Blob> {
 
     // Handle headers
     if (line.startsWith("#")) {
-      const level = line.match(/^#+/)[0].length
+      const headerMatch = line.match(/^#+/)
+      const level = headerMatch ? headerMatch[0].length : 1
       const text = line.replace(/^#+\s+/, "")
       
       currentSize = 24 - (level * 2)
@@ -89,9 +90,9 @@ async function generatePDF(content: string, brandName: string): Promise<Blob> {
       }
       
       doc.text("•", margin + 5, y)
-      const lines = doc.splitTextToSize(text, textWidth - 10)
-      doc.text(lines, margin + 10, y)
-      y += lines.length * 7
+      const splitText = doc.splitTextToSize(text, textWidth - 10)
+      doc.text(splitText, margin + 10, y)
+      y += splitText.length * 7
       continue
     }
 
@@ -105,9 +106,9 @@ async function generatePDF(content: string, brandName: string): Promise<Blob> {
       }
     
     // Split long text into lines that fit the page width
-    const lines = doc.splitTextToSize(line, textWidth)
-    doc.text(lines, margin, y)
-    y += lines.length * 7
+    const splitText = doc.splitTextToSize(line, textWidth)
+    doc.text(splitText, margin, y)
+    y += splitText.length * 7
   }
 
   return doc.output("blob")
@@ -165,9 +166,10 @@ function generateDOCX(content: string, brandName: string): Promise<Blob> {
     </html>
   `
 
+  // Return as HTML file instead with a more compatible MIME type
   return Promise.resolve(
     new Blob([html], {
-      type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      type: "text/html"
     }),
   )
 }

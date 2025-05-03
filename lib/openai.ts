@@ -122,26 +122,44 @@ export async function generateWithOpenAI(
 
 // Function to generate brand voice traits
 export async function generateBrandVoiceTraits(brandDetails: any): Promise<GenerationResult> {
-  const prompt = `Create three distinct brand voice traits for ${brandDetails.name}.
-  
-Brand Description: ${brandDetails.description}
-Target Audience: ${brandDetails.audience}
-Tone: ${brandDetails.tone}
+  const prompt = `You are a brand strategist. Based on the following brand information, generate exactly 3 unique, complementary brand voice traits for this brand.
 
-Consider the target audience carefully. The voice traits should resonate with ${brandDetails.audience} while maintaining the ${brandDetails.tone} tone.
+Brand Info:
+• Brand Name: ${brandDetails.name}
+• Audience: ${brandDetails.audience}
+• Tone: ${brandDetails.tone}
+• What they do: ${brandDetails.summary || brandDetails.description}
 
 For each trait, provide:
-1. A clear title
-2. A brief description
-3. "What It Means" - 3 specific guidelines, each starting with → (arrow emoji)
-4. "What It Doesn't Mean" - 3 things to avoid, each starting with ✗ (cross emoji)
+1. A short, bold title (no quotes, no numbering, no meta-text like "Brand voice trait").
+2. A 1–2 sentence description of the trait and why it matters for this brand.
+3. "What It Means": 3 specific, actionable examples, each starting with → (unicode arrow, not emoji). Do not use bullet points.
+4. "What It Doesn't Mean": 3 clarifications to avoid misinterpretation, each starting with ✗ (unicode cross, not emoji). Do not use bullet points. Do not just write the opposite; clarify boundaries or common mistakes.
 
-Format in markdown with ### headers for each trait.`
+Each trait should be distinct and together they should form a well-rounded, complementary set—no overlap or repetition.
 
-  return generateWithOpenAI(prompt, "You are an expert brand strategist.", "markdown")
+Do not use meta-text, headings, or quote marks around trait titles.
+
+Example format:
+
+### Simplicity
+
+***What It Means***
+→ Use plain English and avoid jargon or unnecessary complexity.
+→ Short, punchy sentences that get straight to the point.
+→ Prioritize clarity so anyone can understand our message without a dictionary.
+
+***What It Doesn't Mean***
+✗ Dumbing down ideas or skipping important details.
+✗ Ignoring nuance when discussing more advanced topics.
+✗ Simplistic design or lack of depth in our overall communications.
+
+---
+Now, generate 3 traits in this format.`;
+  return generateWithOpenAI(prompt, "You are a brand strategist.", "markdown");
 }
 
-// Function to generate style guide rules
+/* Function to generate style guide rules
 export async function generateStyleGuideRules(brandDetails: any, section: string): Promise<GenerationResult> {
   const prompt = `Create style guide rules for ${brandDetails.name}'s ${section} section.
   
@@ -177,4 +195,58 @@ Use British English spelling
 ❌ Wrong: "Color"`
 
   return generateWithOpenAI(prompt, "You are an expert content strategist who creates clear, actionable style guide rules.", "markdown")
+}*/
+
+// Function to generate the entire core style guide in one go
+export async function generateFullCoreStyleGuide(brandDetails: any): Promise<GenerationResult> {
+  const prompt = `You are a brand style expert. Based on the following brand information, generate a complete writing style guide made of 25 original writing rules.
+
+Brand Info:
+  • Brand Name: ${brandDetails.name}
+  • Audience: ${brandDetails.audience}
+  • Tone: ${brandDetails.tone}
+  • What they do: ${brandDetails.summary || brandDetails.description}
+
+Each rule must:
+  1. Be a clear, actionable writing rule (not a general content or marketing tip).
+  2. Guide how to write, edit, and format text for this brand's content.
+  3. Begin with a rule name in bold that is a single, clear keyword (e.g., Clarity, Verbs, Paragraphs, Spelling, Jargon, Headings, Sentences, etc.). Do not use a phrase or sentence. Do not use more than one word for the rule name.
+  4. Follow with a 1–2 sentence description of what the rule is and why it matters for this brand.
+  5. Include a ✅ Right example that clearly follows the rule.
+  6. Include a ❌ Wrong example that breaks it.
+  7. Be formatted in markdown.
+
+Additional instructions:
+- The 25 rules should be listed in alphabetical order by the single keyword rule name.
+- Number each rule (1-25) in its header like: "### 1. Clarity" (not "**1. Clarity**").
+- For each rule, choose a single, clear, writing topic as the keyword (e.g., Paragraphs, Verbs, Clarity, Jargon, Headings, Sentences, Spelling, etc.). Always alphabetize the rules by this single keyword.
+- Do not repeat rules or examples—each rule must be unique.
+- Keep the length of rule names, descriptions, and examples consistent across all rules for a uniform appearance.
+- Focus on writing style, grammar, sentence structure, punctuation, spelling, word choice, inclusivity, clarity, formatting, voice consistency, contractions, active/passive voice, and similar writing-focused areas.
+- Do NOT include rules about social media engagement, visual content, marketing, or general content strategy.
+
+You must generate exactly 25 rules, covering the full range of writing style for this brand.
+These rules should be specific, relevant to this brand, and helpful for any content creator writing in their voice.
+Do not use generic rules from a template. Generate new ones, grounded in the brand's unique audience and tone.
+
+Example format:
+
+### 1. Clarity
+Keep language clear and direct for all audiences.
+✅ Right: "Our app is easy to use."
+❌ Wrong: "Our application provides a user-centric experience with robust functionality."
+
+### 2. Paragraphs
+Use short paragraphs for easy reading.
+✅ Right: "Each idea gets its own paragraph."
+❌ Wrong: "Combine multiple ideas into one long paragraph."
+
+### 3. Verbs
+Choose strong, active verbs for action and clarity.
+✅ Right: "Update your profile."
+❌ Wrong: "Your profile can be updated."
+
+---
+`;
+  return generateWithOpenAI(prompt, "You are a brand style expert.", "markdown");
 }

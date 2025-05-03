@@ -14,9 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
-import { generateFile } from "@/lib/file-generator"
-import Markdown from 'markdown-to-jsx'
-import { MarkdownComponents } from '@/lib/markdown-components'
+import { generateFile, FileFormat } from "@/lib/file-generator"
 
 export default function FullAccessPage() {
   const router = useRouter()
@@ -35,39 +33,44 @@ export default function FullAccessPage() {
   useEffect(() => {
     // Load brand details, style guide, and guide type from sessionStorage
     const savedBrandDetails = sessionStorage.getItem("brandDetails")
-    const savedStyleGuide = sessionStorage.getItem("generatedStyleGuide")
     const savedGuideType = sessionStorage.getItem("styleGuidePlan")
-    
-    console.log("Loading full access page...")
-    console.log("Guide type:", savedGuideType)
-    console.log("Style guide content length:", savedStyleGuide?.length)
-    console.log("Brand details:", savedBrandDetails)
     
     if (savedBrandDetails) {
       setBrandDetails(JSON.parse(savedBrandDetails))
     }
-    
-    if (savedStyleGuide) {
-      console.log("Style guide content preview:", savedStyleGuide.substring(0, 200) + "...")
-      setGeneratedStyleGuide(savedStyleGuide)
-    } else {
-      console.log("No style guide content found in sessionStorage")
-      // If no style guide, redirect to brand details to generate it
-      router.push("/brand-details?paymentComplete=true")
-      return
-    }
-
     if (savedGuideType) {
       setGuideType(savedGuideType)
     }
 
-    setIsLoading(false)
-
+    const loadFullAccessGuide = async () => {
+      if (!savedBrandDetails) return
+      try {
+        const parsedBrandDetails = JSON.parse(savedBrandDetails)
+        const response = await fetch('/api/generate-styleguide', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            brandDetails: parsedBrandDetails,
+            plan: savedGuideType === 'complete' ? 'complete' : 'core',
+          }),
+        })
+        const data = await response.json()
+        if (data.success) {
+          setGeneratedStyleGuide(data.styleGuide)
+        } else {
+          throw new Error(data.error || 'Failed to generate style guide')
+        }
+      } catch (error) {
+        console.error("Error generating full access guide:", error)
+        router.push("/brand-details?paymentComplete=true")
+      }
+      setIsLoading(false)
+    }
+    loadFullAccessGuide()
     // Trigger fade-in animation
     const timer = setTimeout(() => {
       setFadeIn(true)
     }, 100)
-
     return () => clearTimeout(timer)
   }, [router])
 
@@ -103,11 +106,11 @@ export default function FullAccessPage() {
     setDownloadFormat(format)
 
     try {
-      const file = await generateFile(generatedStyleGuide, brandDetails, format)
+      const file = await generateFile(format as FileFormat, generatedStyleGuide, brandDetails.name)
       const url = window.URL.createObjectURL(file)
       const a = document.createElement("a")
       a.href = url
-      a.download = `style-guide.${format}`
+      a.download = `${brandDetails.name.replace(/\s+/g, '-').toLowerCase()}-style-guide.${format}`
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
@@ -214,16 +217,9 @@ export default function FullAccessPage() {
       <main className="flex-1 container py-8 max-w-5xl">
         <div className="bg-white rounded-xl border shadow-sm overflow-hidden dark:bg-gray-950 dark:border-gray-800 relative">
           <div className="p-8">
-            <div className="max-w-3xl mx-auto">
-              <div className={`prose prose-slate dark:prose-invert max-w-none ${fadeIn ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}>
-                <Markdown
-                  className="markdown-content"
-                  options={{
-                    overrides: MarkdownComponents
-                  }}
-                >
-                  {guideContent}
-                </Markdown>
+            <div className="max-w-3xl mx-auto space-y-12">
+              <div className="prose prose-slate dark:prose-invert max-w-none">
+                <div dangerouslySetInnerHTML={{ __html: guideContent }} />
               </div>
             </div>
           </div>
@@ -248,7 +244,7 @@ export default function FullAccessPage() {
               ) : (
                 <FileText className="h-4 w-4" />
               )}
-              PDF
+              PDF (to share)
             </Button>
             <Button
               onClick={() => handleDownload("docx")}
@@ -260,7 +256,7 @@ export default function FullAccessPage() {
               ) : (
                 <FileText className="h-4 w-4" />
               )}
-              Word
+              Word HTML (opens in Word)
             </Button>
             <Button
               onClick={() => handleDownload("html")}
@@ -272,7 +268,19 @@ export default function FullAccessPage() {
               ) : (
                 <FileText className="h-4 w-4" />
               )}
-              HTML
+              HTML (to publish)
+            </Button>
+            <Button
+              onClick={() => handleDownload("md")}
+              disabled={isDownloading}
+              className="w-full justify-start gap-2"
+            >
+              {downloadFormat === "md" ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <FileText className="h-4 w-4" />
+              )}
+              Markdown (to code with AI)
             </Button>
           </div>
         </DialogContent>

@@ -14,11 +14,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
-import { generateTemplatePreview } from "@/lib/template-processor"
+import { renderStyleGuideTemplate } from "@/lib/template-processor"
 import styled from "styled-components"
-import Markdown from 'markdown-to-jsx'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { MarkdownComponents } from '@/lib/markdown-components'
 
 // Add fade-out effect before paywall
 const ContentWithFadeout = styled.div`
@@ -29,11 +27,12 @@ const ContentWithFadeout = styled.div`
     bottom: 0;
     left: 0;
     right: 0;
-    height: 150px;
+    height: 500px;
     background: linear-gradient(
       to bottom,
-      rgba(255, 255, 255, 0),
-      rgba(255, 255, 255, 1)
+      rgba(255,255,255,0) 0%,
+      rgba(255,255,255,0) 40%,
+      rgba(255,255,255,1) 100%
     );
     pointer-events: none;
   }
@@ -85,9 +84,8 @@ export default function PreviewPage() {
 
     const loadPreview = async () => {
       if (!brandDetails) return
-      
       try {
-        const preview = await generateTemplatePreview(brandDetails)
+        const preview = await renderStyleGuideTemplate({ brandDetails, useAIContent: false, templateType: 'preview' })
         if (isMounted) {
           setPreviewContent(preview)
         }
@@ -161,11 +159,11 @@ export default function PreviewPage() {
             <FileText className="h-5 w-5 flex-shrink-0" />
             <span className="text-lg font-semibold truncate whitespace-nowrap">Style Guide AI</span>
           </Link>
-          <div className="flex items-center">
+          {/*<div className="flex items-center">
             <div className="px-4 py-2 text-sm font-medium rounded-md bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-800">
               Preview
             </div>
-          </div>
+          </div>*/}
         </div>
       </header>
 
@@ -314,18 +312,11 @@ export default function PreviewPage() {
             <div className="max-w-3xl mx-auto space-y-12">
               <div className="prose prose-slate dark:prose-invert max-w-none">
                 <ContentWithFadeout>
-                  <Markdown
-                    className="markdown-content"
-                    options={{
-                      overrides: MarkdownComponents
-                    }}
-                  >
-                    {processPreviewContent(previewContent, brandDetails?.name)}
-                  </Markdown>
+                  <div dangerouslySetInnerHTML={{ __html: processPreviewContent(previewContent, brandDetails?.name) }} />
                 </ContentWithFadeout>
 
                 {/* Add paywall banner */}
-                <div className="my-8 p-6 border border-dashed border-amber-300 rounded-lg bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 text-center">
+                <div className="my-8 mb-28 p-6 border border-dashed border-amber-300 rounded-lg bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 text-center">
                   <h3 className="text-lg font-medium text-amber-800 dark:text-amber-400 mb-2">
                     You've reached the preview limit
                   </h3>
@@ -347,3 +338,4 @@ export default function PreviewPage() {
     </div>
   )
 }
+

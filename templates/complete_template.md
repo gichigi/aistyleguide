@@ -1,26 +1,33 @@
 {{DD MONTH YYYY}}
-# {{brand_name}} – Complete Style Guide
+# {{brand_name}} Style Guide
 A complete guide to keep every message clear and consistent.
+
+---
 
 ## How to Use This Document
 This document outlines the rules for brand voice, spelling, grammar, and formatting across all content channels. Anyone writing and publishing content for {{brand_name}} should follow these guidelines.
 
-## General writing tips
+---
 
-### Short‑form content (social, ads, web snippets)
+## General Guidelines
 
-**Be brief**: aim for 10‑15 words per sentence. Use short, familiar words and break text into 2‑ or 3‑sentence paragraphs.  
-**Be an authority**: sound confident and optimistic; show you know what you’re talking about.  
-**Write like a human**: use everyday language and avoid jargon.
+### Short content  
+_social, ads, web snippets_
 
-### Long‑form content (blogs, newsletters, articles)
+- **Write like a human:** use everyday language and avoid jargon.  
+- **Be an authority:** write with a positive outlook to inspire readers.
+- **Be brief:** use short sentences, short paragraphs and use familiar words.
 
-**Humanise the story**: start with why it matters now, then show the solution.  
-**Use line breaks & white space**: keep paragraphs to two or three sentences to improve readability.  
-**Break up with sub‑heads**: draft first, add headings where they help scanning; strong headings keep readers engaged.  
-**Use bullet lists**: for three or more points so ideas stand out.  
-**Use numbers thoughtfully**: the brain notices numerals; lead with key figures but don’t overload the reader.
+### Long content  
+_blogs, newsletters, articles_
 
+- **Use bullet lists:** turn three or more points into a list to break up text.
+- **Humanise the story:** start with why it matters, then show the solution.   
+- **Use line breaks:** break up long text for better readability.  
+- **Add subheadings:** draft content first, then add subheadings that engage.  
+- **Use numbers:** lead with key figures that jump out at the reader.
+
+---
 
 ## Brand Voice
 
@@ -498,4 +505,4 @@ This document outlines the rules for brand voice, spelling, grammar, and formatt
 
 ---
 
-Style questions? Contact us.
+Questions? Contact the {{brand_name}} content team.
