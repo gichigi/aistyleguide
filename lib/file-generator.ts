@@ -1,24 +1,28 @@
 // File generation utilities for style guide exports
-import { jsPDF } from "jspdf"
-import "jspdf-autotable"
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
 
-export type FileFormat = "pdf" | "md" | "docx" | "html"
+export type FileFormat = "pdf" | "md" | "docx" | "html";
 
 /**
  * Generate a file in the specified format with the given content
  */
-export async function generateFile(format: FileFormat, content: string, brandName: string): Promise<Blob> {
+export async function generateFile(
+  format: FileFormat,
+  content: string,
+  brandName: string
+): Promise<Blob> {
   switch (format) {
     case "pdf":
-      return generatePDF(content, brandName)
+      return generatePDF(content, brandName);
     case "md":
-      return generateMarkdown(content)
+      return generateMarkdown(content);
     case "docx":
-      return generateDOCX(content, brandName)
+      return generateDOCX(content, brandName);
     case "html":
-      return generateHTML(content, brandName)
+      return generateHTML(content, brandName);
     default:
-      throw new Error(`Unsupported format: ${format}`)
+      throw new Error(`Unsupported format: ${format}`);
   }
 }
 
@@ -31,87 +35,88 @@ async function generatePDF(content: string, brandName: string): Promise<Blob> {
     orientation: "portrait",
     unit: "mm",
     format: "a4",
-  })
+  });
 
   // Add title page
-  doc.setFontSize(24)
-  doc.setFont("helvetica", "bold")
-  doc.text(`${brandName} Style Guide`, 105, 80, { align: "center" })
+  doc.setFontSize(24);
+  doc.setFont("helvetica", "bold");
+  doc.text(`${brandName} Style Guide`, 105, 80, { align: "center" });
 
-  doc.setFontSize(12)
-  doc.setFont("helvetica", "normal")
-  doc.text(`Created on ${new Date().toLocaleDateString()}`, 105, 90, { align: "center" })
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Created on ${new Date().toLocaleDateString()}`, 105, 90, {
+    align: "center",
+  });
 
-  doc.addPage()
+  doc.addPage();
 
   // Parse markdown and add to PDF
-  const lines = content.split("\n")
-  let y = 20
-  const margin = 20
-  const pageWidth = doc.internal.pageSize.width
-  const textWidth = pageWidth - margin * 2
+  const markdownLines = content.split("\n");
+  let y = 20;
+  const margin = 20;
+  const pageWidth = doc.internal.pageSize.width;
+  const textWidth = pageWidth - margin * 2;
 
-  let currentFont = "normal"
-  let currentSize = 12
-  let listLevel = 0
+  let currentFont = "normal";
+  let currentSize = 12;
+  let listLevel = 0;
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim()
+  for (let i = 0; i < markdownLines.length; i++) {
+    const line = markdownLines[i].trim();
 
     // Handle headers
-    if (line.startsWith("#")) {
-      const headerMatch = line.match(/^#+/)
-      const level = headerMatch ? headerMatch[0].length : 1
-      const text = line.replace(/^#+\s+/, "")
-      
-      currentSize = 24 - (level * 2)
-      doc.setFontSize(currentSize)
-      doc.setFont("helvetica", "bold")
-      
+    if (line && line.startsWith("#")) {
+      const level = line.match(/^#+/)?.[0]?.length || 0;
+      const text = line.replace(/^#+\s+/, "");
+
+      currentSize = 24 - level * 2;
+      doc.setFontSize(currentSize);
+      doc.setFont("helvetica", "bold");
+
       if (y > 250) {
-        doc.addPage()
-        y = 20
+        doc.addPage();
+        y = 20;
       }
-      
-      doc.text(text, margin, y)
-      y += 10
-      continue
+
+      doc.text(text, margin, y);
+      y += 10;
+      continue;
     }
 
     // Handle bullet points
     if (line.match(/^[-*]\s+/)) {
-      const text = line.replace(/^[-*]\s+/, "")
-      doc.setFontSize(12)
-      doc.setFont("helvetica", "normal")
-      
+      const text = line.replace(/^[-*]\s+/, "");
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+
       if (y > 250) {
-        doc.addPage()
-        y = 20
+        doc.addPage();
+        y = 20;
       }
-      
-      doc.text("•", margin + 5, y)
-      const splitText = doc.splitTextToSize(text, textWidth - 10)
-      doc.text(splitText, margin + 10, y)
-      y += splitText.length * 7
-      continue
+
+      doc.text("•", margin + 5, y);
+      const lines = doc.splitTextToSize(text, textWidth - 10);
+      doc.text(lines, margin + 10, y);
+      y += lines.length * 7;
+      continue;
     }
 
     // Handle regular text
-    doc.setFontSize(12)
-    doc.setFont("helvetica", "normal")
-    
-      if (y > 250) {
-        doc.addPage()
-        y = 20
-      }
-    
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+
+    if (y > 250) {
+      doc.addPage();
+      y = 20;
+    }
+
     // Split long text into lines that fit the page width
-    const splitText = doc.splitTextToSize(line, textWidth)
-    doc.text(splitText, margin, y)
-    y += splitText.length * 7
+    const lines = doc.splitTextToSize(line, textWidth);
+    doc.text(lines, margin, y);
+    y += lines.length * 7;
   }
 
-  return doc.output("blob")
+  return doc.output("blob");
 }
 
 /**
@@ -119,7 +124,7 @@ async function generatePDF(content: string, brandName: string): Promise<Blob> {
  */
 function generateMarkdown(content: string): Promise<Blob> {
   // Markdown is already in the correct format, just return as blob
-  return Promise.resolve(new Blob([content], { type: "text/markdown" }))
+  return Promise.resolve(new Blob([content], { type: "text/markdown" }));
 }
 
 /**
@@ -164,14 +169,13 @@ function generateDOCX(content: string, brandName: string): Promise<Blob> {
       </div>
     </body>
     </html>
-  `
+  `;
 
-  // Return as HTML file instead with a more compatible MIME type
   return Promise.resolve(
     new Blob([html], {
-      type: "text/html"
-    }),
-  )
+      type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    })
+  );
 }
 
 /**
@@ -233,78 +237,98 @@ function generateHTML(content: string, brandName: string): Promise<Blob> {
       ${formatContentForHTML(content)}
     </body>
     </html>
-  `
+  `;
 
-  return Promise.resolve(new Blob([html], { type: "text/html" }))
+  return Promise.resolve(new Blob([html], { type: "text/html" }));
 }
 
 /**
  * Format markdown content for HTML
  */
 function formatContentForHTML(content: string): string {
-  return content
-    // Convert markdown headers
-    .replace(/^(#{1,6})\s+(.+)$/gm, (_, level, text) => 
-      `<h${level.length}>${text}</h${level.length}>`)
-    // Convert bold text
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    // Convert italic text
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    // Convert bullet points
-    .replace(/^[-*]\s+(.+)$/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
-    // Convert numbered lists
-    .replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>\n?)+/g, '<ol>$&</ol>')
-    // Convert line breaks
-    .replace(/\n\n/g, '</p><p>')
-    .replace(/\n/g, '<br>')
-    // Wrap in paragraphs
-    .replace(/^(.+)$/gm, '<p>$1</p>')
-    // Clean up empty paragraphs
-    .replace(/<p>\s*<\/p>/g, '')
-    // Clean up nested paragraphs
-    .replace(/<p>(\s*<(?:h[1-6]|ul|ol|li|p).*?>)/g, '$1')
-    .replace(/(<\/(?:h[1-6]|ul|ol|li|p)>\s*)<\/p>/g, '$1')
+  return (
+    content
+      // Convert markdown headers
+      .replace(
+        /^(#{1,6})\s+(.+)$/gm,
+        (_, level, text) => `<h${level.length}>${text}</h${level.length}>`
+      )
+      // Convert bold text
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      // Convert italic text
+      .replace(/\*(.+?)\*/g, "<em>$1</em>")
+      // Convert bullet points
+      .replace(/^[-*]\s+(.+)$/gm, "<li>$1</li>")
+      .replace(/(<li>.*<\/li>\n?)+/g, "<ul>$&</ul>")
+      // Convert numbered lists
+      .replace(/^\d+\.\s+(.+)$/gm, "<li>$1</li>")
+      .replace(/(<li>.*<\/li>\n?)+/g, "<ol>$&</ol>")
+      // Convert line breaks
+      .replace(/\n\n/g, "</p><p>")
+      .replace(/\n/g, "<br>")
+      // Wrap in paragraphs
+      .replace(/^(.+)$/gm, "<p>$1</p>")
+      // Clean up empty paragraphs
+      .replace(/<p>\s*<\/p>/g, "")
+      // Clean up nested paragraphs
+      .replace(/<p>(\s*<(?:h[1-6]|ul|ol|li|p).*?>)/g, "$1")
+      .replace(/(<\/(?:h[1-6]|ul|ol|li|p)>\s*)<\/p>/g, "$1")
+  );
 }
 
 /**
  * Format markdown content for DOCX
  */
 function formatContentForDOCX(content: string): string {
-  return content
-    // Convert markdown headers to Word styles
-    .replace(/^(#{1,6})\s+(.+)$/gm, (_, level, text) => 
-      `<h${level.length} style="font-family: Calibri; font-size: ${24 - (level.length * 2)}pt;">${text}</h${level.length}>`)
-    // Convert bold text
-    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
-    // Convert italic text
-    .replace(/\*(.+?)\*/g, '<i>$1</i>')
-    // Convert bullet points with proper Word styling
-    .replace(/^[-*]\s+(.+)$/gm, '<p style="margin-left: 20px;"><span style="font-family: Symbol;">•</span> $1</p>')
-    // Convert numbered lists with proper Word styling
-    .replace(/^\d+\.\s+(.+)$/gm, '<p style="margin-left: 20px;">$1</p>')
-    // Convert line breaks
-    .replace(/\n\n/g, '</p><p style="font-family: Calibri; font-size: 11pt;">')
-    .replace(/\n/g, '<br>')
-    // Add default paragraph styling
-    .replace(/^(.+)$/gm, '<p style="font-family: Calibri; font-size: 11pt;">$1</p>')
-    // Clean up empty paragraphs
-    .replace(/<p[^>]*>\s*<\/p>/g, '')
+  return (
+    content
+      // Convert markdown headers to Word styles
+      .replace(
+        /^(#{1,6})\s+(.+)$/gm,
+        (_, level, text) =>
+          `<h${level.length} style="font-family: Calibri; font-size: ${
+            24 - level.length * 2
+          }pt;">${text}</h${level.length}>`
+      )
+      // Convert bold text
+      .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")
+      // Convert italic text
+      .replace(/\*(.+?)\*/g, "<i>$1</i>")
+      // Convert bullet points with proper Word styling
+      .replace(
+        /^[-*]\s+(.+)$/gm,
+        '<p style="margin-left: 20px;"><span style="font-family: Symbol;">•</span> $1</p>'
+      )
+      // Convert numbered lists with proper Word styling
+      .replace(/^\d+\.\s+(.+)$/gm, '<p style="margin-left: 20px;">$1</p>')
+      // Convert line breaks
+      .replace(
+        /\n\n/g,
+        '</p><p style="font-family: Calibri; font-size: 11pt;">'
+      )
+      .replace(/\n/g, "<br>")
+      // Add default paragraph styling
+      .replace(
+        /^(.+)$/gm,
+        '<p style="font-family: Calibri; font-size: 11pt;">$1</p>'
+      )
+      // Clean up empty paragraphs
+      .replace(/<p[^>]*>\s*<\/p>/g, "")
+  );
 }
 
 /**
  * Download a generated file
  */
 export function downloadFile(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement("a")
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 /**
@@ -312,30 +336,33 @@ export function downloadFile(blob: Blob, filename: string): void {
  */
 export async function generateFileWithMimeType(
   format: FileFormat,
-  content: string,
+  content: string
 ): Promise<{ blob: Blob; mimeType: string }> {
-  console.log(`Generating ${format} file with content length: ${content.length}`)
+  console.log(
+    `Generating ${format} file with content length: ${content.length}`
+  );
 
-  let mimeType = "text/plain"
+  let mimeType = "text/plain";
 
   // Set the correct mime type based on format
   switch (format) {
     case "pdf":
-      mimeType = "application/pdf"
-      break
+      mimeType = "application/pdf";
+      break;
     case "md":
-      mimeType = "text/markdown"
-      break
+      mimeType = "text/markdown";
+      break;
     case "docx":
-      mimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-      break
+      mimeType =
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+      break;
     case "html":
-      mimeType = "text/html"
-      break
+      mimeType = "text/html";
+      break;
   }
 
   // Create a blob with the appropriate content and MIME type
-  const blob = new Blob([content], { type: mimeType })
+  const blob = new Blob([content], { type: mimeType });
 
-  return { blob, mimeType }
+  return { blob, mimeType };
 }

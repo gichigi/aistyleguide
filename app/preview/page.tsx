@@ -1,10 +1,16 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { ArrowLeft, FileText, CreditCard, Loader2, CheckCircle } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import {
+  ArrowLeft,
+  FileText,
+  CreditCard,
+  Loader2,
+  CheckCircle,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -12,125 +18,136 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { useToast } from "@/hooks/use-toast"
-import { renderStyleGuideTemplate } from "@/lib/template-processor"
-import styled from "styled-components"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { generateTemplatePreview } from "@/lib/template-processor";
+import styled from "styled-components";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MarkdownComponents } from "@/lib/markdown-components";
+import ReactMarkdown from "react-markdown";
 
 // Add fade-out effect before paywall
 const ContentWithFadeout = styled.div`
   position: relative;
   &:after {
-    content: '';
+    content: "";
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
-    height: 500px;
+    height: 150px;
     background: linear-gradient(
       to bottom,
-      rgba(255,255,255,0) 0%,
-      rgba(255,255,255,0) 40%,
-      rgba(255,255,255,1) 100%
+      rgba(255, 255, 255, 0),
+      rgba(255, 255, 255, 1)
     );
     pointer-events: none;
   }
 `;
 
-// Process preview content to remove duplicate title/subtitle
-const processPreviewContent = (content: string, brandName: string = "") => {
-  const lines = content.split('\n');
-  // Remove first h1 and subtitle if they match our header
-  if (lines[0]?.startsWith('# ') && lines[0].includes(brandName)) {
-    lines.splice(0, 2); // Remove title and subtitle
-  }
-  return lines.join('\n');
-};
+// Fix emoji headings so that emojis after heading markers
+function fixEmojiHeadings(markdown: string): string {
+  // Move leading emoji(s) to after heading marker(s) for headings
+  // Example: '✍🏻 ## General tips' => '## ✍🏻 General tips'
+  return markdown.replace(
+    /^([\p{Emoji_Presentation}\p{Extended_Pictographic}]+)\s*(#+)/gmu,
+    (_match, emoji, hashes) => {
+      return `${hashes} ${emoji}`;
+    }
+  );
+}
 
 export default function PreviewPage() {
-  const router = useRouter()
-  const { toast } = useToast()
-  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false)
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false)
-  const [previewContent, setPreviewContent] = useState<string | null>(null)
-  const [fadeIn, setFadeIn] = useState(false)
-  const [brandDetails, setBrandDetails] = useState<any>(null)
-  const [shouldRedirect, setShouldRedirect] = useState(false)
+  const router = useRouter();
+  const { toast } = useToast();
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [previewContent, setPreviewContent] = useState<string | null>(null);
+  const [fadeIn, setFadeIn] = useState(false);
+  const [brandDetails, setBrandDetails] = useState<any>(null);
+  const [shouldRedirect, setShouldRedirect] = useState(false);
 
   useEffect(() => {
+    // Check if user has already paid
+    const paymentStatus = localStorage.getItem("styleGuidePaymentStatus");
+    if (paymentStatus === "completed") {
+      setShouldRedirect(true);
+      return;
+    }
+
     // Load brand details
-    const savedBrandDetails = sessionStorage.getItem("brandDetails")
+    const savedBrandDetails = sessionStorage.getItem("brandDetails");
     if (savedBrandDetails) {
-      setBrandDetails(JSON.parse(savedBrandDetails))
+      setBrandDetails(JSON.parse(savedBrandDetails));
     }
 
     // Trigger fade-in animation
     const timer = setTimeout(() => {
-      setFadeIn(true)
-    }, 100)
+      setFadeIn(true);
+    }, 100);
 
-    return () => clearTimeout(timer)
-  }, [])
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (shouldRedirect) {
-      router.push("/full-access")
+      router.push("/full-access");
     }
-  }, [shouldRedirect, router])
+  }, [shouldRedirect, router]);
 
   useEffect(() => {
-    let isMounted = true
+    let isMounted = true;
 
     const loadPreview = async () => {
-      if (!brandDetails) return
+      if (!brandDetails) return;
+
       try {
-        const preview = await renderStyleGuideTemplate({ brandDetails, useAIContent: false, templateType: 'preview' })
+        const preview = await generateTemplatePreview(brandDetails);
         if (isMounted) {
-          setPreviewContent(preview)
+          setPreviewContent(preview);
         }
       } catch (error) {
-        console.error("Error generating preview:", error)
+        console.error("Error generating preview:", error);
         if (isMounted) {
           toast({
             title: "Preview generation failed",
             description: "Could not generate preview. Please try again later.",
             variant: "destructive",
-          })
-          setShouldRedirect(true)
+          });
+          setShouldRedirect(true);
         }
       }
-    }
+    };
 
-    loadPreview()
+    loadPreview();
 
     return () => {
-      isMounted = false
-    }
-  }, [brandDetails, toast])
+      isMounted = false;
+    };
+  }, [brandDetails, toast]);
 
-  const handlePayment = async (guideType: 'core' | 'complete') => {
+  const handlePayment = async (guideType: "core" | "complete") => {
     try {
       setIsProcessingPayment(true);
-      
+
       // Create checkout session
-      const response = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ guideType })
+      const response = await fetch("/api/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ guideType }),
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message);
       }
 
       const { url } = await response.json();
-      
+
       // Redirect to Stripe Checkout
       window.location.href = url;
     } catch (error) {
-      console.error('Payment error:', error);
+      console.error("Payment error:", error);
       toast({
         title: "Payment failed",
         description: "Could not process payment. Please try again.",
@@ -147,7 +164,7 @@ export default function PreviewPage() {
         <Loader2 className="h-8 w-8 animate-spin" />
         <p className="mt-4">Loading preview...</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -155,15 +172,20 @@ export default function PreviewPage() {
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:bg-gray-950/95 dark:border-gray-800">
         <div className="container px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 min-w-0 max-w-[180px] sm:max-w-none">
+          <Link
+            href="/"
+            className="flex items-center gap-2 min-w-0 max-w-[180px] sm:max-w-none"
+          >
             <FileText className="h-5 w-5 flex-shrink-0" />
-            <span className="text-lg font-semibold truncate whitespace-nowrap">Style Guide AI</span>
+            <span className="text-lg font-semibold truncate whitespace-nowrap">
+              Style Guide AI
+            </span>
           </Link>
-          {/*<div className="flex items-center">
+          <div className="flex items-center">
             <div className="px-4 py-2 text-sm font-medium rounded-md bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-800">
               Preview
             </div>
-          </div>*/}
+          </div>
         </div>
       </header>
 
@@ -191,8 +213,12 @@ export default function PreviewPage() {
                 </div>
 
                 <div className="rounded-lg bg-blue-50 p-4 space-y-2">
-                  <h4 className="font-semibold text-blue-700">25 Essential Rules</h4>
-                  <p className="text-sm text-blue-600">Perfect for startups and small teams</p>
+                  <h4 className="font-semibold text-blue-700">
+                    25 Essential Rules
+                  </h4>
+                  <p className="text-sm text-blue-600">
+                    Perfect for startups and small teams
+                  </p>
                 </div>
 
                 <div className="space-y-2">
@@ -219,7 +245,7 @@ export default function PreviewPage() {
                 </div>
 
                 <Button
-                  onClick={() => handlePayment('core')}
+                  onClick={() => handlePayment("core")}
                   disabled={isProcessingPayment}
                   className="w-full py-6"
                 >
@@ -241,8 +267,12 @@ export default function PreviewPage() {
                 </div>
 
                 <div className="rounded-lg bg-purple-50 p-4 space-y-2">
-                  <h4 className="font-semibold text-purple-700">99+ Comprehensive Rules</h4>
-                  <p className="text-sm text-purple-600">Ideal for established brands and larger teams</p>
+                  <h4 className="font-semibold text-purple-700">
+                    99+ Comprehensive Rules
+                  </h4>
+                  <p className="text-sm text-purple-600">
+                    Ideal for established brands and larger teams
+                  </p>
                 </div>
 
                 <div className="space-y-2">
@@ -269,7 +299,7 @@ export default function PreviewPage() {
                 </div>
 
                 <Button
-                  onClick={() => handlePayment('complete')}
+                  onClick={() => handlePayment("complete")}
                   disabled={isProcessingPayment}
                   className="w-full py-6"
                 >
@@ -297,7 +327,11 @@ export default function PreviewPage() {
       </Dialog>
 
       {/* Main Content */}
-      <main className={`flex-1 container py-8 max-w-5xl transition-opacity duration-500 ease-in-out ${fadeIn ? "opacity-100" : "opacity-0"}`}>
+      <main
+        className={`flex-1 container py-8 max-w-5xl transition-opacity duration-500 ease-in-out ${
+          fadeIn ? "opacity-100" : "opacity-0"
+        }`}
+      >
         <div className="flex items-center justify-between mb-6">
           <Link
             href="/brand-details"
@@ -312,16 +346,19 @@ export default function PreviewPage() {
             <div className="max-w-3xl mx-auto space-y-12">
               <div className="prose prose-slate dark:prose-invert max-w-none">
                 <ContentWithFadeout>
-                  <div dangerouslySetInnerHTML={{ __html: processPreviewContent(previewContent, brandDetails?.name) }} />
+                  <ReactMarkdown components={MarkdownComponents}>
+                    {fixEmojiHeadings(previewContent)}
+                  </ReactMarkdown>
                 </ContentWithFadeout>
 
                 {/* Add paywall banner */}
-                <div className="my-8 mb-28 p-6 border border-dashed border-amber-300 rounded-lg bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 text-center">
+                <div className="my-8 p-6 border border-dashed border-amber-300 rounded-lg bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 text-center">
                   <h3 className="text-lg font-medium text-amber-800 dark:text-amber-400 mb-2">
                     You've reached the preview limit
                   </h3>
                   <p className="text-amber-700 dark:text-amber-500 mb-4">
-                    Unlock the full style guide to see all writing rules, formatting tips, and examples.
+                    Unlock the full style guide to see all writing rules,
+                    formatting tips, and examples.
                   </p>
                   <Button
                     onClick={() => setPaymentDialogOpen(true)}
@@ -336,6 +373,5 @@ export default function PreviewPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }
-

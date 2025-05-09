@@ -1,0 +1,148 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+
+# API Client Usage Rules
+
+## Overview
+
+All client-side API requests must use the `api-client.ts` methods instead of direct `fetch` calls. This ensures consistent error handling, logging, and request formatting across the application.
+
+## Available Methods
+
+### GET Requests
+
+```typescript
+import { apiGet } from "@/lib/api-client";
+
+// Basic GET request
+const data = await apiGet<ResponseType>("/api/endpoint");
+
+// GET request with query parameters
+const data = await apiGet<ResponseType>("/api/endpoint", {
+  params: { key: "value" },
+});
+
+// GET request with custom headers
+const data = await apiGet<ResponseType>("/api/endpoint", {
+  headers: { "Custom-Header": "value" },
+});
+```
+
+### POST Requests
+
+```typescript
+import { apiPost } from "@/lib/api-client";
+
+// Basic POST request
+const data = await apiPost<ResponseType, RequestType>("/api/endpoint", {
+  key: "value",
+});
+
+// POST request with custom options
+const data = await apiPost<ResponseType, RequestType>(
+  "/api/endpoint",
+  { key: "value" },
+  {
+    headers: { "Custom-Header": "value" },
+  }
+);
+```
+
+### PUT Requests
+
+```typescript
+import { apiPut } from "@/lib/api-client";
+
+// Basic PUT request
+const data = await apiPut<ResponseType, RequestType>("/api/endpoint", {
+  key: "value",
+});
+
+// PUT request with custom options
+const data = await apiPut<ResponseType, RequestType>(
+  "/api/endpoint",
+  { key: "value" },
+  {
+    headers: { "Custom-Header": "value" },
+  }
+);
+```
+
+### DELETE Requests
+
+```typescript
+import { apiDelete } from "@/lib/api-client";
+
+// Basic DELETE request
+const data = await apiDelete<ResponseType>("/api/endpoint");
+
+// DELETE request with custom options
+const data = await apiDelete<ResponseType>("/api/endpoint", {
+  headers: { "Custom-Header": "value" },
+});
+```
+
+## Error Handling
+
+All API client methods include built-in error handling:
+
+- Network errors are caught and logged
+- Non-200 responses are converted to errors
+- Error messages include status codes and response data
+
+```typescript
+try {
+  const data = await apiGet<ResponseType>("/api/endpoint");
+  // Handle success
+} catch (error) {
+  // Handle error
+  console.error("API request failed:", error);
+}
+```
+
+## Type Safety
+
+The API client is fully typed:
+
+- Response types can be specified using generics
+- Request body types can be specified for POST/PUT requests
+- TypeScript will enforce correct usage
+
+## Best Practices
+
+1. Always specify response types using generics
+2. Use the appropriate method for the HTTP verb
+3. Handle errors appropriately
+4. Use query parameters for GET requests instead of string concatenation
+5. Keep custom headers consistent across requests
+
+## ESLint Rule
+
+The project includes an ESLint rule that prevents direct `fetch` usage. Use the API client methods instead.
+
+## Migration Guide
+
+To migrate existing `fetch` calls to the API client:
+
+1. Replace `fetch` with the appropriate API client method
+2. Add proper TypeScript types
+3. Update error handling to use try/catch
+4. Remove manual JSON parsing and response checking
+
+Example migration:
+
+```typescript
+// Before
+const response = await fetch("/api/endpoint", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(data),
+});
+const result = await response.json();
+
+// After
+const result = await apiPost<ResponseType, RequestType>("/api/endpoint", data);
+```

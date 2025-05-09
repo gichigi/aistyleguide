@@ -1,56 +1,39 @@
-{{DD MONTH YYYY}}  
-# {{brand_name}} Style Guide  
-An essential guide to keep every message clear and consistent.  
+{{DD MONTH YYYY}}
 
----
+# {{brand_name}} – Core Style Guide
 
-## How to Use This Document  
-This document outlines the rules for brand voice, spelling, grammar, and formatting across all content channels. Anyone writing and publishing content for {{brand_name}} should follow these guidelines.  
+A starter guide to keep every message clear and consistent.
 
----
+## How to Use This Document
 
-## General Guidelines
+This document outlines the rules for brand voice, spelling, grammar, and formatting across all content channels. Anyone writing and publishing content for {{brand_name}} should follow these guidelines.
 
-### Short content  
+✍🏽 ## General tips
+
+📱 ### Short content
 _social, ads, web snippets_
 
-- **Write like a human:** use everyday language and avoid jargon.  
-- **Be an authority:** write with a positive outlook to inspire readers.
-- **Be brief:** use short sentences, short paragraphs and use familiar words.
+**Write like a human**: use everyday language and avoid jargon.  
+**Be an authority**: sound confident and optimistic; show you know what you’re talking about.  
+**Be brief**: aim for 10‑15 words per sentence. Use short, familiar words. Use 2‑3 sentence paragraphs.
 
-### Long content  
+📄 ### Long content
 _blogs, newsletters, articles_
 
-- **Use bullet lists:** turn three or more points into a list to break up text.
-- **Humanise the story:** start with why it matters, then show the solution.   
-- **Use line breaks:** break up long text for better readability.  
-- **Add subheadings:** draft content first, then add subheadings that engage.  
-- **Use numbers:** lead with key figures that jump out at the reader.
+**Use bullet lists**: for three or more points so ideas stand out.  
+**Humanise the story**: start with why it matters now, then show the solution.  
+**Use line breaks & white space**: Use line breaks liberally for spacing and readability.  
+**Break up with sub‑heads**: draft first, add headings after; strong headings keep readers engaged.  
+**Use figures thoughtfully**: the brain notices numerals; lead with key figures but don’t overload the reader.
 
 ---
 
-## Brand Voice  
+## Brand Voice
 
-### Clear & Concise
+### {{voice_trait_1}}
 
-**What It Means**
-→ Use simple, direct language that anyone can understand.
-→ Break down complex ideas into easy steps.
-→ Keep sentences short and to the point.
+{{rule_line}}
 
-**What It Doesn't Mean**
-✗ Leaving out important details for the sake of brevity.
-✗ Using jargon or technical terms without explanation.
-✗ Oversimplifying topics that need nuance.
+### {{voice_trait_2}}
 
-### Friendly & Approachable
-
-**What It Means**
-→ Write as if you're talking to a real person.
-→ Use a warm, welcoming tone in every message.
-→ Encourage questions and feedback.
-
-**What It Doesn't Mean**
-✗ Being overly casual or unprofessional.
-✗ Using slang that not everyone will understand.
-✗ Ignoring the needs or concerns of your audience.
+{{rule_line}}
