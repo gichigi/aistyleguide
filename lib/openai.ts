@@ -44,7 +44,8 @@ async function cleanResponse(text: string, format: ResponseFormat): Promise<stri
 export async function generateWithOpenAI(
   prompt: string, 
   systemPrompt: string,
-  responseFormat: ResponseFormat = "json"
+  responseFormat: ResponseFormat = "json",
+  max_tokens: number = 2000
 ): Promise<GenerationResult> {
   const maxAttempts = 3
   Logger.info("Starting OpenAI generation", { prompt: prompt.substring(0, 100) + "...", format: responseFormat })
@@ -55,13 +56,13 @@ export async function generateWithOpenAI(
       
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
       const response = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
+        model: "gpt-4o",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: prompt }
         ],
-        temperature: 0.7,
-        max_tokens: 2000
+        temperature: 0.6,
+        max_tokens: max_tokens
       })
 
       const rawResponse = response.choices[0]?.message?.content
@@ -131,8 +132,8 @@ Brand Info:
 • What they do: ${brandDetails.summary || brandDetails.description}
 
 For each trait, provide:
-1. A short, bold title (no quotes, no numbering, no meta-text like "Brand voice trait").
-2. A 1–2 sentence description of the trait and why it matters for this brand.
+1. A short, bold title (no quotes, no numbering, no meta-text like "Brand voice trait"). Each trait should be a single adjective but must not be generic like "friendly" or "professional". 
+2. A **ONE SENTENCE** description of the trait and why it's important for this brand.
 3. "What It Means": 3 specific, actionable examples, each starting with → (unicode arrow, not emoji). Do not use bullet points.
 4. "What It Doesn't Mean": 3 clarifications to avoid misinterpretation, each starting with ✗ (unicode cross, not emoji). Do not use bullet points. Do not just write the opposite; clarify boundaries or common mistakes.
 
@@ -199,7 +200,7 @@ Use British English spelling
 
 // Function to generate the entire core style guide in one go
 export async function generateFullCoreStyleGuide(brandDetails: any): Promise<GenerationResult> {
-  const prompt = `You are a brand style expert. Based on the following brand information, generate a complete writing style guide made of 25 original writing rules.
+  const prompt = `You are a writing style guide expert. Based on the brand info below, create a set of 25 specific writing style rules for this brand.
 
 Brand Info:
   • Brand Name: ${brandDetails.name}
@@ -207,46 +208,187 @@ Brand Info:
   • Tone: ${brandDetails.tone}
   • What they do: ${brandDetails.summary || brandDetails.description}
 
-Each rule must:
-  1. Be a clear, actionable writing rule (not a general content or marketing tip).
-  2. Guide how to write, edit, and format text for this brand's content.
-  3. Begin with a rule name in bold that is a single, clear keyword (e.g., Clarity, Verbs, Paragraphs, Spelling, Jargon, Headings, Sentences, etc.). Do not use a phrase or sentence. Do not use more than one word for the rule name.
-  4. Follow with a 1–2 sentence description of what the rule is and why it matters for this brand.
-  5. Include a ✅ Right example that clearly follows the rule.
-  6. Include a ❌ Wrong example that breaks it.
-  7. Be formatted in markdown.
+Instructions:
+- Each rule must be about writing style, grammar, punctuation, spelling, or formatting.
+- Do NOT include general brand, marketing, or content strategy rules.
+- Use rules like: Capitalization, Numbers, Pronouns, Abbreviations, Acronyms, Titles & Headings, Trademarks, Slang & Jargon, Proper Nouns, 1st person vs 3rd person, Contractions, Compound Adjectives, Serial/Oxford Comma, Emojis, Job Titles, Dates & Times, Measurements, Money, Addresses, Special Characters, Hyphens, Dashes, Apostrophes, Quotation marks, etc.
+- Each rule must:
+  1. Start with a bold, single keyword (e.g., "Acronyms", "Capitalization", "Numbers").
+  2. Give a **ONE SENTENCE** description of the rule and why it matters.
+  3. Include a ✅ Right example and a ❌ Wrong example.
+  4. Be formatted in markdown.
+- List the 25 rules in alphabetical order by keyword.
+- Number each rule in the header: "### 1. Acronyms"
+- Do not repeat rules or examples.
+- Make each rule unique, clear, and actionable.
+- Focus on how to write, edit, and format text for this brand.
 
-Additional instructions:
-- The 25 rules should be listed in alphabetical order by the single keyword rule name.
-- Number each rule (1-25) in its header like: "### 1. Clarity" (not "**1. Clarity**").
-- For each rule, choose a single, clear, writing topic as the keyword (e.g., Paragraphs, Verbs, Clarity, Jargon, Headings, Sentences, Spelling, etc.). Always alphabetize the rules by this single keyword.
-- Do not repeat rules or examples—each rule must be unique.
-- Keep the length of rule names, descriptions, and examples consistent across all rules for a uniform appearance.
-- Focus on writing style, grammar, sentence structure, punctuation, spelling, word choice, inclusivity, clarity, formatting, voice consistency, contractions, active/passive voice, and similar writing-focused areas.
-- Do NOT include rules about social media engagement, visual content, marketing, or general content strategy.
+Example rules:
+### 1. Acronyms
+Spell out acronyms on first use, then use the acronym only.
+✅ Right: "World Health Organization (WHO)"
+❌ Wrong: "WHO"
 
-You must generate exactly 25 rules, covering the full range of writing style for this brand.
-These rules should be specific, relevant to this brand, and helpful for any content creator writing in their voice.
-Do not use generic rules from a template. Generate new ones, grounded in the brand's unique audience and tone.
+### 2. Capitalization
+Use sentence case for headings and titles.
+✅ Right: "How to write a style guide"
+❌ Wrong: "How To Write A Style Guide"
 
-Example format:
+### 3. Numbers
+Write out numbers one through nine; use numerals for 10 and above.
+✅ Right: "We have five products."
+❌ Wrong: "We have 5 products."
 
-### 1. Clarity
-Keep language clear and direct for all audiences.
-✅ Right: "Our app is easy to use."
-❌ Wrong: "Our application provides a user-centric experience with robust functionality."
+### 4. Trademarks
+Always use the correct trademark symbols for brand names.
+✅ Right: "iPhone®"
+❌ Wrong: "iPhone"
 
-### 2. Paragraphs
-Use short paragraphs for easy reading.
-✅ Right: "Each idea gets its own paragraph."
-❌ Wrong: "Combine multiple ideas into one long paragraph."
-
-### 3. Verbs
-Choose strong, active verbs for action and clarity.
-✅ Right: "Update your profile."
-❌ Wrong: "Your profile can be updated."
+### 5. Serial Comma
+Use the Oxford comma in lists of three or more items.
+✅ Right: "We sell books, magazines, and newspapers."
+❌ Wrong: "We sell books, magazines and newspapers."
 
 ---
+Generate exactly 25 rules, each about a different aspect of writing style.`;
+  return generateWithOpenAI(prompt, "You are a writing style guide expert.", "markdown");
+}
+
+// Function to generate the entire complete style guide in one go
+export async function generateCompleteStyleGuide(brandDetails: any): Promise<GenerationResult> {
+  const prompt = `You are a writing style guide expert. Based on the brand info below, create a comprehensive set of writing style rules for this brand, covering all the detailed topics listed.
+
+Brand Info:
+  • Brand Name: ${brandDetails.name}
+  • Audience: ${brandDetails.audience}
+  • Tone: ${brandDetails.tone}
+  • What they do: ${brandDetails.summary || brandDetails.description}
+
+Instructions:
+- The main title should be H1 and say 'Apple Style Rules'.
+- Each main section (e.g. '1. Spelling Conventions') should be H2 (##).
+- Each rule name (e.g. 'Company Name Spelling') should be bold paragraph text, not a heading.
+- Do NOT break lines for dashes, slashes, or quotes—keep them in the same line as the text.
+- Each rule must be about writing style, grammar, punctuation, spelling, or formatting.
+- Do NOT include general brand, marketing, or content strategy rules.
+- For each rule:
+  1. Start with a bold, single keyword or phrase matching the topic (e.g., "Abbreviations", "Capitalisation", "Emojis", "Company name spelling").
+  2. Give a **ONE SENTENCE** description of the rule and why it matters.
+  3. Include a ✅ Right example and a ❌ Wrong example.
+  4. Be formatted in markdown.
+- Organize the rules into the following sections and topics, in this order:
+
+1. Spelling conventions
+   - Company name spelling
+   - Proper nouns
+   - Hyphenation in heritage terms
+   - Numbers 1–9
+   - Complex vs. simple words
+
+2. Grammar & mechanics
+   - Abbreviations
+   - Acronyms
+   - Active vs. passive voice
+   - Capitalisation
+   - Title case
+   - Sentence case
+   - Upper case
+   - Contractions
+   - Compound adjectives
+   - eg / ie / etc.
+   - Emojis
+   - Job titles
+   - Languages
+
+3. Punctuation
+   - Accents
+   - Apostrophes
+   - Ampersands
+   - Colons
+   - Commas
+   - Em dash
+   - En dash
+   - Ellipses
+   - Exclamation points
+   - Slashes ( / \\ )
+   - Hyphens
+   - Periods / full stops
+   - Parentheses / brackets
+   - Pipes
+   - Semicolons
+   - Special characters
+   - Question marks
+   - Quotation marks
+
+4. Formatting & UI elements
+   - Alignment
+   - Alt text
+   - Bold / italics / underlines
+   - Bullet points
+   - Buttons
+   - Coloured text
+   - Checkboxes
+   - Email addresses
+   - File extensions
+   - Forms
+   - Links
+   - Numbered lists
+   - Radio buttons
+   - Spacing
+   - Strikethrough
+
+5. Numbers & data
+   - 1–9
+   - Big numbers
+   - Dates
+   - Decimals
+   - Fractions
+   - Measurements
+   - Millions & billions
+   - Money
+   - Percentages
+   - Ranges
+   - Telephone numbers
+   - Temperature
+   - Time & time zones
+   - Weights
+   - Whole numbers
+
+6. People & Inclusive language
+   - Person‑first language
+   - Disability‑related terms
+   - Gender & sexuality terminology
+   - Heritage & nationality terminology
+   - Age references
+   - Neurodiversity references
+   - Socio‑economic references
+
+7. Points of view
+   - First vs. third person
+   - Pronouns
+
+8. Style consistency
+   - Serial comma
+   - Slang & jargon
+   - Titles, headings & subheadings
+   - Trademarks
+   - Consistency review
+
+Example format for each rule:
+
+**Company Name Spelling**
+Always capitalize "Apple" and use it consistently to reinforce brand identity.
+✅ Right: Apple products are popular among designers.
+❌ Wrong: apple products are popular among designers.
+
+---
+- Generate the rules in the order above.
+- Use markdown H2 (##) for each main section.
+- Use bold paragraph text for each rule name.
+- Do not skip any rule or section.
+- Do not repeat rules or examples.
+- Make each rule unique, clear, and actionable.
+- Focus on how to write, edit, and format text for this brand.
 `;
-  return generateWithOpenAI(prompt, "You are a brand style expert.", "markdown");
+  return generateWithOpenAI(prompt, "You are a writing style guide expert.", "markdown", 6000);
 }

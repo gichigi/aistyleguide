@@ -33,7 +33,7 @@ _blogs, newsletters, articles_
 
 {{brand_voice_traits}}
 
-## 25 Core Rules (Template)
+## 25 Core Rules
 
 {{core_rules}}
 

@@ -259,13 +259,13 @@ function formatContentForHTML(content: string): string {
     // Convert line breaks
     .replace(/\n\n/g, '</p><p>')
     .replace(/\n/g, '<br>')
-    // Wrap in paragraphs
-    .replace(/^(.+)$/gm, '<p>$1</p>')
+    // Only wrap lines that are not block elements in <p>
+    .replace(/^(?!<h\d|<ul>|<ol>|<li>|<\/ul>|<\/ol>|<\/li>|<blockquote>|<pre>|<code>|<table>|<tr>|<td>|<th>|<hr>|<br>)(.+)$/gm, '<p>$1</p>')
     // Clean up empty paragraphs
     .replace(/<p>\s*<\/p>/g, '')
     // Clean up nested paragraphs
     .replace(/<p>(\s*<(?:h[1-6]|ul|ol|li|p).*?>)/g, '$1')
-    .replace(/(<\/(?:h[1-6]|ul|ol|li|p)>\s*)<\/p>/g, '$1')
+    .replace(/(<\/(?:h[1-6]|ul|ol|li|p)>\s*)<\/p>/g, '$1');
 }
 
 /**

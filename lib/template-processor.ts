@@ -1,4 +1,4 @@
-import { generateBrandVoiceTraits, generateWithOpenAI, generateFullCoreStyleGuide } from "./openai"
+import { generateBrandVoiceTraits, generateWithOpenAI, generateFullCoreStyleGuide, generateCompleteStyleGuide } from "./openai"
 import { marked } from 'marked'
 
 // Function to load a template file via API
@@ -30,24 +30,41 @@ function formatMarkdownContent(content: string | undefined): string {
     return ''
   }
 
+  // Step 0: Fix main title to 'Apple Style Rules' (H1)
+  let formatted = content.replace(/^#\s*.*Style Guide.*$/im, '# Apple Style Rules');
+
   // Step 1: Clean up basic whitespace
-  let formatted = content
+  let formatted2 = formatted
     .replace(/\n{3,}/g, "\n\n") // Replace multiple newlines with double newlines
     .replace(/\s+$/gm, "") // Remove trailing whitespace
     .replace(/^\s+/gm, "") // Remove leading whitespace
     .trim()
 
-  // Step 2: Ensure brand voice traits have H3 headers
-  // Look for bold trait names that aren't already headers
-  formatted = formatted.replace(/^(\*\*([^*\n]+)\*\*)(?!\n#)/gm, '### $2')
+  // Step 1.5: Convert section headers like '1. Spelling Conventions' to H2
+  formatted2 = formatted2.replace(/^(\d+\.?\s+[^\n]+)$/gm, '## $1');
+
+  // Step 1.6: Convert rule names (e.g. 'Company Name Spelling') to bold paragraph text, not headings
+  formatted2 = formatted2.replace(/^\*\*([^*\n]+)\*\*\s*$/gm, '<strong>$1</strong>');
+  // Remove any leftover H3/H4 for rule names
+  formatted2 = formatted2.replace(/^#{3,4}\s*([^\n]+)$/gm, '<strong>$1</strong>');
+
+  // Step 1.7: Prevent line breaks for dashes, slashes, and quotes within lines
+  formatted2 = formatted2.replace(/([\w\d])\s*([\-\/"'])\s*([\w\d])/g, '$1$2$3');
+
+  // Step 2: Standardize trait headings to H3
+  // Convert bold trait names to H3
+  formatted2 = formatted2.replace(/^\*\*([^*\n]+)\*\*(?!\n#)/gm, '### $1')
+  // Convert ## or #### trait names to H3
+  formatted2 = formatted2.replace(/^#{2,}\s*([^\n]+)$/gm, '### $1')
+  // Convert plain trait names at the start of a block to H3 (followed by What It Means/Doesn't Mean or a description)
+  formatted2 = formatted2.replace(/^([A-Z][a-zA-Z ]{2,30})\n(?=(What It Means|What It Doesn\'t Mean|[A-Z][a-z]+))/gm, '### $1\n')
   
   // Step 3: Convert "What It Means" and "What It Doesn't Mean" to H4 with proper spacing
-  formatted = formatted
-    .replace(/^(?:\*\*)?(What It (?:Doesn't )?Means?)(?:\*\*)?/gm, '#### $1')
-    .replace(/(####\s+What It (?:Doesn't )?Means?)/g, '\n$1\n')
+  formatted2 = formatted2.replace(/^(?:\*\*)?(What It (?:Doesn't )?Means?)(?:\*\*)?/gm, '#### $1')
+  formatted2 = formatted2.replace(/(####\s+What It (?:Doesn't )?Means?)/g, '\n$1\n')
   
   // Step 4: Fix spacing for headings
-  formatted = formatted
+  formatted2 = formatted2
     // Add newline after headings if not present
     .replace(/^(#{1,6}\s[^\n]+)(?!\n)/gm, '$1\n')
     // Ensure exactly one blank line before headings (except at start)
@@ -57,7 +74,7 @@ function formatMarkdownContent(content: string | undefined): string {
   // Find the section with core rules
   let ruleCount = 0;
   let inRulesSection = false;
-  const lines = formatted.split('\n');
+  const lines = formatted2.split('\n');
   const newLines = [];
   
   for (let i = 0; i < lines.length; i++) {
@@ -80,10 +97,10 @@ function formatMarkdownContent(content: string | undefined): string {
     }
   }
   
-  formatted = newLines.join('\n');
+  formatted2 = newLines.join('\n');
 
   // Step 6: Fix spacing for Right/Wrong examples
-  formatted = formatted
+  formatted2 = formatted2
     // Normalize spacing after ✅ and ❌
     .replace(/(✅|❌)\s*([Rr]ight|[Ww]rong):\s*/g, '$1 $2: ')
     // Add newline after each example if not present
@@ -92,7 +109,7 @@ function formatMarkdownContent(content: string | undefined): string {
     .replace(/(✅[^\n]+)\n\n(❌)/g, '$1\n$2')
 
   // Step 7: Fix spacing for lists and arrows
-  formatted = formatted
+  formatted2 = formatted2
     // Normalize arrow spacing
     .replace(/^→\s*/gm, '→ ')
     // Normalize x mark spacing
@@ -101,7 +118,7 @@ function formatMarkdownContent(content: string | undefined): string {
     .replace(/^([-→✗]\s[^\n]+)(?!\n)/gm, '$1\n')
 
   // Step 8: Fix punctuation issues - prevent quotes/periods from breaking to new lines
-  formatted = formatted
+  formatted2 = formatted2
     // Fix dangling quotes and punctuation
     .replace(/(\w+)\s+([,.!?:;"])(\s*\n)/g, '$1$2$3')
     // Ensure there's no space before periods/commas
@@ -110,13 +127,16 @@ function formatMarkdownContent(content: string | undefined): string {
     .replace(/(\w+)(\s*\n\s*)([a-z])(\s*\n)/g, '$1$3$4')
 
   // Step 9: Fix section spacing
-  formatted = formatted
+  formatted2 = formatted2
     // Ensure sections are separated by exactly one blank line
     .replace(/\n{3,}/g, '\n\n')
     // Extra spacing before/after What It Means/Doesn't Mean sections
     .replace(/(####\s+What It (?:Doesn't )?Means?)\n/g, '$1\n\n')
 
-  return formatted;
+  // Step 10: Ensure space after colon
+  formatted2 = formatted2.replace(/:(\S)/g, ': $1')
+
+  return formatted2;
 }
 
 // Function to validate markdown content
@@ -273,32 +293,58 @@ export async function processTemplate(templateType: string, brandDetails: any, p
 
     console.log("Basic placeholders replaced")
 
-    // Generate all brand voice traits at once and insert into template
+    // Generate brand voice traits for both core and complete plans
     try {
       const brandVoiceResult = await generateBrandVoiceTraits(validatedDetails);
       if (brandVoiceResult.success && brandVoiceResult.content) {
-        template = template.replace(/{{brand_voice_traits}}/g, formatMarkdownContent(brandVoiceResult.content));
+        // Split traits if possible
+        const traits = brandVoiceResult.content.split(/(?=### )/g).map(t => t.trim()).filter(Boolean);
+        template = template.replace(/{{voice_trait_1}}/g, traits[0] || '');
+        template = template.replace(/{{voice_trait_2}}/g, traits[1] || '');
+        template = template.replace(/{{voice_trait_3}}/g, traits[2] || '');
+        // Remove any leftover placeholders
+        template = template.replace(/{{voice_trait_\d}}/g, '');
       } else {
-        template = template.replace(/{{brand_voice_traits}}/g, "_Could not generate brand voice traits for this brand._");
+        template = template.replace(/{{voice_trait_1}}/g, '_Could not generate brand voice trait 1._');
+        template = template.replace(/{{voice_trait_2}}/g, '_Could not generate brand voice trait 2._');
+        template = template.replace(/{{voice_trait_3}}/g, '_Could not generate brand voice trait 3._');
       }
     } catch (error) {
       console.error("Error generating brand voice traits:", error)
-      template = template.replace(/{{brand_voice_traits}}/g, "_Could not generate brand voice traits for this brand._");
+      template = template.replace(/{{voice_trait_1}}/g, '_Could not generate brand voice trait 1._');
+      template = template.replace(/{{voice_trait_2}}/g, '_Could not generate brand voice trait 2._');
+      template = template.replace(/{{voice_trait_3}}/g, '_Could not generate brand voice trait 3._');
     }
 
     console.log("Voice trait placeholders replaced")
 
-    // Generate all 25 rules at once and insert into template
-    try {
-      const coreRulesResult = await generateFullCoreStyleGuide(validatedDetails);
-      if (coreRulesResult.success && coreRulesResult.content) {
-        template = template.replace(/{{core_rules}}/g, formatMarkdownContent(coreRulesResult.content));
-      } else {
+    // Generate all rules at once for the complete plan
+    if (plan === "complete") {
+      try {
+        const completeRulesResult = await generateCompleteStyleGuide(validatedDetails);
+        if (completeRulesResult.success && completeRulesResult.content) {
+          // Replace {{complete_rules}} with the generated rules
+          template = template.replace(/{{complete_rules}}/g, formatMarkdownContent(completeRulesResult.content));
+        } else {
+          template = template.replace(/{{complete_rules}}/g, '_Could not generate complete rules for this brand._');
+        }
+      } catch (error) {
+        console.error("Error generating complete style guide rules:", error);
+        template = template.replace(/{{complete_rules}}/g, '_Could not generate complete rules for this brand._');
+      }
+    } else {
+      // Generate all 25 rules at once and insert into template (core)
+      try {
+        const coreRulesResult = await generateFullCoreStyleGuide(validatedDetails);
+        if (coreRulesResult.success && coreRulesResult.content) {
+          template = template.replace(/{{core_rules}}/g, formatMarkdownContent(coreRulesResult.content));
+        } else {
+          template = template.replace(/{{core_rules}}/g, "_Could not generate core rules for this brand._");
+        }
+      } catch (error) {
+        console.error("Error generating full core style guide rules:", error);
         template = template.replace(/{{core_rules}}/g, "_Could not generate core rules for this brand._");
       }
-    } catch (error) {
-      console.error("Error generating full core style guide rules:", error)
-      template = template.replace(/{{core_rules}}/g, "_Could not generate core rules for this brand._");
     }
 
     // Generate examples if needed for complete template
@@ -450,7 +496,7 @@ export async function renderStyleGuideTemplate({
     .replace(/{{DD MONTH YYYY}}/g, formattedDate)
     .replace(/{{brand_name}}/g, brandDetails.name || 'Your Brand');
 
-  // Fill in brand_voice_traits and core_rules
+  // Fill in brand_voice_traits and core_rules/complete_rules
   if (useAIContent) {
     // AI-generated content (like processTemplate)
     try {
@@ -467,16 +513,27 @@ export async function renderStyleGuideTemplate({
       } else {
         result = result.replace(/{{brand_voice_traits}}/g, "_Could not generate brand voice traits for this brand._");
       }
-      // Core rules
-      const coreRulesResult = await generateFullCoreStyleGuide(validatedDetails);
-      if (coreRulesResult.success && coreRulesResult.content) {
-        result = result.replace(/{{core_rules}}/g, formatMarkdownContent(coreRulesResult.content));
+      if (templateType === "complete") {
+        // Complete rules
+        const completeRulesResult = await generateCompleteStyleGuide(validatedDetails);
+        if (completeRulesResult.success && completeRulesResult.content) {
+          result = result.replace(/{{complete_rules}}/g, formatMarkdownContent(completeRulesResult.content));
+        } else {
+          result = result.replace(/{{complete_rules}}/g, "_Could not generate complete rules for this brand._");
+        }
       } else {
-        result = result.replace(/{{core_rules}}/g, "_Could not generate core rules for this brand._");
+        // Core rules
+        const coreRulesResult = await generateFullCoreStyleGuide(validatedDetails);
+        if (coreRulesResult.success && coreRulesResult.content) {
+          result = result.replace(/{{core_rules}}/g, formatMarkdownContent(coreRulesResult.content));
+        } else {
+          result = result.replace(/{{core_rules}}/g, "_Could not generate core rules for this brand._");
+        }
       }
     } catch (error) {
       result = result.replace(/{{brand_voice_traits}}/g, "_Could not generate brand voice traits for this brand._");
       result = result.replace(/{{core_rules}}/g, "_Could not generate core rules for this brand._");
+      result = result.replace(/{{complete_rules}}/g, "_Could not generate complete rules for this brand._");
     }
   } else {
     // Generic content (like generateTemplatePreview)
