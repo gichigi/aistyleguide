@@ -123,40 +123,7 @@ export async function generateWithOpenAI(
 
 // Function to generate brand voice traits
 export async function generateBrandVoiceTraits(brandDetails: any): Promise<GenerationResult> {
-  const prompt = `You are a brand strategist. Based on the following brand information, generate exactly 3 unique, complementary brand voice traits for this brand.
-
-Brand Info:
-• Brand Name: ${brandDetails.name}
-• Audience: ${brandDetails.audience}
-• Tone: ${brandDetails.tone}
-• What they do: ${brandDetails.summary || brandDetails.description}
-
-For each trait, provide:
-1. A short, bold title (no quotes, no numbering, no meta-text like "Brand voice trait"). Each trait should be a single adjective but must not be generic like "friendly" or "professional". 
-2. A **ONE SENTENCE** description of the trait and why it's important for this brand.
-3. "What It Means": 3 specific, actionable examples, each starting with → (unicode arrow, not emoji). Do not use bullet points.
-4. "What It Doesn't Mean": 3 clarifications to avoid misinterpretation, each starting with ✗ (unicode cross, not emoji). Do not use bullet points. Do not just write the opposite; clarify boundaries or common mistakes.
-
-Each trait should be distinct and together they should form a well-rounded, complementary set—no overlap or repetition.
-
-Do not use meta-text, headings, or quote marks around trait titles.
-
-Example format:
-
-### Simplicity
-
-***What It Means***
-→ Use plain English and avoid jargon or unnecessary complexity.
-→ Short, punchy sentences that get straight to the point.
-→ Prioritize clarity so anyone can understand our message without a dictionary.
-
-***What It Doesn't Mean***
-✗ Dumbing down ideas or skipping important details.
-✗ Ignoring nuance when discussing more advanced topics.
-✗ Simplistic design or lack of depth in our overall communications.
-
----
-Now, generate 3 traits in this format.`;
+  const prompt = `You are a brand strategist. Based on the following brand information, generate exactly 3 unique, complementary brand voice traits for this brand.\n\nBrand Info:\n• Brand Name: ${brandDetails.name}\n• Audience: ${brandDetails.audience}\n• Tone: ${brandDetails.tone}\n• What they do: ${brandDetails.summary || brandDetails.description}\n\nFor each trait, provide:\n1. A short, bold title as a numbered Markdown header (use \`### 1. TraitName\`, \`### 2. TraitName\`, etc.), with a blank line before and after.\n2. A **ONE SENTENCE** description of the trait and why it's important for this brand.\n3. "What It Means": 3 specific, actionable examples, each starting with → (unicode arrow, not emoji).  \n   - Place these under a bolded subheading: \`***What It Means***\`  \n   - Add a blank line before and after this section.\n4. "What It Doesn't Mean": 3 clarifications to avoid misinterpretation, each starting with ✗ (unicode cross, not emoji).  \n   - Place these under a bolded subheading: \`***What It Doesn't Mean***\`  \n   - Add a blank line before and after this section.\n\nFormatting rules:\n- Always use a blank line between each trait and each section.\n- Use numbered Markdown headers for trait names (### 1. TraitName, ### 2. TraitName, etc.).\n- Do not use bullet points.\n- Do not use meta-text, headings, or quote marks around trait titles.\n\nExample format:\n\n### 1. Simplicity\n\nA one-sentence description of the trait and why it's important.\n\n***What It Means***\n\n→ Use plain English and avoid jargon or unnecessary complexity.  \n→ Short, punchy sentences that get straight to the point.  \n→ Prioritize clarity so anyone can understand our message without a dictionary.\n\n***What It Doesn't Mean***\n\n✗ Dumbing down ideas or skipping important details.  \n✗ Ignoring nuance when discussing more advanced topics.  \n✗ Simplistic design or lack of depth in our overall communications.\n\n### 2. Boldness\n\nA one-sentence description of the trait and why it's important.\n\n***What It Means***\n\n→ Take clear stances on important topics.  \n→ Use confident, assertive language.  \n→ Encourage creative risk-taking in messaging.\n\n***What It Doesn't Mean***\n\n✗ Being aggressive or dismissive of other views.  \n✗ Making unsupported claims.  \n✗ Ignoring feedback or new ideas.\n\n### 3. Empathy\n\nA one-sentence description of the trait and why it's important.\n\n***What It Means***\n\n→ Show understanding of the user's needs and feelings.  \n→ Use language that acknowledges challenges and celebrates wins.  \n→ Make content feel personal and supportive.\n\n***What It Doesn't Mean***\n\n✗ Overpromising solutions to every problem.  \n✗ Using patronizing or insincere language.  \n✗ Ignoring the diversity of user experiences.\n\n---\nNow, generate 3 traits in this format.`;
   return generateWithOpenAI(prompt, "You are a brand strategist.", "markdown");
 }
 

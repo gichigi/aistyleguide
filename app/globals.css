@@ -242,3 +242,13 @@
 .dialog-content {
   z-index: 100;
 }
+
+h2 {
+  background: #f7fafd; /* pastel blue */
+  color: #1976d2;      /* blue text */
+  padding: 0.75em 1em;
+  border-radius: 10px;
+  margin-top: 2em;
+  margin-bottom: 1.5em;
+  font-weight: 700;
+}

@@ -46,7 +46,7 @@ function formatMarkdownContent(content: string | undefined): string {
   // Step 1.6: Convert rule names (e.g. 'Company Name Spelling') to bold paragraph text, not headings
   formatted2 = formatted2.replace(/^\*\*([^*\n]+)\*\*\s*$/gm, '<strong>$1</strong>');
   // Remove any leftover H3/H4 for rule names
-  formatted2 = formatted2.replace(/^#{3,4}\s*([^\n]+)$/gm, '<strong>$1</strong>');
+  //formatted2 = formatted2.replace(/^#{3,4}\s*([^\n]+)$/gm, '<strong>$1</strong>');
 
   // Step 1.7: Prevent line breaks for dashes, slashes, and quotes within lines
   formatted2 = formatted2.replace(/([\w\d])\s*([\-\/"'])\s*([\w\d])/g, '$1$2$3');
@@ -59,9 +59,10 @@ function formatMarkdownContent(content: string | undefined): string {
   // Convert plain trait names at the start of a block to H3 (followed by What It Means/Doesn't Mean or a description)
   formatted2 = formatted2.replace(/^([A-Z][a-zA-Z ]{2,30})\n(?=(What It Means|What It Doesn\'t Mean|[A-Z][a-z]+))/gm, '### $1\n')
   
-  // Step 3: Convert "What It Means" and "What It Doesn't Mean" to H4 with proper spacing
-  formatted2 = formatted2.replace(/^(?:\*\*)?(What It (?:Doesn't )?Means?)(?:\*\*)?/gm, '#### $1')
-  formatted2 = formatted2.replace(/(####\s+What It (?:Doesn't )?Means?)/g, '\n$1\n')
+  // Step 3: Convert "What It Means" and "What It Doesn't Mean" to H4 with double spacing above
+  formatted2 = formatted2.replace(/^(?:\*\*\*?|__)?(What It (?:Doesn't )?Means?)(?:\*\*\*?|__)?/gm, '\n\n#### $1');
+  // Remove any extra blank lines that may result
+  formatted2 = formatted2.replace(/\n{3,}/g, '\n\n');
   
   // Step 4: Fix spacing for headings
   formatted2 = formatted2
