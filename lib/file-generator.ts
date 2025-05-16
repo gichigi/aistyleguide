@@ -1,6 +1,7 @@
 // File generation utilities for style guide exports
 import { jsPDF } from "jspdf"
 import "jspdf-autotable"
+import { generatePDF } from "./pdf-utils"
 
 export type FileFormat = "pdf" | "md" | "docx" | "html"
 
@@ -8,118 +9,47 @@ export type FileFormat = "pdf" | "md" | "docx" | "html"
  * Generate a file in the specified format with the given content
  */
 export async function generateFile(format: FileFormat, content: string, brandName: string): Promise<Blob> {
-  switch (format) {
-    case "pdf":
-      return generatePDF(content, brandName)
-    case "md":
-      return generateMarkdown(content)
-    case "docx":
-      return generateDOCX(content, brandName)
-    case "html":
-      return generateHTML(content, brandName)
-    default:
-      throw new Error(`Unsupported format: ${format}`)
-  }
-}
-
-/**
- * Generate a properly formatted PDF document
- */
-async function generatePDF(content: string, brandName: string): Promise<Blob> {
-  // Create new PDF document
-  const doc = new jsPDF({
-    orientation: "portrait",
-    unit: "mm",
-    format: "a4",
-  })
-
-  // Add title page
-  doc.setFontSize(24)
-  doc.setFont("helvetica", "bold")
-  doc.text(`${brandName} Style Guide`, 105, 80, { align: "center" })
-
-  doc.setFontSize(12)
-  doc.setFont("helvetica", "normal")
-  doc.text(`Created on ${new Date().toLocaleDateString()}`, 105, 90, { align: "center" })
-
-  doc.addPage()
-
-  // Parse markdown and add to PDF
-  const lines = content.split("\n")
-  let y = 20
-  const margin = 20
-  const pageWidth = doc.internal.pageSize.width
-  const textWidth = pageWidth - margin * 2
-
-  let currentFont = "normal"
-  let currentSize = 12
-  let listLevel = 0
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim()
-
-    // Handle headers
-    if (line.startsWith("#")) {
-      const headerMatch = line.match(/^#+/)
-      const level = headerMatch ? headerMatch[0].length : 1
-      const text = line.replace(/^#+\s+/, "")
-      
-      currentSize = 24 - (level * 2)
-      doc.setFontSize(currentSize)
-      doc.setFont("helvetica", "bold")
-      
-      if (y > 250) {
-        doc.addPage()
-        y = 20
-      }
-      
-      doc.text(text, margin, y)
-      y += 10
-      continue
+  try {
+    switch (format) {
+      case "pdf":
+        return generatePDF(content, brandName)
+      case "md":
+        return generateMarkdown(content)
+      case "docx":
+        return generateDOCX(content, brandName)
+      case "html":
+        return generateHTML(content, brandName)
+      default:
+        throw new Error(`Unsupported format: ${format}`)
     }
-
-    // Handle bullet points
-    if (line.match(/^[-*]\s+/)) {
-      const text = line.replace(/^[-*]\s+/, "")
-      doc.setFontSize(12)
-      doc.setFont("helvetica", "normal")
-      
-      if (y > 250) {
-        doc.addPage()
-        y = 20
-      }
-      
-      doc.text("•", margin + 5, y)
-      const splitText = doc.splitTextToSize(text, textWidth - 10)
-      doc.text(splitText, margin + 10, y)
-      y += splitText.length * 7
-      continue
-    }
-
-    // Handle regular text
-    doc.setFontSize(12)
-    doc.setFont("helvetica", "normal")
-    
-      if (y > 250) {
-        doc.addPage()
-        y = 20
-      }
-    
-    // Split long text into lines that fit the page width
-    const splitText = doc.splitTextToSize(line, textWidth)
-    doc.text(splitText, margin, y)
-    y += splitText.length * 7
+  } catch (error) {
+    console.error('[File Generator] File generation error:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      format,
+      brandName,
+      contentLength: content.length
+    })
+    const formatName = format.toUpperCase()
+    throw new Error(`Failed to generate ${formatName} file. Please try again or contact support.`)
   }
-
-  return doc.output("blob")
 }
 
 /**
  * Generate a properly formatted Markdown document
  */
 function generateMarkdown(content: string): Promise<Blob> {
-  // Markdown is already in the correct format, just return as blob
-  return Promise.resolve(new Blob([content], { type: "text/markdown" }))
+  try {
+    // Markdown is already in the correct format, just return as blob
+    return Promise.resolve(new Blob([content], { type: "text/markdown" }))
+  } catch (error) {
+    console.error('[File Generator] Markdown generation error:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      contentLength: content.length
+    })
+    throw new Error('Failed to generate Markdown file. Please try again or contact support.')
+  }
 }
 
 /**
@@ -128,50 +58,60 @@ function generateMarkdown(content: string): Promise<Blob> {
  * For this demo, we'll create a simple HTML that can be opened in Word
  */
 function generateDOCX(content: string, brandName: string): Promise<Blob> {
-  const html = `
-    <html xmlns:o="urn:schemas-microsoft-com:office:office" 
-          xmlns:w="urn:schemas-microsoft-com:office:word" 
-          xmlns="http://www.w3.org/TR/REC-html40">
-    <head>
-      <meta charset="utf-8">
-      <title>${brandName} Style Guide</title>
-      <style>
-        @page Section1 {
-          size: 8.5in 11.0in;
-          margin: 1.0in;
-        }
-        div.Section1 { page: Section1; }
-        body { 
-          font-family: Calibri, Arial, sans-serif;
-          line-height: 1.5;
-        }
-        h1 { font-size: 24pt; color: #333; margin-top: 24pt; }
-        h2 { font-size: 18pt; color: #333; margin-top: 18pt; }
-        h3 { font-size: 14pt; color: #333; margin-top: 14pt; }
-        h4 { font-size: 12pt; color: #333; margin-top: 12pt; }
-        p { font-size: 11pt; margin: 6pt 0; }
-        ul, ol { margin: 6pt 0; }
-        li { margin: 3pt 0; }
-        .right { color: green; }
-        .wrong { color: red; }
-      </style>
-    </head>
-    <body>
-      <div class="Section1">
-      <h1>${brandName} Style Guide</h1>
-      <p>Created on ${new Date().toLocaleDateString()}</p>
-        ${formatContentForDOCX(content)}
-      </div>
-    </body>
-    </html>
-  `
+  try {
+    const html = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" 
+            xmlns:w="urn:schemas-microsoft-com:office:word" 
+            xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta charset="utf-8">
+        <title>${brandName} Style Guide</title>
+        <style>
+          @page Section1 {
+            size: 8.5in 11.0in;
+            margin: 1.0in;
+          }
+          div.Section1 { page: Section1; }
+          body { 
+            font-family: Calibri, Arial, sans-serif;
+            line-height: 1.5;
+          }
+          h1 { font-size: 24pt; color: #333; margin-top: 24pt; }
+          h2 { font-size: 18pt; color: #333; margin-top: 18pt; }
+          h3 { font-size: 14pt; color: #333; margin-top: 14pt; }
+          h4 { font-size: 12pt; color: #333; margin-top: 12pt; }
+          p { font-size: 11pt; margin: 6pt 0; }
+          ul, ol { margin: 6pt 0; }
+          li { margin: 3pt 0; }
+          .right { color: green; }
+          .wrong { color: red; }
+        </style>
+      </head>
+      <body>
+        <div class="Section1">
+        <h1>${brandName} Style Guide</h1>
+        <p>Created on ${new Date().toLocaleDateString()}</p>
+          ${formatContentForDOCX(content)}
+        </div>
+      </body>
+      </html>
+    `
 
-  // Return as HTML file instead with a more compatible MIME type
-  return Promise.resolve(
-    new Blob([html], {
-      type: "text/html"
-    }),
-  )
+    // Return as HTML file instead with a more compatible MIME type
+    return Promise.resolve(
+      new Blob([html], {
+        type: "text/html"
+      }),
+    )
+  } catch (error) {
+    console.error('[File Generator] DOCX generation error:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      brandName,
+      contentLength: content.length
+    })
+    throw new Error('Failed to generate DOCX file. Please try again or contact support.')
+  }
 }
 
 /**

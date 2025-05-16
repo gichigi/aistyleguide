@@ -2,8 +2,10 @@ import { NextResponse } from "next/server"
 import Stripe from "stripe"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2023-10-16",
+  apiVersion: "2025-03-31.basil",
 })
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://aistyleguide.com'
 
 export async function POST(request: Request) {
   try {
@@ -31,14 +33,14 @@ export async function POST(request: Request) {
                 ? 'Essential brand voice and tone guidelines'
                 : 'Comprehensive guide with all brand elements',
             },
-            unit_amount: guideType === 'core' ? 4900 : 9900, // $49 or $99
+            unit_amount: guideType === 'core' ? 9900 : 14900, // $99 or $149
           },
           quantity: 1,
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/cancel`,
+      success_url: `${BASE_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}&guide_type=${guideType}`,
+      cancel_url: `${BASE_URL}/payment/cancel`,
     })
 
     return NextResponse.json({ url: session.url })

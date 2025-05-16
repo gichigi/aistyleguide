@@ -144,6 +144,20 @@ export default function FullAccessPage() {
 
   const guideContent = getGuideContent()
 
+  const exportPDF = async () => {
+    const element = document.getElementById('pdf-content')
+    if (!element) return
+    const html2pdf = (await import('html2pdf.js')).default
+    const opt = {
+      margin: 0.5,
+      filename: 'style-guide.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    }
+    html2pdf().set(opt).from(element).save()
+  }
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center">
@@ -218,7 +232,7 @@ export default function FullAccessPage() {
         <div className="bg-white rounded-xl border shadow-sm overflow-hidden dark:bg-gray-950 dark:border-gray-800 relative">
           <div className="p-8">
             <div className="max-w-3xl mx-auto space-y-12">
-              <div className="prose prose-slate dark:prose-invert max-w-none">
+              <div id="pdf-content" className="prose prose-slate dark:prose-invert max-w-none">
                 <div dangerouslySetInnerHTML={{ __html: guideContent }} />
               </div>
             </div>
@@ -235,7 +249,7 @@ export default function FullAccessPage() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <Button
-              onClick={() => handleDownload("pdf")}
+              onClick={exportPDF}
               disabled={isDownloading}
               className="w-full justify-start gap-2"
             >

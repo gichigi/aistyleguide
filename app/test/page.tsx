@@ -145,6 +145,21 @@ export default function TestPage() {
     }
   }
 
+  // Add this function at the top-level of the component
+  const exportPDF = async () => {
+    const element = document.getElementById('pdf-content')
+    if (!element) return
+    const html2pdf = (await import('html2pdf.js')).default
+    const opt = {
+      margin: 0.5,
+      filename: 'style-guide.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    }
+    html2pdf().set(opt).from(element).save()
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:bg-gray-950/95 dark:border-gray-800">
@@ -229,7 +244,7 @@ export default function TestPage() {
               <h2 className="text-xl font-bold mb-4">Output Preview</h2>
               {isLoading && <Progress value={log.length * 33} className="mb-4" />}
               {output ? (
-                <div className="prose prose-slate dark:prose-invert max-w-none mb-6">
+                <div id="pdf-content" className="prose prose-slate dark:prose-invert max-w-none mb-6">
                   <div dangerouslySetInnerHTML={{ __html: output }} />
                 </div>
               ) : (
@@ -237,7 +252,7 @@ export default function TestPage() {
               )}
               {output && (
                 <div className="flex gap-2 mt-4">
-                  <Button onClick={() => handleDownload("pdf")} disabled={isDownloading}>
+                  <Button onClick={exportPDF} disabled={isDownloading}>
                     <Download className="w-4 h-4 mr-2" /> PDF
                   </Button>
                   <Button onClick={() => handleDownload("docx")} disabled={isDownloading}>
