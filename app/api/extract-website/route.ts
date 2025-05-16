@@ -88,14 +88,19 @@ export async function POST(request: Request) {
       )
     }
 
-    // Validate URL
-    const urlValidation = validateUrl(body.url)
+    // Sanitize and validate the URL
+    let cleanUrl = body.url.trim().replace(/^['"\s]+|['"\s]+$/g, "")
+    if (!/^https?:\/\//i.test(cleanUrl)) {
+      cleanUrl = "https://" + cleanUrl
+    }
+    // Validate again after cleaning
+    const urlValidation = validateUrl(cleanUrl)
     if (!urlValidation.isValid) {
-      Logger.error("Invalid URL provided", new Error(urlValidation.error))
+      Logger.error("Invalid URL provided after cleaning", new Error(urlValidation.error))
       return NextResponse.json(
         {
           success: false,
-          message: "Invalid URL provided",
+          message: "Invalid URL provided. Please check for typos or extra punctuation.",
           error: urlValidation.error,
         },
         { status: 400 }
@@ -113,7 +118,9 @@ export async function POST(request: Request) {
 
     // Fetch the website HTML
     const siteResponse = await fetch(urlValidation.url)
-    const html = await siteResponse.text()
+    let html = await siteResponse.text()
+    const MAX_HTML_LENGTH = 20000; // ~5,000 tokens
+    html = html.slice(0, MAX_HTML_LENGTH)
 
     // Generate prompt for website extraction with improved guidance
     const prompt = `Analyze the following HTML content and extract:
