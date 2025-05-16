@@ -111,32 +111,24 @@ export async function POST(request: Request) {
       throw new Error(testData.error || "API key validation failed")
     }
 
-    // Generate prompt for website extraction with enhanced target audience guidance
-    const prompt = `Extract brand information from this website: ${urlValidation.url}
-    Please provide the following information in a valid JSON format:
-    {
-      "name": "Brand name",
-      "industry": "Industry category",
-      "description": "Brief description",
-      "values": ["Core value 1", "Core value 2"],
-      "targetAudience": {
-        "demographic": {
-          "age": "Age range (e.g., 25-45)",
-          "occupation": "Professional background",
-          "location": "Geographic focus"
-        },
-        "interestsValues": ["Key interests", "Core values"],
-        "context": "Brief description of their situation or needs",
-        "needsPainPoints": "Key challenges or needs they face"
-      },
-      "tone": "Brand tone",
-      "competitors": ["Competitor 1", "Competitor 2"],
-      "uniqueSellingPoints": ["USP 1", "USP 2"]
-    }`
+    // Fetch the website HTML
+    const siteResponse = await fetch(urlValidation.url)
+    const html = await siteResponse.text()
+
+    // Generate prompt for website extraction with improved guidance
+    const prompt = `Analyze the following HTML content and extract:
+- Brand name
+- High-level description (1-2 sentences)
+- Target audience (1-2 sentences)
+Return your answer as a JSON object with these keys: name, description, audience.
+If you can't find a value, use "Not specified".
+HTML Content:
+${html}
+`
 
     const result = await generateWithOpenAI(
       prompt,
-      "You are an expert brand analyst. Always respond with valid JSON. Provide detailed target audience information in the structured format."
+      "You are an expert brand analyst. Always respond with valid JSON. Use only the three keys: name, description, audience. If you can't find enough info, use 'Not specified'."
     )
 
     if (!result.success || !result.content) {
@@ -144,35 +136,16 @@ export async function POST(request: Request) {
     }
 
     // Parse and validate the response
-    let brandDetails: BrandDetails
-    let processedDetails: ProcessedBrandDetails
+    let brandDetails: any
     try {
-      brandDetails = JSON.parse(result.content) as BrandDetails
+      let content = result.content.trim()
+      // Remove code block markers if present
+      if (content.startsWith("```")) {
+        content = content.replace(/^```(json)?/i, "").replace(/```$/, "").trim()
+      }
+      brandDetails = JSON.parse(content)
       Logger.debug("Parsed brand details", { brandDetails })
-
-      // Validate required fields
-      const missingFields = REQUIRED_FIELDS.filter(field => !brandDetails[field])
-      if (missingFields.length > 0) {
-        throw new Error(`Missing required fields: ${missingFields.join(", ")}`)
-      }
-
-      // Process target audience
-      if (typeof brandDetails.targetAudience === 'object') {
-        const flattenedAudience = flattenTargetAudience(brandDetails.targetAudience as TargetAudienceDetail)
-        processedDetails = {
-          ...brandDetails,
-          targetAudience: flattenedAudience,
-          _rawTargetAudience: brandDetails.targetAudience as TargetAudienceDetail
-        }
-      } else {
-        processedDetails = brandDetails as ProcessedBrandDetails
-      }
-
-      // Validate target audience format
-      if (processedDetails.targetAudience.length < 10) {
-        throw new Error("Target audience description is too brief. Please provide more details.")
-      }
-
+      // No tone field needed
     } catch (parseError) {
       Logger.error("Error parsing OpenAI response", parseError instanceof Error ? parseError : new Error())
       throw new Error("Failed to parse brand information")
@@ -182,7 +155,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       message: "Successfully extracted brand information",
-      brandDetails: processedDetails,
+      brandDetails,
     })
   } catch (error) {
     Logger.error(
