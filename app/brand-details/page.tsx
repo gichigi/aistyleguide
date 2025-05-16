@@ -62,9 +62,7 @@ export default function BrandDetailsPage() {
         const updatedDetails = {
           ...defaultBrandDetails,
           ...parsedDetails,
-          // Map targetAudience to audience if needed
-          audience: parsedDetails.targetAudience || parsedDetails.audience || defaultBrandDetails.audience,
-          // Always ensure tone has a valid value
+          // Only default tone if missing
           tone: parsedDetails.tone || "friendly"
         }
 
@@ -209,12 +207,12 @@ export default function BrandDetailsPage() {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to generate preview")
+        throw new Error(errorData.error || "Failed to generate")
       }
 
       const data = await response.json()
       if (!data.success) {
-        throw new Error(data.error || "Failed to generate preview")
+        throw new Error(data.error || "Failed to generate")
       }
 
       // Save brand details and preview
@@ -257,9 +255,9 @@ export default function BrandDetailsPage() {
 
           {fromExtraction && (
             <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 dark:bg-blue-900/20 dark:border-blue-800">
-              <h3 className="font-medium text-blue-800 dark:text-blue-400">Content Found!</h3>
+              <h3 className="font-medium text-blue-800 dark:text-blue-400">Brand details filled!</h3>
               <p className="text-sm text-blue-700 dark:text-blue-500 mt-1">
-                We found your brand info and filled in the details. Take a quick look and make any changes.
+                We found your brand details and filled in your details. Take a quick look and make any changes.
               </p>
             </div>
           )}
@@ -359,7 +357,7 @@ export default function BrandDetailsPage() {
                         Processing...
                       </>
                     ) : (
-                      "Generate Style Guide Preview"
+                      "Generate Style Guide"
                     )}
                   </Button>
                 </div>

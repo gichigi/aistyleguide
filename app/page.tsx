@@ -112,12 +112,8 @@ export default function LandingPage() {
       const data = await response.json()
 
       if (data.success) {
-        // Store the extracted brand details in session storage
-        const brandDetails = {
-          ...data.brandDetails,
-          audience: data.brandDetails.targetAudience // Map targetAudience to audience
-        }
-        sessionStorage.setItem("brandDetails", JSON.stringify(brandDetails))
+        // Store the extracted brand details in session storage (as-is)
+        sessionStorage.setItem("brandDetails", JSON.stringify(data.brandDetails))
 
         // Show success state briefly before redirecting
         setIsSuccess(true)
