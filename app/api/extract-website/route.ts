@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { generateWithOpenAI } from "@/lib/openai"
 import Logger from "@/lib/logger"
 import { validateUrl } from "@/lib/url-validation"
+import * as cheerio from "cheerio"
 
 // Define interfaces for brand details
 interface TargetAudienceDetail {
@@ -119,19 +120,54 @@ export async function POST(request: Request) {
     // Fetch the website HTML
     const siteResponse = await fetch(urlValidation.url)
     let html = await siteResponse.text()
-    const MAX_HTML_LENGTH = 20000; // ~5,000 tokens
-    html = html.slice(0, MAX_HTML_LENGTH)
+
+    // Use cheerio to extract key info from homepage
+    const $ = cheerio.load(html)
+    const title = $('title').text()
+    const metaDesc = $('meta[name="description"]').attr('content') || ''
+    const h1 = $('h1').first().text()
+    const h2 = $('h2').first().text()
+    // Try to get main content (simple: first <main>, fallback: body text)
+    let mainContent = $('main').text() || $('body').text()
+    mainContent = mainContent.replace(/\s+/g, ' ').trim().slice(0, 2000)
+
+    // Find links to About, Company, Team pages
+    const subpageLinks: string[] = []
+    $('a').each((_: unknown, el: any) => {
+      const href = $(el).attr('href') || ''
+      if (/about|company|team/i.test(href) && !href.startsWith('#') && !href.startsWith('mailto:')) {
+        let url = href
+        if (!/^https?:\/\//i.test(url)) {
+          url = new URL(url, urlValidation.url).href
+        }
+        if (!subpageLinks.includes(url)) subpageLinks.push(url)
+      }
+    })
+    // Limit to 2 subpages
+    const subpagesToCrawl = subpageLinks.slice(0, 2)
+    let subpageText = ''
+    for (const subUrl of subpagesToCrawl) {
+      try {
+        const subRes = await fetch(subUrl)
+        const subHtml = await subRes.text()
+        const $sub = cheerio.load(subHtml)
+        const subTitle = $sub('title').text()
+        const subMeta = $sub('meta[name="description"]').attr('content') || ''
+        const subH1 = $sub('h1').first().text()
+        const subH2 = $sub('h2').first().text()
+        let subMain = $sub('main').text() || $sub('body').text()
+        subMain = subMain.replace(/\s+/g, ' ').trim().slice(0, 2000)
+        subpageText += `\n[Subpage: ${subUrl}]\n${subTitle}\n${subMeta}\n${subH1}\n${subH2}\n${subMain}`
+      } catch (e) { /* skip errors */ }
+    }
+
+    // Combine all extracted text
+    let summary = [title, metaDesc, h1, h2, mainContent, subpageText].filter(Boolean).join('\n')
+    // Truncate to 20k chars
+    summary = summary.slice(0, 20000)
 
     // Generate prompt for website extraction with improved guidance
-    const prompt = `Analyze the following HTML content and extract:
-- Brand name
-- High-level description (1-2 sentences)
-- Target audience (1-2 sentences)
-Return your answer as a JSON object with these keys: name, description, audience.
-If you can't find a value, use "Not specified".
-HTML Content:
-${html}
-`
+    const prompt = `Analyze the following website content and extract:\n- Brand name\n- High-level description (1-2 sentences)\n- Target audience (1-2 sentences)\nReturn your answer as a JSON object with these keys: name, description, audience.\nIf you can't find a value, use "Not specified".\nWebsite Content:\n${summary}\n`
 
     const result = await generateWithOpenAI(
       prompt,

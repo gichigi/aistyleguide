@@ -12,6 +12,9 @@ alwaysApply: false
 - Built with Next.js, TypeScript, and Tailwind CSS
 - Current focus is on improving the preview and payment flow
 - Need to make the payment options clearer and more user-friendly
+- Current extraction sends raw HTML to OpenAI, which is noisy and often misses brand info.
+- Cheerio can extract just the important text (title, meta, headings, main content).
+- Crawling a few key subpages (like About, Company) can improve accuracy for sites with sparse homepages.
 
 ## Key Challenges and Analysis
 - URL extraction and validation
@@ -21,6 +24,9 @@ alwaysApply: false
 - Preview functionality before purchase
 - Type safety issues in template processing and preview generation fixed
 - Payment dialog UI improvements implemented with tabbed interface
+- Need to avoid crawling too many pages (rate limits, speed).
+- Need to combine content from homepage and a few key subpages.
+- Must keep total text under 20k chars for OpenAI.
 
 ### Target Audience Data Flow Issue (P1) - RESOLVED ✓
 Problem: Target audience data flow has been fixed and verified
@@ -320,6 +326,7 @@ Success Criteria:
 
 ## Executor's Feedback or Assistance Requests
 - Analytics component added. Please deploy and check Vercel dashboard for tracking. Let me know if you see data or need help troubleshooting.
+- Ready to start implementation. Will notify if any issues with crawling or extraction.
 
 ## Lessons
 - Always map API response fields to match UI expectations
@@ -361,6 +368,8 @@ Success Criteria:
 - Validate on change, not just submit
 - Use state for field errors
 - Disable submit button when form invalid
+- Cheerio extraction is much more focused than raw HTML
+- Multi-page crawling should be limited to avoid overloading sites
 
 ## Detailed App Flow & Implementation Plan
 

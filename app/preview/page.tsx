@@ -310,7 +310,7 @@ export default function PreviewPage() {
         <div className="bg-white rounded-xl border shadow-sm overflow-hidden dark:bg-gray-950 dark:border-gray-800 relative">
           <div className="p-8">
             <div className="max-w-3xl mx-auto space-y-12">
-              <div className="prose prose-slate dark:prose-invert max-w-none">
+              <div className="prose prose-slate dark:prose-invert max-w-none style-guide-content">
                 <ContentWithFadeout>
                   <div dangerouslySetInnerHTML={{ __html: processPreviewContent(previewContent, brandDetails?.name) }} />
                 </ContentWithFadeout>
