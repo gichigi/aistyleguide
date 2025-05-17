@@ -23,6 +23,7 @@ import {
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import dynamic from "next/dynamic"
+import BrandBanner from "@/components/BrandBanner"
 
 // Default brand details
 const defaultBrandDetails = {
@@ -279,6 +280,8 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+
+        <BrandBanner />
 
         {/* Rest of the landing page remains the same */}
         {/* How It Works */}
