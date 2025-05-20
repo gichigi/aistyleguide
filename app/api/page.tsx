@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast"
 
 // Helper to get absolute URL
 const getAbsoluteUrl = (path: string) => {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
   return new URL(path, baseUrl).toString()
 }
 

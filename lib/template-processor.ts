@@ -7,7 +7,7 @@ export async function loadTemplate(templateName: string): Promise<string> {
     // Use absolute URL with origin for server-side calls
     const baseUrl = typeof window !== 'undefined' 
       ? window.location.origin 
-      : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+      : process.env.NEXT_PUBLIC_APP_URL || ''
     
     const response = await fetch(`${baseUrl}/api/load-template?name=${templateName}`)
     const data = await response.json()

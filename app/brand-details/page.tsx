@@ -14,6 +14,7 @@ import { ArrowLeft, FileText, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { useSearchParams } from "next/navigation"
+import Logo from "@/components/Logo"
 
 // Default brand details
 const defaultBrandDetails = {
@@ -28,7 +29,8 @@ export default function BrandDetailsPage() {
   const searchParams = useSearchParams()
   const fromExtraction = searchParams.get("fromExtraction") === "true"
   const fromPayment = searchParams.get("paymentComplete") === "true"
-  const guideType = searchParams.get("guideType") || localStorage.getItem("styleGuidePlan") || "core"
+  const urlGuideType = searchParams.get("guideType")
+  const [guideType, setGuideType] = useState(urlGuideType || "core")
   const [paymentComplete, setPaymentComplete] = useState(false)
   const [fadeIn, setFadeIn] = useState(false)
   const [showCharCount, setShowCharCount] = useState(false)
@@ -45,11 +47,19 @@ export default function BrandDetailsPage() {
     return () => clearTimeout(timer)
   }, [])
 
-  // Check payment status only once on component mount
+  // Check payment status and guide type from localStorage
   useEffect(() => {
     const isComplete = localStorage.getItem("styleGuidePaymentStatus") === "completed" || fromPayment
     setPaymentComplete(isComplete)
-  }, [fromPayment])
+    
+    // If no URL param for guide type, check localStorage
+    if (!urlGuideType) {
+      const savedGuideType = localStorage.getItem("styleGuidePlan")
+      if (savedGuideType) {
+        setGuideType(savedGuideType)
+      }
+    }
+  }, [fromPayment, urlGuideType])
 
   // Show toast if brand details were filled from extraction
   useEffect(() => {
@@ -61,6 +71,18 @@ export default function BrandDetailsPage() {
       })
     }
   }, [fromExtraction, toast])
+
+  // Auto-resize textarea when content changes or on load
+  useEffect(() => {
+    const textarea = document.getElementById('brandDetailsText') as HTMLTextAreaElement
+    if (textarea) {
+      // Wait a bit for rendering to complete
+      setTimeout(() => {
+        textarea.style.height = "auto"
+        textarea.style.height = textarea.scrollHeight + "px"
+      }, 100)
+    }
+  }, [brandDetails.brandDetailsText])
 
   // Load saved brand details from session storage
   useEffect(() => {
@@ -230,10 +252,7 @@ export default function BrandDetailsPage() {
     <div className="flex min-h-screen flex-col">
       <header className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container px-4 h-16 flex items-center">
-          <Link href="/" className="flex items-center gap-2 min-w-0 max-w-[180px] sm:max-w-none">
-            <FileText className="h-5 w-5 flex-shrink-0" />
-            <span className="text-lg font-semibold truncate whitespace-nowrap">Style Guide AI</span>
-          </Link>
+          <Logo size="sm" />
         </div>
       </header>
       <main
@@ -267,12 +286,14 @@ export default function BrandDetailsPage() {
                       placeholder="Nike is a leading sports brand, selling a wide range of workout products, services and experiences worldwide. Nike targets athletes and sports enthusiasts globally, focusing on those who want high-quality sportswear and equipment."
                       value={brandDetails.brandDetailsText || ""}
                       onChange={e => {
-                        setBrandDetails(prev => ({ ...prev, brandDetailsText: e.target.value }))
+                        const value = e.target.value.slice(0, 500) // Enforce max length
+                        setBrandDetails(prev => ({ ...prev, brandDetailsText: value }))
+                        // Auto-adjust height
                         e.target.style.height = "auto"
                         e.target.style.height = e.target.scrollHeight + "px"
                       }}
-                      rows={4}
-                      className="resize-none min-h-[40px] max-h-[200px]"
+                      rows={5}
+                      className="resize-none min-h-[120px] leading-relaxed text-base p-4 font-medium"
                       onFocus={e => setShowCharCount(true)}
                       onBlur={e => setShowCharCount(!!e.target.value)}
                     />

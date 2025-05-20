@@ -24,14 +24,18 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import dynamic from "next/dynamic"
 import BrandBanner from "@/components/BrandBanner"
+import Logo from "@/components/Logo"
 
 // Default brand details
 const defaultBrandDetails = {
-  name: "Style Guide AI",
+  name: "AIStyleGuide",
   description: "A web app that generates brand voice and content style guides",
   audience: "marketing professionals aged 25-45 who are interested in branding, content creation, and efficiency",
   tone: "friendly",
 }
+
+// Feature flag for Nike demo CTA
+const SHOW_NIKE_DEMO_CTA = false;
 
 export default function LandingPage() {
   const router = useRouter()
@@ -113,8 +117,11 @@ export default function LandingPage() {
       const data = await response.json()
 
       if (data.success) {
-        // Store the extracted brand details in session storage (as-is)
-        sessionStorage.setItem("brandDetails", JSON.stringify(data.brandDetails))
+        // Store the extracted brand details in session storage with correct format
+        sessionStorage.setItem("brandDetails", JSON.stringify({
+          brandDetailsText: data.brandDetailsText,
+          tone: "friendly" // Default tone
+        }))
 
         // Show success state briefly before redirecting
         setIsSuccess(true)
@@ -125,26 +132,19 @@ export default function LandingPage() {
           router.push("/brand-details?fromExtraction=true")
         }, 800)
       } else {
-        // Show error toast but still navigate with fallback data
+        // Show error toast but still navigate
         toast({
           title: "Website analysis issue",
           description: data.message,
           variant: "destructive",
         })
 
-        // Store fallback data with proper field mapping
-        const fallbackDetails = {
-          ...data.brandDetails,
-          audience: data.brandDetails?.targetAudience || defaultBrandDetails.audience
-        }
-        sessionStorage.setItem("brandDetails", JSON.stringify(fallbackDetails))
-
         // Reset states
         setIsExtracting(false)
         setIsSuccess(false)
 
         // Navigate to brand details page
-        router.push("/brand-details?fromExtraction=true")
+        router.push("/brand-details")
       }
     } catch (error) {
       console.error("Error extracting website info:", error)
@@ -166,10 +166,7 @@ export default function LandingPage() {
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <FileText className="h-6 w-6" />
-            <span className="text-xl font-semibold">Style Guide AI</span>
-          </div>
+          <Logo size="md" linkToHome={false} />
           <nav className="hidden md:flex gap-6">
             <Link href="#how-it-works" className="text-sm font-medium hover:text-primary">
               How It Works
@@ -213,69 +210,73 @@ export default function LandingPage() {
               </p>
 
               <form onSubmit={handleExtraction} className="w-full max-w-2xl">
-                <div className="flex flex-col gap-4">
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <Globe className="h-5 w-5 text-muted-foreground" />
+                {/* Minimal input + button layout, no color */}
+                <div className="relative w-full max-w-2xl mx-auto mt-4 mb-6 p-1 rounded-full bg-white border border-gray-200 shadow-sm">
+                  <div className="flex items-center w-full bg-white rounded-full overflow-hidden">
+                    <div className="relative flex-1">
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <Globe className="h-6 w-6 text-gray-400 transition-colors duration-200" />
+                      </div>
+                      <Input
+                        type="text"
+                        placeholder="e.g. nike.com"
+                        className={`pl-12 pr-40 py-8 text-lg font-sans font-medium bg-transparent border-none focus:ring-0 focus:outline-none placeholder:text-gray-400 placeholder:font-medium placeholder:text-base w-full transition-all duration-200 ${error ? "ring-2 ring-red-500" : ""} ${isSuccess ? "ring-2 ring-green-500 bg-green-50" : ""}`}
+                        value={url}
+                        onChange={(e) => {
+                          setUrl(e.target.value)
+                          if (error) setError("")
+                        }}
+                        autoCapitalize="none"
+                        autoCorrect="off"
+                        spellCheck="false"
+                        inputMode="url"
+                        disabled={isExtracting || isSuccess}
+                        aria-label="Website URL"
+                        style={{ boxShadow: 'none' }}
+                      />
                     </div>
-                    {/* IMPORTANT: Keep this placeholder short for mobile screens */}
-                    <Input
-                      type="text"
-                      placeholder="Enter website URL"
-                      className={`pl-10 py-6 text-lg ${error ? "border-red-500 focus-visible:ring-red-500" : ""} 
-                      ${isSuccess ? "border-green-500 focus-visible:ring-green-500 bg-green-50" : ""}`}
-                      value={url}
-                      onChange={(e) => {
-                        setUrl(e.target.value)
-                        if (error) setError("")
-                      }}
-                      autoCapitalize="none"
-                      autoCorrect="off"
-                      spellCheck="false"
-                      inputMode="url"
+                    <Button
+                      type="submit"
+                      size="lg"
+                      className={`h-14 px-8 rounded-full bg-gray-100 text-gray-800 font-medium text-lg shadow-none hover:bg-gray-200 focus:bg-gray-200 transition-all duration-200 z-10 -ml-2 ${isSuccess ? "bg-green-500 hover:bg-green-600 text-white" : ""}`}
                       disabled={isExtracting || isSuccess}
-                    />
+                      style={{ minWidth: '140px', borderTopLeftRadius: 9999, borderBottomLeftRadius: 9999 }}
+                    >
+                      {isExtracting ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          Checking...
+                        </>
+                      ) : isSuccess ? (
+                        <>
+                          <CheckCircle className="mr-2 h-5 w-5" />
+                          Success
+                        </>
+                      ) : (
+                        <>
+                          Analyze <ArrowRight className="ml-2 h-5 w-5" />
+                        </>
+                      )}
+                    </Button>
                   </div>
-
-                  {error && (
-                    <div className="flex items-center gap-2 text-red-500 text-sm">
-                      <AlertTriangle className="h-4 w-4" />
-                      <span>{error}</span>
-                    </div>
-                  )}
-
-                  <Button
-                    type="submit"
-                    size="lg"
-                    className={`w-full py-6 text-lg transition-all duration-300 ${
-                      isSuccess ? "bg-green-500 hover:bg-green-600" : ""
-                    }`}
-                    disabled={isExtracting || isSuccess}
-                  >
-                    {isExtracting ? (
-                      <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Checking your site...
-                      </>
-                    ) : isSuccess ? (
-                      <>
-                        <CheckCircle className="mr-2 h-5 w-5" />
-                        Success
-                      </>
-                    ) : (
-                      <>
-                        Generate your style guide <ArrowRight className="ml-2 h-5 w-5" />
-                      </>
-                    )}
-                  </Button>
-
-                  <p className="text-center text-muted-foreground mt-2">
-                    Or{" "}
-                    <Link href="/brand-details" className="text-primary hover:underline">
-                      enter your brand details manually
+                  {/* Manual entry link at bottom right outside the container */}
+                  <div className="absolute right-6 -bottom-7">
+                    <Link href="/brand-details" className="text-gray-400 underline font-medium text-sm whitespace-nowrap" style={{ textTransform: 'lowercase' }}>
+                      or add brand details manually
                     </Link>
-                  </p>
+                  </div>
                 </div>
+                {/* Secondary CTA: See Nike Example */}
+                {SHOW_NIKE_DEMO_CTA && (
+                  <Button
+                    asChild
+                    variant="secondary"
+                    size="lg"
+                    className="w-full py-6 text-lg mt-10"
+                  >
+                    <Link href="/demo">See Nike Example</Link>
+                  </Button>
+                )}
               </form>
             </div>
           </div>

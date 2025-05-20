@@ -167,38 +167,45 @@ export async function POST(request: Request) {
     summary = summary.slice(0, 20000)
 
     // Generate prompt for website extraction with improved guidance
-    const prompt = `Analyze the following website content and extract:\n- Brand name\n- High-level description (1-2 sentences)\n- Target audience (1-2 sentences)\nReturn your answer as a JSON object with these keys: name, description, audience.\nIf you can't find a value, use "Not specified".\nWebsite Content:\n${summary}\n`
+    const prompt = `Analyze the following website content and extract the brand's core identity.
+
+Write a single, cohesive paragraph (30-50 words) that follows this structure:
+1. Start with the brand name followed by what they are/do
+2. Include their main products/services
+3. Specify their target audience
+4. Mention what makes them unique (if identifiable)
+
+Your paragraph should be:
+- Professional, clear and easy to read 
+- Factual, not promotional
+- Written in third person
+- Focused on their current offerings, not history
+- Use short sentences and simple punctuation
+
+Example: 'Nike is a leading sports brand, selling a wide range of workout products, services and experiences worldwide. Nike targets athletes and sports enthusiasts globally, focusing on those who want high-quality sportswear and equipment.'
+
+Website Content:
+${summary}
+`
 
     const result = await generateWithOpenAI(
       prompt,
-      "You are an expert brand analyst. Always respond with valid JSON. Use only the three keys: name, description, audience. If you can't find enough info, use 'Not specified'."
+      "You are an expert brand analyst with experience writing clear, readable brand summaries. Use simple language and short sentences. Avoid complex words, marketing jargon, and run-on sentences. Make your description easily scannable and accessible to all readers."
     )
 
     if (!result.success || !result.content) {
       throw new Error(result.error || "Failed to extract brand information")
     }
 
-    // Parse and validate the response
-    let brandDetails: any
-    try {
-      let content = result.content.trim()
-      // Remove code block markers if present
-      if (content.startsWith("```")) {
-        content = content.replace(/^```(json)?/i, "").replace(/```$/, "").trim()
-      }
-      brandDetails = JSON.parse(content)
-      Logger.debug("Parsed brand details", { brandDetails })
-      // No tone field needed
-    } catch (parseError) {
-      Logger.error("Error parsing OpenAI response", parseError instanceof Error ? parseError : new Error())
-      throw new Error("Failed to parse brand information")
-    }
+    // Process the paragraph response
+    const brandDetailsText = result.content.trim()
+    Logger.debug("Generated brand details text", { brandDetailsText })
 
     Logger.info("Successfully extracted brand information")
     return NextResponse.json({
       success: true,
       message: "Successfully extracted brand information",
-      brandDetails,
+      brandDetailsText,
     })
   } catch (error) {
     Logger.error(
