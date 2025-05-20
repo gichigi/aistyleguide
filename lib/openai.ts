@@ -359,3 +359,9 @@ Always capitalize "Apple" and use it consistently to reinforce brand identity.
 `;
   return generateWithOpenAI(prompt, "You are a writing style guide expert.", "markdown", 6000);
 }
+
+// Function to generate a concise brand summary from a single textarea
+export async function generateBrandSummary(brandDetails: any): Promise<GenerationResult> {
+  const prompt = `Write a single paragraph (30–40 words) that starts with the brand name and summarizes the brand using all key info, keywords, and terms from the input below. Use the specified tone.\n\nBrand Info:\n${brandDetails.brandDetailsText}\nTone: ${brandDetails.tone}`;
+  return generateWithOpenAI(prompt, "You are a brand strategist.", "markdown");
+}

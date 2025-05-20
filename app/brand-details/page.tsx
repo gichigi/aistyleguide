@@ -17,9 +17,7 @@ import { useSearchParams } from "next/navigation"
 
 // Default brand details
 const defaultBrandDetails = {
-  name: "Style Guide AI",
-  description: "A web app that generates brand voice and content style guides",
-  audience: "marketing professionals aged 25-45 who are interested in branding, content creation, and efficiency",
+  brandDetailsText: "",
   tone: "friendly",
 }
 
@@ -33,6 +31,7 @@ export default function BrandDetailsPage() {
   const guideType = searchParams.get("guideType") || localStorage.getItem("styleGuidePlan") || "core"
   const [paymentComplete, setPaymentComplete] = useState(false)
   const [fadeIn, setFadeIn] = useState(false)
+  const [showCharCount, setShowCharCount] = useState(false)
 
   // Initialize state with default values to ensure inputs are always controlled
   const [brandDetails, setBrandDetails] = useState({ ...defaultBrandDetails })
@@ -51,6 +50,17 @@ export default function BrandDetailsPage() {
     const isComplete = localStorage.getItem("styleGuidePaymentStatus") === "completed" || fromPayment
     setPaymentComplete(isComplete)
   }, [fromPayment])
+
+  // Show toast if brand details were filled from extraction
+  useEffect(() => {
+    if (fromExtraction) {
+      toast({
+        title: "Brand details filled",
+        description: "We filled the brand details from the website.",
+        duration: 3500,
+      })
+    }
+  }, [fromExtraction, toast])
 
   // Load saved brand details from session storage
   useEffect(() => {
@@ -171,24 +181,8 @@ export default function BrandDetailsPage() {
 
   // Update isFormValid function
   const isFormValid = () => {
-    // Check if any field errors exist
-    if (Object.keys(fieldErrors).length > 0) return false
-    
-    // Check if all required fields have content
-    if (!brandDetails?.name?.trim() || 
-        !brandDetails?.description?.trim() || 
-        !brandDetails?.audience?.trim()) {
-      return false
-    }
-    
-    // Check field lengths
-    if (brandDetails.name.length > 50 || 
-        brandDetails.description.length > 500 || 
-        brandDetails.audience.length > 500) {
-      return false
-    }
-    
-    return true
+    // Only require brandDetailsText to be non-empty
+    return !!(brandDetails.brandDetailsText && brandDetails.brandDetailsText.trim().length > 0)
   }
 
   // Update the handleSubmit function to always generate a preview
@@ -254,76 +248,38 @@ export default function BrandDetailsPage() {
           </Link>
 
           {fromExtraction && (
-            <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 dark:bg-blue-900/20 dark:border-blue-800">
-              <h3 className="font-medium text-blue-800 dark:text-blue-400">Brand details filled!</h3>
-              <p className="text-sm text-blue-700 dark:text-blue-500 mt-1">
-                We found your brand details and filled in your details. Take a quick look and make any changes.
-              </p>
-            </div>
+            <></>
           )}
 
-          <Card>
+          <Card className="shadow-lg border-2 border-gray-200 bg-white/90">
             <CardHeader>
-              <CardTitle>Brand details</CardTitle>
-              <CardDescription>Tell us about your brand to create a personalized style guide</CardDescription>
+              <CardTitle>About the brand</CardTitle>
+              <CardDescription>Tell us about the brand.</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid gap-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="name">Brand name</Label>
-                    <Input 
-                      id="name" 
-                      name="name" 
-                      value={brandDetails.name || ""} 
-                      onChange={handleChange} 
-                      maxLength={50}
-                      className={fieldErrors.name ? "border-red-500" : ""}
-                    />
-                    <CharacterCount value={brandDetails.name || ""} max={50} />
-                    {fieldErrors.name && (
-                      <p className="text-sm text-red-500">{fieldErrors.name}</p>
-                    )}
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="description">What does your brand do?</Label>
+                    <Label htmlFor="brandDetailsText">Description</Label>
                     <Textarea
-                      id="description"
-                      name="description"
-                      value={brandDetails.description || ""}
-                      onChange={handleChange}
-                      rows={3}
-                      maxLength={500}
-                      className={fieldErrors.description ? "border-red-500" : ""}
-                    />
-                    <CharacterCount value={brandDetails.description || ""} max={500} />
-                    {fieldErrors.description && (
-                      <p className="text-sm text-red-500">{fieldErrors.description}</p>
-                    )}
-                  </div>
-
-                  <div className="grid gap-3">
-                    <Label htmlFor="target-audience">Target audience</Label>
-                    <Textarea
-                      id="target-audience"
-                      name="audience"
-                      placeholder="e.g., marketing professionals aged 25-45 interested in branding and content creation"
-                      value={brandDetails.audience || ""}
-                      onChange={handleChange}
-                      maxLength={500}
-                      className={fieldErrors.audience ? "border-red-500" : ""}
+                      id="brandDetailsText"
+                      name="brandDetailsText"
+                      placeholder="Nike is a leading sports brand, selling a wide range of workout products, services and experiences worldwide. Nike targets athletes and sports enthusiasts globally, focusing on those who want high-quality sportswear and equipment."
+                      value={brandDetails.brandDetailsText || ""}
+                      onChange={e => {
+                        setBrandDetails(prev => ({ ...prev, brandDetailsText: e.target.value }))
+                        e.target.style.height = "auto"
+                        e.target.style.height = e.target.scrollHeight + "px"
+                      }}
                       rows={4}
+                      className="resize-none min-h-[40px] max-h-[200px]"
+                      onFocus={e => setShowCharCount(true)}
+                      onBlur={e => setShowCharCount(!!e.target.value)}
                     />
-                    <CharacterCount value={brandDetails.audience || ""} max={500} />
-                    {fieldErrors.audience && (
-                      <p className="text-sm text-red-500">{fieldErrors.audience}</p>
+                    {showCharCount && (
+                      <div className={`text-xs mt-1 ${brandDetails.brandDetailsText?.length > 450 ? 'text-yellow-600' : 'text-muted-foreground'}`}>{brandDetails.brandDetailsText?.length || 0}/500 characters</div>
                     )}
-                    <p className="text-sm text-muted-foreground">
-                      Describe who your brand serves, including their age, interests, needs, and any other relevant details
-                    </p>
                   </div>
-
                   <div className="grid gap-2">
                     <Label htmlFor="tone">Preferred tone</Label>
                     <Select
@@ -344,11 +300,10 @@ export default function BrandDetailsPage() {
                     </Select>
                   </div>
                 </div>
-
                 <div className="flex justify-end">
                   <Button 
                     type="submit" 
-                    disabled={loading || !isFormValid()} 
+                    disabled={loading || !(brandDetails.brandDetailsText && brandDetails.brandDetailsText.trim().length > 0)} 
                     className="w-full sm:w-auto"
                   >
                     {loading ? (

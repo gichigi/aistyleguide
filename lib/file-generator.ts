@@ -10,18 +10,18 @@ export type FileFormat = "pdf" | "md" | "docx" | "html"
  */
 export async function generateFile(format: FileFormat, content: string, brandName: string): Promise<Blob> {
   try {
-    switch (format) {
-      case "pdf":
-        return generatePDF(content, brandName)
-      case "md":
-        return generateMarkdown(content)
-      case "docx":
-        return generateDOCX(content, brandName)
-      case "html":
-        return generateHTML(content, brandName)
-      default:
-        throw new Error(`Unsupported format: ${format}`)
-    }
+  switch (format) {
+    case "pdf":
+      return generatePDF(content, brandName)
+    case "md":
+      return generateMarkdown(content)
+    case "docx":
+      return generateDOCX(content, brandName)
+    case "html":
+      return generateHTML(content, brandName)
+    default:
+      throw new Error(`Unsupported format: ${format}`)
+  }
   } catch (error) {
     console.error('[File Generator] File generation error:', {
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -40,8 +40,8 @@ export async function generateFile(format: FileFormat, content: string, brandNam
  */
 function generateMarkdown(content: string): Promise<Blob> {
   try {
-    // Markdown is already in the correct format, just return as blob
-    return Promise.resolve(new Blob([content], { type: "text/markdown" }))
+  // Markdown is already in the correct format, just return as blob
+  return Promise.resolve(new Blob([content], { type: "text/markdown" }))
   } catch (error) {
     console.error('[File Generator] Markdown generation error:', {
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -59,50 +59,50 @@ function generateMarkdown(content: string): Promise<Blob> {
  */
 function generateDOCX(content: string, brandName: string): Promise<Blob> {
   try {
-    const html = `
-      <html xmlns:o="urn:schemas-microsoft-com:office:office" 
-            xmlns:w="urn:schemas-microsoft-com:office:word" 
-            xmlns="http://www.w3.org/TR/REC-html40">
-      <head>
-        <meta charset="utf-8">
-        <title>${brandName} Style Guide</title>
-        <style>
-          @page Section1 {
-            size: 8.5in 11.0in;
-            margin: 1.0in;
-          }
-          div.Section1 { page: Section1; }
-          body { 
-            font-family: Calibri, Arial, sans-serif;
-            line-height: 1.5;
-          }
-          h1 { font-size: 24pt; color: #333; margin-top: 24pt; }
-          h2 { font-size: 18pt; color: #333; margin-top: 18pt; }
-          h3 { font-size: 14pt; color: #333; margin-top: 14pt; }
-          h4 { font-size: 12pt; color: #333; margin-top: 12pt; }
-          p { font-size: 11pt; margin: 6pt 0; }
-          ul, ol { margin: 6pt 0; }
-          li { margin: 3pt 0; }
-          .right { color: green; }
-          .wrong { color: red; }
-        </style>
-      </head>
-      <body>
-        <div class="Section1">
-        <h1>${brandName} Style Guide</h1>
-        <p>Created on ${new Date().toLocaleDateString()}</p>
-          ${formatContentForDOCX(content)}
-        </div>
-      </body>
-      </html>
-    `
+  const html = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office" 
+          xmlns:w="urn:schemas-microsoft-com:office:word" 
+          xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+      <meta charset="utf-8">
+      <title>${brandName} Style Guide</title>
+      <style>
+        @page Section1 {
+          size: 8.5in 11.0in;
+          margin: 1.0in;
+        }
+        div.Section1 { page: Section1; }
+        body { 
+          font-family: Calibri, Arial, sans-serif;
+          line-height: 1.5;
+        }
+        h1 { font-size: 24pt; color: #333; margin-top: 24pt; }
+        h2 { font-size: 18pt; color: #333; margin-top: 18pt; }
+        h3 { font-size: 14pt; color: #333; margin-top: 14pt; }
+        h4 { font-size: 12pt; color: #333; margin-top: 12pt; }
+        p { font-size: 11pt; margin: 6pt 0; }
+        ul, ol { margin: 6pt 0; }
+        li { margin: 3pt 0; }
+        .right { color: green; }
+        .wrong { color: red; }
+      </style>
+    </head>
+    <body>
+      <div class="Section1">
+      <h1>${brandName} Style Guide</h1>
+      <p>Created on ${new Date().toLocaleDateString()}</p>
+        ${formatContentForDOCX(content)}
+      </div>
+    </body>
+    </html>
+  `
 
-    // Return as HTML file instead with a more compatible MIME type
-    return Promise.resolve(
-      new Blob([html], {
-        type: "text/html"
-      }),
-    )
+  // Return as HTML file instead with a more compatible MIME type
+  return Promise.resolve(
+    new Blob([html], {
+      type: "text/html"
+    }),
+  )
   } catch (error) {
     console.error('[File Generator] DOCX generation error:', {
       error: error instanceof Error ? error.message : 'Unknown error',

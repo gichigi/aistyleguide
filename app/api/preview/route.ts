@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
-import { generateBrandVoiceTraits } from '@/lib/openai'
+import { generateBrandVoiceTraits, generateBrandSummary } from '@/lib/openai'
 import Logger from '@/lib/logger'
 
 // Cache for templates
@@ -166,30 +166,45 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { brandDetails } = body
 
-    Logger.info('Preview generation request received', { brand: brandDetails?.name })
+    Logger.info('Preview generation request received', { brand: brandDetails?.brandDetailsText })
 
     // Clear template cache to force refresh
     clearTemplateCache()
 
     // Validate input
-    if (!brandDetails?.name || !brandDetails?.description || !brandDetails?.audience) {
+    if (!brandDetails?.brandDetailsText || !brandDetails?.tone) {
       Logger.warn('Invalid request - missing required fields')
       return NextResponse.json(
         { 
           success: false,
-          error: 'Missing required brand details (name, description, audience)'
+          error: 'Missing required brand details (brandDetailsText, tone)'
         },
         { status: 400 }
       )
+    }
+
+    // Generate a concise brand summary (used as the brand name/description)
+    const summaryResult = await generateBrandSummary(brandDetails)
+    if (!summaryResult.success || !summaryResult.content) {
+      Logger.error('Brand summary generation failed', new Error(summaryResult.error))
+      throw new Error(`Failed to generate brand summary: ${summaryResult.error}`)
+    }
+
+    // Use the summary as the brand name for template processing
+    const processedBrandDetails = {
+      ...brandDetails,
+      name: summaryResult.content,
+      description: summaryResult.content,
+      audience: '',
     }
 
     // Load template preview (using core template for previews)
     const templateContent = await loadTemplatePreview('core_template_preview')
 
     // Process preview with brand details
-    const processedPreview = await processPreview(templateContent, brandDetails)
+    const processedPreview = await processPreview(templateContent, processedBrandDetails)
 
-    Logger.info('Preview generation successful', { brand: brandDetails.name })
+    Logger.info('Preview generation successful', { brand: processedBrandDetails.name })
     return NextResponse.json({ 
       preview: processedPreview,
       success: true

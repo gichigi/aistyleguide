@@ -1,8 +1,3 @@
----
-description: 
-globs: 
-alwaysApply: false
----
 # AI Style Guide Generator Project
 
 ## Background and Motivation
@@ -301,6 +296,10 @@ Success Criteria:
   - [ ] Check all sections
   - [ ] Verify formatting
   - [ ] Test payment flow
+- [x] Update /demo page content to match core style guide structure (all sections, headings, Nike example, demo badge, CTA, export/download disabled)
+- [ ] Review UI and layout for consistency with /full-access
+- [ ] Add subtle visual indicators (badge, watermark if needed)
+- [ ] Final user review and polish
 
 ## Current Status / Progress Tracking
 - Basic app structure in place
@@ -325,8 +324,10 @@ Success Criteria:
 - Validation aligned between API and form
 
 ## Executor's Feedback or Assistance Requests
-- Analytics component added. Please deploy and check Vercel dashboard for tracking. Let me know if you see data or need help troubleshooting.
-- Ready to start implementation. Will notify if any issues with crawling or extraction.
+- Demo page now uses the same headings and structure as the core style guide template
+- All sections (date, title, how to use, guidelines, brand voice, 25 rules, contact) are present
+- Export/download is visually disabled, CTA to /start is present
+- Please review the page visually and confirm before I move to the next step (UI/layout consistency)
 
 ## Lessons
 - Always map API response fields to match UI expectations
