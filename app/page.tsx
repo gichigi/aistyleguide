@@ -199,14 +199,14 @@ export default function LandingPage() {
         <section id="hero" className="w-full py-12 md:py-20 lg:py-24 bg-gradient-to-b from-background to-muted">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
-              <div className="inline-flex items-center rounded-full border px-4 py-1.5 text-sm font-medium mb-4 bg-primary/10">
+              <div className="inline-flex items-center rounded-full border px-4 py-1.5 text-sm font-medium mb-4 bg-gray-100 text-gray-800 border-gray-200">
                 AI Brand Voice & Style Guide
               </div>
               <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl mb-4">
                 Create a style guide in minutes, not months
               </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mb-8">
-                AI-generated voice and writing rules tailored to your brand — ready to export and share.
+              <p className="text-xl text-muted-foreground max-w-2xl mb-8 hero-lead">
+                Generate a comprehensive brand voice and style guide tailored to your brand in a few clicks.
               </p>
 
               <form onSubmit={handleExtraction} className="w-full max-w-2xl">
@@ -220,7 +220,7 @@ export default function LandingPage() {
                       <Input
                         type="text"
                         placeholder="e.g. nike.com"
-                        className={`pl-12 pr-40 py-8 text-lg font-sans font-medium bg-transparent border-none focus:ring-0 focus:outline-none placeholder:text-gray-400 placeholder:font-medium placeholder:text-base w-full transition-all duration-200 ${error ? "ring-2 ring-red-500" : ""} ${isSuccess ? "ring-2 ring-green-500 bg-green-50" : ""}`}
+                        className={`pl-12 pr-4 sm:pr-40 py-6 text-lg font-sans font-medium bg-transparent border-none focus:ring-0 focus:outline-none placeholder:text-gray-400 placeholder:font-medium placeholder:text-base w-full transition-all duration-200 ${error ? "ring-2 ring-red-500" : ""} ${isSuccess ? "ring-2 ring-green-500 bg-green-50" : ""}`}
                         value={url}
                         onChange={(e) => {
                           setUrl(e.target.value)
@@ -238,23 +238,23 @@ export default function LandingPage() {
                     <Button
                       type="submit"
                       size="lg"
-                      className={`h-14 px-8 rounded-full bg-gray-100 text-gray-800 font-medium text-lg shadow-none hover:bg-gray-200 focus:bg-gray-200 transition-all duration-200 z-10 -ml-2 ${isSuccess ? "bg-green-500 hover:bg-green-600 text-white" : ""}`}
+                      className={`h-10 sm:h-12 px-4 sm:px-6 rounded-full bg-gray-100 text-gray-800 font-medium text-base sm:text-lg shadow-none hover:bg-gray-200 focus:bg-gray-200 transition-all duration-200 z-10 ${isSuccess ? "bg-green-500 hover:bg-green-600 text-white" : ""}`}
                       disabled={isExtracting || isSuccess}
-                      style={{ minWidth: '140px', borderTopLeftRadius: 9999, borderBottomLeftRadius: 9999 }}
+                      style={{ minWidth: '120px', borderTopLeftRadius: 9999, borderBottomLeftRadius: 9999 }}
                     >
                       {isExtracting ? (
                         <>
-                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
                           Checking...
                         </>
                       ) : isSuccess ? (
                         <>
-                          <CheckCircle className="mr-2 h-5 w-5" />
+                          <CheckCircle className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                           Success
                         </>
                       ) : (
                         <>
-                          Analyze <ArrowRight className="ml-2 h-5 w-5" />
+                          Analyze <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
                         </>
                       )}
                     </Button>

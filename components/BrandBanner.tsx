@@ -6,19 +6,74 @@ export default function BrandBanner() {
       <h3 className="text-xs font-medium text-gray-500 mb-8 tracking-widest uppercase text-center">
         Style Guide Rules From
       </h3>
-      <div className="w-full max-w-6xl mx-auto flex justify-center items-center">
-        {/* Desktop banner */}
-        <img
-          src="/logos/logobanner1.png"
-          alt="Brand Banner Desktop"
-          className="hidden md:block w-full h-auto max-h-[100px] object-contain"
-        />
-        {/* Mobile banner */}
-        <img
-          src="/logos/logobanner2.png"
-          alt="Brand Banner Mobile"
-          className="block md:hidden w-full h-auto max-h-[80px] object-contain"
-        />
+      <div className="w-full max-w-6xl mx-auto">
+        {/* Desktop banner - showing logos directly */}
+        <div className="hidden md:flex justify-between items-center">
+          <img 
+            src="/logos/Google.svg" 
+            alt="Google" 
+            className="h-10 w-auto filter grayscale opacity-80" 
+          />
+          <img 
+            src="/logos/apple.svg" 
+            alt="Apple" 
+            className="h-10 w-auto filter grayscale opacity-80" 
+          />
+          <img 
+            src="/logos/spotify.svg" 
+            alt="Spotify" 
+            className="h-10 w-auto filter grayscale opacity-80" 
+          />
+          <img 
+            src="/logos/mailchimp.svg" 
+            alt="Mailchimp" 
+            className="h-14 w-auto filter grayscale opacity-80" 
+          />
+          <img 
+            src="/logos/intuit.svg" 
+            alt="Intuit" 
+            className="h-10 w-auto filter grayscale opacity-80" 
+          />
+          <img 
+            src="/logos/bbc.svg" 
+            alt="BBC" 
+            className="h-10 w-auto filter grayscale opacity-80" 
+          />
+        </div>
+
+        {/* Mobile banner - stacked in a grid */}
+        <div className="md:hidden grid grid-cols-3 gap-8 mx-auto w-full max-w-xs">
+          <img 
+            src="/logos/Google.svg" 
+            alt="Google" 
+            className="w-auto h-8 mx-auto filter grayscale opacity-80" 
+          />
+          <img 
+            src="/logos/apple.svg" 
+            alt="Apple" 
+            className="w-auto h-8 mx-auto filter grayscale opacity-80" 
+          />
+          <img 
+            src="/logos/spotify.svg" 
+            alt="Spotify" 
+            className="w-auto h-8 mx-auto filter grayscale opacity-80" 
+          />
+          <img 
+            src="/logos/mailchimp.svg" 
+            alt="Mailchimp" 
+            className="w-auto h-10 mx-auto filter grayscale opacity-80" 
+          />
+          <img 
+            src="/logos/intuit.svg" 
+            alt="Intuit" 
+            className="w-auto h-8 mx-auto filter grayscale opacity-80" 
+          />
+          <img 
+            src="/logos/bbc.svg" 
+            alt="BBC" 
+            className="w-auto h-8 mx-auto filter grayscale opacity-80" 
+          />
+        </div>
       </div>
     </section>
   )

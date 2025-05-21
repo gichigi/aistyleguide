@@ -152,6 +152,12 @@
     grid-template-columns: 1fr 1fr;
     gap: 8px;
   }
+
+  .hero-lead {
+    font-size: 1rem;
+    line-height: 1.4;
+    max-width: 95vw;
+  }
 }
 
 /* Ensure dialog buttons have proper spacing */
@@ -251,4 +257,10 @@
   margin-top: 2em;
   margin-bottom: 1.5em;
   font-weight: 700;
+}
+
+html, body {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
