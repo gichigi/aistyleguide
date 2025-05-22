@@ -256,7 +256,7 @@ export default function BrandDetailsPage() {
         </div>
       </header>
       <main
-        className={`flex-1 container py-12 transition-opacity duration-500 ease-in-out ${fadeIn ? "opacity-100" : "opacity-0"}`}
+        className={`flex-1 container py-8 transition-opacity duration-500 ease-in-out ${fadeIn ? "opacity-100" : "opacity-0"}`}
       >
         <div className="mx-auto max-w-2xl">
           <Link
@@ -283,7 +283,7 @@ export default function BrandDetailsPage() {
                     <Textarea
                       id="brandDetailsText"
                       name="brandDetailsText"
-                      placeholder="Nike is a leading sports brand, selling a wide range of workout products, services and experiences worldwide. Nike targets athletes and sports enthusiasts globally, focusing on those who want high-quality sportswear and equipment."
+                      placeholder="Describe your brand in a few sentences. What do you do? Who do you serve?"
                       value={brandDetails.brandDetailsText || ""}
                       onChange={e => {
                         const value = e.target.value.slice(0, 500) // Enforce max length
@@ -293,7 +293,7 @@ export default function BrandDetailsPage() {
                         e.target.style.height = e.target.scrollHeight + "px"
                       }}
                       rows={5}
-                      className="resize-none min-h-[120px] leading-relaxed text-base p-4 font-medium"
+                      className="resize-none min-h-[120px] leading-relaxed text-base p-4 font-medium placeholder:text-gray-400 placeholder:font-medium"
                       onFocus={e => setShowCharCount(true)}
                       onBlur={e => setShowCharCount(!!e.target.value)}
                     />

@@ -20,6 +20,9 @@ import {
   Globe,
   Loader2,
   AlertTriangle,
+  Users,
+  Rocket,
+  Briefcase,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import dynamic from "next/dynamic"
@@ -164,6 +167,7 @@ export default function LandingPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <style jsx global>{logoStyles}</style>
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
           <Logo size="md" linkToHome={false} />
@@ -238,9 +242,9 @@ export default function LandingPage() {
                     <Button
                       type="submit"
                       size="lg"
-                      className={`h-10 sm:h-12 px-4 sm:px-6 rounded-full bg-gray-100 text-gray-800 font-medium text-base sm:text-lg shadow-none hover:bg-gray-200 focus:bg-gray-200 transition-all duration-200 z-10 ${isSuccess ? "bg-green-500 hover:bg-green-600 text-white" : ""}`}
+                      className={`h-10 sm:h-12 px-6 sm:px-8 rounded-full bg-gray-100 text-gray-800 font-medium text-base sm:text-lg shadow-none hover:bg-gray-200 focus:bg-gray-200 transition-all duration-200 z-10 ${isSuccess ? "bg-green-500 hover:bg-green-600 text-white" : ""}`}
                       disabled={isExtracting || isSuccess}
-                      style={{ minWidth: '120px', borderTopLeftRadius: 9999, borderBottomLeftRadius: 9999 }}
+                      style={{ borderTopLeftRadius: 9999, borderBottomLeftRadius: 9999 }}
                     >
                       {isExtracting ? (
                         <>
@@ -254,7 +258,7 @@ export default function LandingPage() {
                         </>
                       ) : (
                         <>
-                          Analyze <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+                          <span className="text-xs sm:text-sm md:text-base">Analyze</span> <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
                         </>
                       )}
                     </Button>
@@ -283,22 +287,139 @@ export default function LandingPage() {
         </section>
 
         <BrandBanner />
+        
+        {/* What You Get - MOVED TO 2ND POSITION AND BACKGROUND CHANGED */}
+        <section id="features" className="w-full py-12 md:py-20 lg:py-24 bg-muted">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center">
+              <div className="space-y-2">
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+                  Your brand voice toolkit
+                </h2>
+                <p className="max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                  Everything you need to create consistent, professional communication
+                </p>
+              </div>
+            </div>
+            {/* Mobile-optimized grid */}
+            <div className="mx-auto max-w-5xl items-center gap-8 py-10 grid grid-cols-1 lg:grid-cols-2 lg:gap-16">
+              {/* Feature list with improved mobile spacing */}
+              <div className="grid gap-8 md:gap-6">
+                {/* Each feature as a card on mobile for better separation */}
+                <div className="flex items-start gap-4 p-4 rounded-lg bg-white shadow-sm md:shadow-none md:bg-transparent md:p-0">
+                  <div className="flex-shrink-0">
+                    <FileText className="h-9 w-9 md:h-8 md:w-8 text-primary" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-xl font-bold">99+ industry-standard content rules</h3>
+                    <p className="text-muted-foreground">
+                      Used by Apple, Spotify, BBC and other leading brands
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4 p-4 rounded-lg bg-white shadow-sm md:shadow-none md:bg-transparent md:p-0">
+                  <div className="flex-shrink-0">
+                    <PenTool className="h-9 w-9 md:h-8 md:w-8 text-primary" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-xl font-bold">A clear brand voice framework</h3>
+                    <p className="text-muted-foreground">
+                      Define your brand's personality with specific traits and examples
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4 p-4 rounded-lg bg-white shadow-sm md:shadow-none md:bg-transparent md:p-0">
+                  <div className="flex-shrink-0">
+                    <FileDown className="h-9 w-9 md:h-8 md:w-8 text-primary" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-xl font-bold">Beautiful PDF exports</h3>
+                    <p className="text-muted-foreground">Professional, ready-to-share formats</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4 p-4 rounded-lg bg-white shadow-sm md:shadow-none md:bg-transparent md:p-0">
+                  <div className="flex-shrink-0">
+                    <FileCode className="h-9 w-9 md:h-8 md:w-8 text-primary" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-xl font-bold">Brand voice examples</h3>
+                    <p className="text-muted-foreground">Real-world applications across different content types</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4 p-4 rounded-lg bg-white shadow-sm md:shadow-none md:bg-transparent md:p-0">
+                  <div className="flex-shrink-0">
+                    <Brain className="h-9 w-9 md:h-8 md:w-8 text-primary" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-xl font-bold">Built-in tone selector</h3>
+                    <p className="text-muted-foreground">Adapt your voice for any situation with multiple tones</p>
+                  </div>
+                </div>
+              </div>
+              {/* Tab component with better mobile handling */}
+              <div className="relative overflow-hidden rounded-xl border bg-white p-4 shadow-md mt-6 lg:mt-0">
+                <Tabs defaultValue="formal" className="w-full">
+                  <TabsList className="grid w-full grid-cols-3 mb-4">
+                    <TabsTrigger value="formal">Formal</TabsTrigger>
+                    <TabsTrigger value="friendly">Friendly</TabsTrigger>
+                    <TabsTrigger value="funny">Funny</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="formal" className="p-4 space-y-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                    <h4 className="font-semibold">Example: Formal Brand Voice</h4>
+                    <div className="space-y-2 text-sm">
+                      <p className="text-muted-foreground">
+                        "Our comprehensive solution provides organizations with the tools necessary to optimize their
+                        content strategy."
+                      </p>
+                      <p className="text-muted-foreground">
+                        "We prioritize precision and clarity in all communications to ensure maximum effectiveness."
+                      </p>
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="friendly" className="p-4 space-y-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                    <h4 className="font-semibold">Example: Friendly Brand Voice</h4>
+                    <div className="space-y-2 text-sm">
+                      <p className="text-muted-foreground">
+                        "Hey there! Our tool helps you nail your content strategy without the headache."
+                      </p>
+                      <p className="text-muted-foreground">
+                        "We're all about keeping things simple and clear, so you can get back to what you do best."
+                      </p>
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="funny" className="p-4 space-y-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                    <h4 className="font-semibold">Example: Funny Brand Voice</h4>
+                    <div className="space-y-2 text-sm">
+                      <p className="text-muted-foreground">
+                        "Let's face it, your content strategy is about as organized as a toddler's toy box. We can fix
+                        that."
+                      </p>
+                      <p className="text-muted-foreground">
+                        "Our style guide is like GPS for your writing—except it won't lead you into a lake like that one
+                        time."
+                      </p>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </div>
+            </div>
+          </div>
+        </section>
 
-        {/* Rest of the landing page remains the same */}
-        {/* How It Works */}
+        {/* How It Works - BACKGROUND CHANGED TO WHITE FOR ALTERNATION */}
         <section id="how-it-works" className="w-full py-12 md:py-20 lg:py-24 bg-background">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                  From input to impact in 3 steps
+                  Input to impact in 3 steps
                 </h2>
                 <p className="max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                   Generate a comprehensive style guide with just a few clicks
                 </p>
               </div>
             </div>
-            <div className="mx-auto grid max-w-5xl items-center gap-6 py-8 lg:grid-cols-3 lg:gap-12">
+            <div className="mx-auto grid max-w-5xl items-center gap-6 py-8 md:grid-cols-3 lg:gap-12">
               <div className="flex flex-col items-center space-y-4 rounded-lg border p-6 shadow-sm">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
                   <span className="text-xl font-bold text-primary">1</span>
@@ -330,290 +451,124 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* What You Get */}
-        <section id="features" className="w-full py-12 md:py-20 lg:py-24 bg-muted">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                  Your brand voice, documented
-                </h2>
-                <p className="max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Everything you need to maintain consistent communication
-                </p>
-              </div>
-            </div>
-            <div className="mx-auto grid max-w-5xl items-center gap-6 py-8 lg:grid-cols-2 lg:gap-12">
-              <div className="grid gap-6">
-                <div className="flex items-start gap-4">
-                  <PenTool className="h-8 w-8 text-primary" />
-                  <div className="space-y-1">
-                    <h3 className="text-xl font-bold">A clear tone of voice</h3>
-                    <p className="text-muted-foreground">
-                      Define your brand's personality with specific traits and examples
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <FileText className="h-8 w-8 text-primary" />
-                  <div className="space-y-1">
-                    <h3 className="text-xl font-bold">99+ modern content rules</h3>
-                    <p className="text-muted-foreground">
-                      Professional guidelines used by Apple, Spotify, BBC and other leading brands
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <FileCode className="h-8 w-8 text-primary" />
-                  <div className="space-y-1">
-                    <h3 className="text-xl font-bold">Instant PDF + Notion-style output</h3>
-                    <p className="text-muted-foreground">Multiple formats ready to share with your team or clients</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <Brain className="h-8 w-8 text-primary" />
-                  <div className="space-y-1">
-                    <h3 className="text-xl font-bold">Optional AI assistant</h3>
-                    <p className="text-muted-foreground">Get help applying your style guide to future content</p>
-                  </div>
-                </div>
-              </div>
-              <div className="relative overflow-hidden rounded-xl border bg-background p-2">
-                <Tabs defaultValue="formal" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="formal">Formal Tone</TabsTrigger>
-                    <TabsTrigger value="friendly">Friendly Tone</TabsTrigger>
-                    <TabsTrigger value="funny">Funny Tone</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="formal" className="p-4 space-y-4">
-                    <h4 className="font-semibold">Example: Formal Brand Voice</h4>
-                    <div className="space-y-2 text-sm">
-                      <p className="text-muted-foreground">
-                        "Our comprehensive solution provides organizations with the tools necessary to optimize their
-                        content strategy."
-                      </p>
-                      <p className="text-muted-foreground">
-                        "We prioritize precision and clarity in all communications to ensure maximum effectiveness."
-                      </p>
-                    </div>
-                  </TabsContent>
-                  <TabsContent value="friendly" className="p-4 space-y-4">
-                    <h4 className="font-semibold">Example: Friendly Brand Voice</h4>
-                    <div className="space-y-2 text-sm">
-                      <p className="text-muted-foreground">
-                        "Hey there! Our tool helps you nail your content strategy without the headache."
-                      </p>
-                      <p className="text-muted-foreground">
-                        "We're all about keeping things simple and clear, so you can get back to what you do best."
-                      </p>
-                    </div>
-                  </TabsContent>
-                  <TabsContent value="funny" className="p-4 space-y-4">
-                    <h4 className="font-semibold">Example: Funny Brand Voice</h4>
-                    <div className="space-y-2 text-sm">
-                      <p className="text-muted-foreground">
-                        "Let's face it, your content strategy is about as organized as a toddler's toy box. We can fix
-                        that."
-                      </p>
-                      <p className="text-muted-foreground">
-                        "Our style guide is like GPS for your writing—except it won't lead you into a lake like that one
-                        time."
-                      </p>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Who It's For */}
-        <section className="w-full py-12 md:py-20 lg:py-24 bg-background">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                  Perfect for teams who need clarity in communication
-                </h2>
-                <p className="max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Perfect for teams and individuals who need clear writing guidelines
-                </p>
-              </div>
-            </div>
-            <div className="mx-auto grid max-w-5xl grid-cols-1 sm:grid-cols-2 gap-6 py-8 md:grid-cols-4 lg:gap-12">
-              <div className="flex flex-col items-center space-y-2 rounded-lg border p-4">
-                <CheckCircle className="h-8 w-8 text-primary" />
-                <h3 className="text-xl font-bold">Copywriters</h3>
-                <p className="text-center text-sm text-muted-foreground">Create consistent content across projects</p>
-              </div>
-              <div className="flex flex-col items-center space-y-2 rounded-lg border p-4">
-                <CheckCircle className="h-8 w-8 text-primary" />
-                <h3 className="text-xl font-bold">Marketing leads</h3>
-                <p className="text-center text-sm text-muted-foreground">Align team messaging with brand values</p>
-              </div>
-              <div className="flex flex-col items-center space-y-2 rounded-lg border p-4">
-                <CheckCircle className="h-8 w-8 text-primary" />
-                <h3 className="text-xl font-bold">Founders</h3>
-                <p className="text-center text-sm text-muted-foreground">Establish your brand voice from day one</p>
-              </div>
-              <div className="flex flex-col items-center space-y-2 rounded-lg border p-4">
-                <CheckCircle className="h-8 w-8 text-primary" />
-                <h3 className="text-xl font-bold">Agencies</h3>
-                <p className="text-center text-sm text-muted-foreground">Deliver professional guidelines to clients</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* Social Proof */}
         <TestimonialsSection />
 
-        {/* Example Output Preview - Redesigned with annotations */}
-        <section id="example" className="w-full py-12 md:py-20 lg:py-24 bg-background">
+        {/* Example Output Preview - Redesigned with annotations - BACKGROUND CHANGED TO WHITE FOR ALTERNATION */}
+        <section id="example" className="w-full py-6 md:py-24 bg-background">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">See what you'll get</h2>
-                <p className="max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Preview a sample style guide with all the sections you'll receive
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+                  Sample style guide
+                </h2>
+                <p className="max-w-[700px] text-muted-foreground text-lg md:text-xl mb-4">
+                  See an example of what your style guide will look like
                 </p>
               </div>
             </div>
 
-            {/* Style Guide Document Preview with Annotations */}
-            <div className="mx-auto max-w-5xl py-8 relative">
-              <div className="bg-white rounded-xl border shadow-sm overflow-hidden dark:bg-gray-950 dark:border-gray-800 relative">
+            {/* Style Guide Document Preview with Modern Look */}
+            <div className="mx-auto max-w-4xl py-10 relative">
+              <div className="bg-white rounded-2xl border shadow-lg overflow-hidden pb-0">
                 {/* Document Header */}
-                <div className="p-8 border-b dark:border-gray-800 relative">
-                  <div className="max-w-3xl mx-auto">
-                    <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                      ACME Inc. – Brand Voice & Style Guide
+                <div className="p-8 border-b bg-gray-50">
+                  <div className="max-w-2xl mx-auto">
+                    <div className="text-base text-gray-500 mb-2 tracking-wide font-semibold">
+                      Nike – Brand Voice & Style Guide
                     </div>
-                    <h1 className="text-4xl font-bold tracking-tight mb-2">Brand Voice & Style Guide</h1>
-                    <p className="text-gray-500 dark:text-gray-400">Created on {new Date().toLocaleDateString()}</p>
-                  </div>
-
-                  {/* Header Annotation */}
-                  <div className="absolute -right-4 top-8 md:right-8 md:top-4 bg-primary/10 border border-primary/20 rounded-lg p-3 max-w-[180px] md:max-w-[220px] shadow-sm">
-                    <div className="text-sm font-medium">Professional Header</div>
-                    <p className="text-xs text-muted-foreground">
-                      Branded header with your company name and creation date
-                    </p>
-                    <div className="absolute w-6 h-6 bg-primary/10 border border-primary/20 rotate-45 -left-3 top-5 md:-top-3 md:left-5"></div>
+                    <h1 className="text-4xl font-extrabold tracking-tight mb-2 text-gray-900">Brand Voice & Style Guide</h1>
+                    <p className="text-gray-500 text-base">Created on {new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                   </div>
                 </div>
 
                 {/* Document Content */}
-                <div className="p-8">
-                  <div className="max-w-3xl mx-auto space-y-12">
+                <div className="p-8 bg-white">
+                  <div className="max-w-2xl mx-auto space-y-12">
                     {/* About Section */}
-                    <section className="relative">
-                      <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">About ACME Inc.</h2>
-                      <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                        ACME Inc. builds modern tools that empower teams to work smarter, communicate clearly, and grow
-                        with confidence. This guide ensures everyone—from writers to developers—speaks in one consistent
-                        voice.
+                    <section>
+                      <h2 className="text-2xl font-bold mb-4 text-gray-900">About Nike</h2>
+                      <p className="text-gray-700 leading-relaxed mb-4">
+                        Nike empowers every athlete. This guide keeps our voice clear and bold.
                       </p>
-
-                      {/* About Annotation */}
-                      <div className="absolute -left-4 top-0 md:-left-40 md:top-0 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 max-w-[180px] md:max-w-[220px] shadow-sm">
-                        <div className="text-sm font-medium text-blue-700 dark:text-blue-400">Company Overview</div>
-                        <p className="text-xs text-blue-600/80 dark:text-blue-300/80">
-                          Concise description of your brand's mission and purpose
-                        </p>
-                        <div className="absolute w-6 h-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rotate-45 -right-3 top-5 md:right-auto md:-right-3 md:top-5"></div>
+                      {/* About Annotation as Info Card */}
+                      <div className="mt-4 flex items-center gap-3">
+                        <div className="rounded-lg bg-blue-50 border border-blue-200 px-4 py-2 text-blue-700 text-sm font-medium">
+                          <span className="font-semibold">Company Overview:</span> Your brand's mission in one place.
+                        </div>
                       </div>
                     </section>
 
                     {/* Brand Voice Section */}
-                    <section className="relative">
-                      <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Brand Voice</h2>
-                      <p className="text-gray-700 dark:text-gray-300 font-medium mb-4">
-                        <strong>Our voice is confident, warm, and efficient.</strong>
+                    <section>
+                      <h2 className="text-2xl font-bold mb-4 text-gray-900">Brand Voice</h2>
+                      <p className="text-gray-700 mb-4">
+                        Our voice is bold, inspiring, and direct.
                       </p>
                       <ul className="space-y-6">
-                        <li className="bg-gray-50 dark:bg-gray-900 p-5 rounded-lg">
-                          <h3 className="font-semibold mb-2 text-gray-900 dark:text-white">
-                            Confident but approachable
-                          </h3>
-                          <div className="grid gap-2">
-                            <div className="flex gap-2">
-                              <span className="text-emerald-600 dark:text-emerald-500 font-medium">Do:</span>
-                              <span className="text-gray-700 dark:text-gray-300">
-                                "We've helped 1,200+ teams simplify their content."
-                              </span>
+                        <li className="bg-gray-100 p-6 rounded-xl border-l-4 border-indigo-600 shadow-sm flex flex-col gap-3">
+                          <h3 className="font-semibold mb-2 text-gray-900 text-lg">Confident but approachable</h3>
+                          <div className="flex flex-col gap-2">
+                            <div className="flex gap-2 items-center">
+                              <span className="text-blue-500 font-normal">Do:</span>
+                              <span className="text-gray-800 font-normal text-base">"We help every athlete unleash their potential."</span>
                             </div>
-                            <div className="flex gap-2">
-                              <span className="text-rose-600 dark:text-rose-500 font-medium">Don't:</span>
-                              <span className="text-gray-700 dark:text-gray-300">
-                                "We're the world's #1 content solution—just trust us."
-                              </span>
+                            <div className="flex gap-2 items-center">
+                              <span className="text-rose-600 font-normal">Don't:</span>
+                              <span className="text-gray-800 font-normal text-base">"We're the world's #1—just trust us."</span>
                             </div>
                           </div>
                         </li>
                       </ul>
-
-                      {/* Brand Voice Annotation */}
-                      <div className="absolute -right-4 top-12 md:right-8 md:top-8 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3 max-w-[180px] md:max-w-[220px] shadow-sm">
-                        <div className="text-sm font-medium text-green-700 dark:text-green-400">Voice Definition</div>
-                        <p className="text-xs text-green-600/80 dark:text-green-300/80">
-                          Clear personality traits with practical do's and don'ts examples
-                        </p>
-                        <div className="absolute w-6 h-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rotate-45 -left-3 top-5 md:-top-3 md:left-5"></div>
+                      {/* Brand Voice Annotation as Info Card */}
+                      <div className="mt-4 flex items-center gap-3">
+                        <div className="rounded-lg bg-indigo-50 border border-indigo-200 px-4 py-2 text-indigo-700 text-sm font-medium">
+                          <span className="font-semibold">Voice Definition:</span> See how your brand's personality is described.
+                        </div>
                       </div>
                     </section>
 
                     {/* Grammar & Mechanics Section */}
-                    <section className="relative">
-                      <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Grammar & Mechanics</h2>
+                    <section>
+                      <h2 className="text-2xl font-bold mb-4 text-gray-900">Grammar & Mechanics</h2>
                       <ul className="space-y-6">
-                        <li className="bg-gray-50 dark:bg-gray-900 p-5 rounded-lg">
-                          <h3 className="font-semibold mb-2 text-gray-900 dark:text-white">Use American English</h3>
-                          <div className="grid gap-2">
-                            <div className="flex gap-2">
-                              <span className="text-emerald-600 dark:text-emerald-500 font-medium">Do:</span>
-                              <span className="text-gray-700 dark:text-gray-300">"Color", "Optimize"</span>
+                        <li className="bg-gray-100 p-6 rounded-xl border-l-4 border-blue-500 shadow-sm flex flex-col gap-3">
+                          <h3 className="font-semibold mb-2 text-gray-900">Use American English</h3>
+                          <div className="flex flex-col gap-2">
+                            <div className="flex gap-2 items-center">
+                              <span className="text-blue-500 font-normal">Do:</span>
+                              <span className="text-gray-800 font-normal text-base">"Color", "Optimize"</span>
                             </div>
-                            <div className="flex gap-2">
-                              <span className="text-rose-600 dark:text-rose-500 font-medium">Don't:</span>
-                              <span className="text-gray-700 dark:text-gray-300">"Colour", "Optimise"</span>
+                            <div className="flex gap-2 items-center">
+                              <span className="text-rose-600 font-normal">Don't:</span>
+                              <span className="text-gray-800 font-normal text-base">"Colour", "Optimise"</span>
                             </div>
                           </div>
                         </li>
                       </ul>
-
-                      {/* Grammar Annotation */}
-                      <div className="absolute -left-4 top-8 md:-left-40 md:top-8 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-3 max-w-[180px] md:max-w-[220px] shadow-sm">
-                        <div className="text-sm font-medium text-purple-700 dark:text-purple-400">Writing Rules</div>
-                        <p className="text-xs text-purple-600/80 dark:text-purple-300/80">
-                          99+ specific grammar and mechanics rules used by top brands
-                        </p>
-                        <div className="absolute w-6 h-6 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rotate-45 -right-3 top-5 md:right-auto md:-right-3 md:top-5"></div>
+                      <div className="text-sm text-gray-500 mt-2">And 99+ more rules for clarity and consistency.</div>
+                      {/* Grammar Annotation as Info Card */}
+                      <div className="mt-4 flex items-center gap-3">
+                        <div className="rounded-lg bg-blue-50 border border-blue-200 px-4 py-2 text-blue-700 text-sm font-medium">
+                          <span className="font-semibold">Writing Rules:</span> 99+ rules for clear, consistent content.
+                        </div>
                       </div>
                     </section>
-
-                    {/* Preview Footer */}
-                    <div className="flex justify-center">
-                      <Button onClick={() => router.push("/brand-details")} className="gap-2">
-                        Create your own style guide <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    </div>
                   </div>
                 </div>
               </div>
-
-              {/* Bottom Annotation */}
-              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 max-w-[280px] md:max-w-[320px] shadow-sm text-center">
-                <div className="text-sm font-medium text-amber-700 dark:text-amber-400">Multiple Export Formats</div>
-                <p className="text-xs text-amber-600/80 dark:text-amber-300/80">
-                  Download as PDF, Markdown, DOCX, or HTML for Notion
-                </p>
-              </div>
             </div>
+
+            {/* CTA Button below card, center aligned in preview section
+            <div className="flex justify-center mt-4 mb-4">
+               <Button onClick={() => router.push('/start')} className="gap-2 px-8 py-4 rounded-full font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-md">
+                Create your own style guide <ArrowRight className="h-5 w-5" />
+              </Button>
+            </div> */}
           </div>
         </section>
 
-        {/* Pricing Section */}
+        {/* Pricing Section - BACKGROUND CHANGED TO MUTED FOR ALTERNATION */}
         <section id="pricing" className="w-full py-12 md:py-20 lg:py-24 bg-muted">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
@@ -625,127 +580,116 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="mx-auto grid max-w-5xl gap-6 py-8 md:grid-cols-3">
-              <Card className="relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-background"></div>
+              <Card className="relative overflow-hidden border-2 border-blue-500">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-background"></div>
                 <CardContent className="p-6 relative z-10">
                   <div className="flex flex-col items-center space-y-4 text-center">
-                    <h3 className="text-2xl font-bold">Core Style Guide</h3>
+                    <h3 className="text-2xl font-bold text-blue-700">Core Style Guide</h3>
                     <div className="space-y-1">
-                      <p className="text-5xl font-bold">$99</p>
+                      <p className="text-5xl font-bold text-blue-700">$99</p>
                       <p className="text-sm text-muted-foreground">One-time payment</p>
                     </div>
                     <ul className="space-y-2 text-left">
                       <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-primary" />
+                        <CheckCircle className="mr-2 h-4 w-4 text-blue-500" />
                         <span>Brand voice definition</span>
                       </li>
                       <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-primary" />
+                        <CheckCircle className="mr-2 h-4 w-4 text-blue-500" />
                         <span>25 essential writing rules</span>
                       </li>
                       <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-primary" />
+                        <CheckCircle className="mr-2 h-4 w-4 text-blue-500" />
                         <span>Tone guidelines</span>
                       </li>
                       <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-primary" />
+                        <CheckCircle className="mr-2 h-4 w-4 text-blue-500" />
                         <span>Do's and don'ts</span>
                       </li>
                       <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-primary" />
+                        <CheckCircle className="mr-2 h-4 w-4 text-blue-500" />
                         <span>PDF & Markdown formats</span>
                       </li>
                     </ul>
-                    <Button size="lg" className="w-full" onClick={() => router.push("/brand-details")}>
-                      Get Core Guide
-                    </Button>
+                    <Button size="lg" className="mt-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-full px-8 py-3 shadow-md" onClick={() => router.push("/brand-details")}>Get Core Guide</Button>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="relative overflow-hidden border-primary">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-background"></div>
-                <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-xs font-medium">
-                  Popular
-                </div>
+              <Card className="relative overflow-hidden border-4 border-indigo-600 shadow-lg scale-105">
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-background"></div>
+                <div className="absolute top-0 right-0 bg-indigo-600 text-white px-3 py-1 text-xs font-medium rounded-bl-lg shadow">Most Popular</div>
                 <CardContent className="p-6 relative z-10">
                   <div className="flex flex-col items-center space-y-4 text-center">
-                    <h3 className="text-2xl font-bold">Complete Style Guide</h3>
+                    <h3 className="text-2xl font-bold text-indigo-700">Complete Style Guide</h3>
                     <div className="space-y-1">
-                      <p className="text-5xl font-bold">$149</p>
+                      <p className="text-5xl font-bold text-indigo-700">$149</p>
                       <p className="text-sm text-muted-foreground">One-time payment</p>
                     </div>
                     <ul className="space-y-2 text-left">
                       <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-primary" />
+                        <CheckCircle className="mr-2 h-4 w-4 text-indigo-600" />
                         <span>Everything in Core Guide</span>
                       </li>
                       <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-primary" />
+                        <CheckCircle className="mr-2 h-4 w-4 text-indigo-600" />
                         <span>99+ modern writing rules</span>
                       </li>
                       <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-primary" />
+                        <CheckCircle className="mr-2 h-4 w-4 text-indigo-600" />
                         <span>Used by Apple, Spotify, BBC</span>
                       </li>
                       <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-primary" />
+                        <CheckCircle className="mr-2 h-4 w-4 text-indigo-600" />
                         <span>Formatting standards</span>
                       </li>
                       <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-primary" />
+                        <CheckCircle className="mr-2 h-4 w-4 text-indigo-600" />
                         <span>Example corrections</span>
                       </li>
-                      <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-primary" />
-                        <span>Unlimited revisions</span>
-                      </li>
                     </ul>
-                    <Button size="lg" className="w-full" onClick={() => router.push("/brand-details")}>
-                      Get Complete Guide
-                    </Button>
+                    <Button size="lg" className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-full px-8 py-3 shadow-md" onClick={() => router.push("/brand-details")}>Get Complete Guide</Button>
                   </div>
                 </CardContent>
               </Card>
-              <Card className="relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-100 to-background dark:from-purple-900/20"></div>
-                <div className="absolute top-0 right-0 bg-purple-600 text-primary-foreground px-3 py-1 text-xs font-medium">
-                  Enterprise
-                </div>
+
+              <Card className="relative overflow-hidden border-2 border-black">
+                <div className="absolute inset-0 bg-gradient-to-br from-black to-gray-900"></div>
+                <div className="absolute top-0 right-0 bg-black text-white px-3 py-1 text-xs font-medium rounded-bl-lg shadow">Enterprise</div>
                 <CardContent className="p-6 relative z-10">
                   <div className="flex flex-col items-center space-y-4 text-center">
-                    <h3 className="text-2xl font-bold">Custom Enterprise</h3>
+                    <h3 className="text-2xl font-bold text-white">Custom Enterprise</h3>
                     <div className="space-y-1">
-                      <p className="text-5xl font-bold">Contact</p>
-                      <p className="text-sm text-muted-foreground">Custom pricing</p>
+                      <p className="text-5xl font-bold text-white">Contact</p>
+                      <p className="text-sm text-gray-200">Custom pricing</p>
                     </div>
                     <ul className="space-y-2 text-left">
                       <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-primary" />
-                        <span>Everything in Complete Guide</span>
+                        <CheckCircle className="mr-2 h-4 w-4 text-white" />
+                        <span className="text-white">Everything in Complete Guide</span>
                       </li>
                       <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-primary" />
-                        <span>Custom onboarding</span>
+                        <CheckCircle className="mr-2 h-4 w-4 text-white" />
+                        <span className="text-white">Custom onboarding</span>
                       </li>
                       <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-primary" />
-                        <span>Dedicated account manager</span>
+                        <CheckCircle className="mr-2 h-4 w-4 text-white" />
+                        <span className="text-white">Dedicated account manager</span>
                       </li>
                       <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-primary" />
-                        <span>Team training sessions</span>
+                        <CheckCircle className="mr-2 h-4 w-4 text-white" />
+                        <span className="text-white">Team training sessions</span>
                       </li>
                       <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-primary" />
-                        <span>Custom integrations</span>
+                        <CheckCircle className="mr-2 h-4 w-4 text-white" />
+                        <span className="text-white">Custom integrations</span>
                       </li>
                       <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-primary" />
-                        <span>Priority support</span>
+                        <CheckCircle className="mr-2 h-4 w-4 text-white" />
+                        <span className="text-white">Priority support</span>
                       </li>
                     </ul>
-                    <Button size="lg" className="w-full" variant="outline" asChild>
+                    <Button size="lg" className="mt-2 bg-white hover:bg-gray-200 text-black font-bold rounded-full px-8 py-3 shadow-md" variant="outline" asChild>
                       <Link href="mailto:enterprise@styleguideai.com">Contact Sales</Link>
                     </Button>
                   </div>
@@ -755,8 +699,36 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* FAQ */}
-        <section id="faq" className="w-full py-12 md:py-20 lg:py-24 bg-background">
+        {/* Who It's For - Redesigned and moved below pricing */}
+        <section className="w-full py-12 md:py-16 bg-background">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-2 text-center mb-8">
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Who uses our style guides</h2>
+              <p className="text-base text-gray-500">For teams and creators who care about consistency.</p>
+            </div>
+            <div className="mx-auto grid max-w-4xl grid-cols-2 md:grid-cols-4 gap-6 lg:gap-10">
+              <div className="flex flex-col items-center p-6 rounded-xl border bg-gradient-to-b from-white to-gray-50 shadow-sm hover:shadow-md transition-all">
+                <PenTool className="h-10 w-10 text-blue-500 mb-2" />
+                <h3 className="text-lg font-bold">Copywriters</h3>
+              </div>
+              <div className="flex flex-col items-center p-6 rounded-xl border bg-gradient-to-b from-white to-gray-50 shadow-sm hover:shadow-md transition-all">
+                <Users className="h-10 w-10 text-indigo-600 mb-2" />
+                <h3 className="text-lg font-bold">Marketing Teams</h3>
+              </div>
+              <div className="flex flex-col items-center p-6 rounded-xl border bg-gradient-to-b from-white to-gray-50 shadow-sm hover:shadow-md transition-all">
+                <Rocket className="h-10 w-10 text-green-600 mb-2" />
+                <h3 className="text-lg font-bold">Founders</h3>
+              </div>
+              <div className="flex flex-col items-center p-6 rounded-xl border bg-gradient-to-b from-white to-gray-50 shadow-sm hover:shadow-md transition-all">
+                <Briefcase className="h-10 w-10 text-gray-700 mb-2" />
+                <h3 className="text-lg font-bold">Agencies</h3>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ - BACKGROUND CHANGED TO MUTED FOR ALTERNATION */}
+        <section id="faq" className="w-full py-12 md:py-20 lg:py-24 bg-muted">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
@@ -770,35 +742,39 @@ export default function LandingPage() {
               {[
                 {
                   q: "What if I don't have a brand yet?",
-                  a: "No problem! Our tool can help you define your brand voice from scratch. Just answer a few questions about your target audience and goals.",
+                  a: "Our tool helps you define your brand voice from scratch. Just answer a few questions about your audience and goals.",
                 },
                 {
-                  q: "Can I edit the output?",
-                  a: "Yes! After we generate your style guide, you can review and edit any section before downloading the final version. You can also regenerate specific sections if needed.",
+                  q: "How long does it take?",
+                  a: "Most style guides are generated in under 2 minutes. You can review and edit before downloading.",
                 },
                 {
-                  q: "Is this better than hiring a writer?",
-                  a: "Our AI tool provides a comprehensive starting point in minutes instead of weeks. While professional writers offer customized expertise, our tool delivers 90% of what most brands need at a fraction of the cost.",
+                  q: "What formats can I download?",
+                  a: "Your style guide is available in PDF, Markdown, and HTML formats for easy sharing and integration.",
                 },
                 {
-                  q: "How is this different from other tools?",
-                  a: "Unlike generic templates or complex brand management platforms, we focus exclusively on creating practical, actionable style guides with specific rules and examples tailored to your brand.",
+                  q: "What's included in the style guide?",
+                  a: "You'll get a brand voice definition, up to 99+ writing rules, tone guidelines, and practical examples tailored to your brand.",
                 },
                 {
-                  q: "How long does it take to generate a style guide?",
-                  a: "Most style guides are generated in under 2 minutes. You can then review and make any adjustments before downloading the final version.",
+                  q: "Can I edit my style guide?",
+                  a: "Yes! You can review and edit any section before downloading, and your purchase includes free revisions.",
                 },
                 {
-                  q: "Can I share my style guide with my team?",
-                  a: "You can download your style guide in multiple formats (PDF, Markdown, DOCX, HTML) and share it with your entire team. You'll also receive a permanent access link via email.",
+                  q: "Is this better than hiring a copywriter?",
+                  a: "We deliver 90% of what most brands need in minutes instead of weeks, at a fraction of the cost of hiring a professional writer.",
                 },
                 {
-                  q: "Do you offer refunds if I'm not satisfied?",
-                  a: "Yes, we offer a 14-day money-back guarantee. If you're not completely satisfied with your style guide, contact our support team for a full refund.",
+                  q: "Do you offer refunds?",
+                  a: "Yes, we have a 14-day satisfaction guarantee. If you're not happy with your style guide, contact us for a full refund.",
                 },
                 {
-                  q: "Can I update my style guide later?",
-                  a: "Yes! Your purchase includes unlimited revisions. You can come back anytime to update your brand details and regenerate your style guide as your brand evolves.",
+                  q: "Can I share with my team?",
+                  a: "Yes! Share your style guide with your entire team. You receive a permanent access link plus downloadable files.",
+                },
+                {
+                  q: "How do I contact support?",
+                  a: <span>Email us at <a href="mailto:support@aistyleguide.com?subject=Support%20Request&body=Hello%20AIStyleGuide%20Support%20Team,%0A%0AI%20need%20help%20with:%0A%0A[Please%20describe%20your%20issue%20here]%0A%0AThanks,%0A[Your%20Name]" className="text-primary hover:underline">support@aistyleguide.com</a> for any questions. We typically respond within 24 hours on business days.</span>,
                 },
               ].map((item, i) => (
                 <div key={i} className="py-6">
@@ -811,44 +787,106 @@ export default function LandingPage() {
         </section>
 
         {/* Final CTA */}
-        <section className="w-full py-12 md:py-20 lg:py-24 bg-primary text-primary-foreground">
+        <section className="w-full py-12 md:py-20 lg:py-24 bg-background text-foreground">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                  Start writing with clarity today
+                  Build brand consistency in minutes
                 </h2>
-                <p className="max-w-[700px] md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Create your brand style guide in minutes and improve all your content
+                <p className="max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                No more guesswork. Just consistent content at every single touchpoint.
                 </p>
               </div>
-              <div className="flex flex-col gap-2 min-[400px]:flex-row">
+              <div className="flex justify-center">
                 <Button
                   size="lg"
-                  variant="secondary"
                   className="gap-1"
                   onClick={() => {
                     // Scroll to hero section
                     document.getElementById("hero")?.scrollIntoView({ behavior: "smooth" })
                   }}
                 >
-                  Generate your style guide <ArrowRight className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="gap-1 bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10"
-                  asChild
-                >
-                  <Link href="#example">
-                    <FileDown className="h-4 w-4" /> See example first
-                  </Link>
+                  Create your style guide <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
             </div>
           </div>
         </section>
       </main>
+
+      {/* Footer */}
+      <footer className="w-full py-8 md:py-12 bg-primary text-primary-foreground">
+        <div className="container px-4 md:px-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="space-y-4">
+              <div className="mb-2">
+                <div className="logo-light">
+                  <Logo size="lg" linkToHome={false} />
+                </div>
+              </div>
+              <p className="text-sm text-primary-foreground/80">
+                Create professional brand voice and style guides in minutes, not months.
+              </p>
+            </div>
+            
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold">Pages</h3>
+              <ul className="space-y-2">
+                <li><Link href="#how-it-works" className="text-sm hover:underline">How It Works</Link></li>
+                <li><Link href="#features" className="text-sm hover:underline">Features</Link></li>
+                <li><Link href="#pricing" className="text-sm hover:underline">Pricing</Link></li>
+                <li><Link href="#faq" className="text-sm hover:underline">FAQ</Link></li>
+              </ul>
+            </div>
+            
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold">Contact</h3>
+              <ul className="space-y-2">
+                <li><a href="mailto:support@aistyleguide.com" className="text-sm hover:underline">support@aistyleguide.com</a></li>
+              </ul>
+            </div>
+            
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold">Legal</h3>
+              <ul className="space-y-2">
+                <li><Link href="#" className="text-sm hover:underline">Terms of Service</Link></li>
+                <li><Link href="#" className="text-sm hover:underline">Privacy Policy</Link></li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="border-t border-primary-foreground/20 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+            <p className="text-sm text-primary-foreground/80">
+              © {new Date().getFullYear()} AIStyleGuide. All rights reserved.
+            </p>
+            <div className="flex space-x-4 mt-4 md:mt-0">
+              <Link href="#" className="text-primary-foreground hover:text-primary-foreground/80">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                <span className="sr-only">Facebook</span>
+              </Link>
+              <Link href="#" className="text-primary-foreground hover:text-primary-foreground/80">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>
+                <span className="sr-only">Twitter</span>
+              </Link>
+              <Link href="#" className="text-primary-foreground hover:text-primary-foreground/80">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg>
+                <span className="sr-only">Instagram</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
+
+// Custom styles for the footer logo
+const logoStyles = `
+  .logo-light span {
+    color: white !important; 
+  }
+`
+
+
+
