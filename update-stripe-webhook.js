@@ -1,10 +1,43 @@
 // Script to update Stripe webhook configuration
-// Run with: STRIPE_SECRET_KEY=your_secret_key node update-stripe-webhook.js
+// Run with: node update-stripe-webhook.js
 
 const https = require('https');
+const fs = require('fs');
+const path = require('path');
+
+// Load environment variables from .env file
+function loadEnv() {
+  try {
+    const envPath = path.resolve(process.cwd(), '.env');
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    const envLines = envContent.split('\n');
+    
+    const envVars = {};
+    envLines.forEach(line => {
+      const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+      if (match) {
+        const key = match[1];
+        let value = match[2] || '';
+        if (value.length > 0 && value.charAt(0) === '"' && value.charAt(value.length - 1) === '"') {
+          value = value.replace(/\\n/g, '\n');
+          value = value.substring(1, value.length - 1);
+        }
+        envVars[key] = value;
+      }
+    });
+    
+    return envVars;
+  } catch (err) {
+    console.error('Error loading .env file:', err.message);
+    return {};
+  }
+}
+
+// Load environment variables
+const env = loadEnv();
 
 // Configuration
-const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || env.STRIPE_SECRET_KEY;
 const CORRECT_WEBHOOK_URL = 'https://www.aistyleguide.com/api/webhook';
 
 if (!STRIPE_SECRET_KEY) {

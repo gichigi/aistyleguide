@@ -1,9 +1,47 @@
 // Test script for Stripe webhook functionality
 const https = require('https');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 
-// Configuration
-const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_rNnBmxEFd1ZDx4y6kS4YBlg1WmBHNRRk';
+// Load environment variables from .env file
+function loadEnv() {
+  try {
+    const envPath = path.resolve(process.cwd(), '.env');
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    const envLines = envContent.split('\n');
+    
+    const envVars = {};
+    envLines.forEach(line => {
+      const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+      if (match) {
+        const key = match[1];
+        let value = match[2] || '';
+        if (value.length > 0 && value.charAt(0) === '"' && value.charAt(value.length - 1) === '"') {
+          value = value.replace(/\\n/g, '\n');
+          value = value.substring(1, value.length - 1);
+        }
+        envVars[key] = value;
+      }
+    });
+    
+    return envVars;
+  } catch (err) {
+    console.error('Error loading .env file:', err.message);
+    return {};
+  }
+}
+
+// Load environment variables
+const env = loadEnv();
+
+// Configuration - read from environment or prompt user to provide
+const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || env.STRIPE_WEBHOOK_SECRET || '';
+if (!WEBHOOK_SECRET) {
+  console.error('Error: STRIPE_WEBHOOK_SECRET is required. Please set it in your .env file or as an environment variable.');
+  process.exit(1);
+}
+
 const WEBHOOK_URL = 'https://aistyleguide.com/api/webhook';
 const WWW_WEBHOOK_URL = 'https://www.aistyleguide.com/api/webhook';
 
