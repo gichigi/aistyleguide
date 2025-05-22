@@ -1,16 +1,22 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
 
+// Define the correct API version type
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-03-31.basil",
+  apiVersion: "2023-10-16" as Stripe.LatestApiVersion,
 })
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://aistyleguide.com'
+// Ensure we use the www version of the URL
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.aistyleguide.com'
 
 export async function POST(request: Request) {
   try {
     const body = await request.json()
     const { guideType } = body
+
+    // Log request info for debugging
+    console.log(`Creating checkout session for guide type: ${guideType}`)
+    console.log(`Using base URL: ${BASE_URL}`)
 
     // Validate guide type
     if (!['core', 'complete'].includes(guideType)) {
@@ -43,6 +49,8 @@ export async function POST(request: Request) {
       cancel_url: `${BASE_URL}/payment/cancel`,
     })
 
+    console.log(`Checkout session created: ${session.id}`)
+    
     return NextResponse.json({ url: session.url })
   } catch (error) {
     console.error('Checkout error:', error)
