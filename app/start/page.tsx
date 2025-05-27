@@ -56,7 +56,7 @@ export default function StartPage() {
       })
       const data = await response.json()
       if (data.success) {
-        sessionStorage.setItem("brandDetails", JSON.stringify({
+        localStorage.setItem("brandDetails", JSON.stringify({
           brandDetailsText: data.brandDetailsText,
           tone: "friendly" // Default tone
         }))
@@ -80,7 +80,7 @@ export default function StartPage() {
   const handleManual = (e: React.FormEvent) => {
     e.preventDefault()
     if (!manualDetails.trim()) return
-    sessionStorage.setItem("brandDetails", JSON.stringify({ brandDetailsText: manualDetails, tone }))
+    localStorage.setItem("brandDetails", JSON.stringify({ brandDetailsText: manualDetails, tone }))
     router.push("/brand-details")
   }
 

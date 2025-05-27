@@ -27,14 +27,14 @@ function SuccessContent() {
     }
 
     // Store payment status and guide type
-    sessionStorage.setItem("styleGuidePaymentStatus", "completed")
-    sessionStorage.setItem("styleGuidePlan", guideType)
+    localStorage.setItem("styleGuidePaymentStatus", "completed")
+    localStorage.setItem("styleGuidePlan", guideType)
 
     // Start generation process
     const generateGuide = async () => {
       try {
         // Get brand details
-        const brandDetails = sessionStorage.getItem("brandDetails")
+        const brandDetails = localStorage.getItem("brandDetails")
         if (!brandDetails) {
           throw new Error("No brand details found")
         }
@@ -59,7 +59,7 @@ function SuccessContent() {
         }
 
         // Save generated style guide
-        sessionStorage.setItem("generatedStyleGuide", data.styleGuide)
+        localStorage.setItem("generatedStyleGuide", data.styleGuide)
         
         // Update status
         setGenerationStatus('complete')

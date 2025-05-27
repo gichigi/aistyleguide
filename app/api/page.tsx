@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { FileText, Globe, Loader2, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
+import Header from "@/components/Header"
 
 // Helper to get absolute URL
 const getAbsoluteUrl = (path: string) => {
@@ -227,14 +228,7 @@ export default function ApiTestPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center">
-          <Link href="/" className="flex items-center gap-2">
-            <FileText className="h-6 w-6" />
-            <span className="text-xl font-semibold">Style Guide AI</span>
-          </Link>
-        </div>
-      </header>
+      <Header />
       <main className="flex-1 container py-12">
         <div className="mx-auto max-w-4xl">
           <h1 className="text-3xl font-bold mb-6">API Testing</h1>

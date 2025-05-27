@@ -3,6 +3,11 @@
 ## Background and Motivation
 - Web app that generates brand style guides from website URLs
 - Uses AI to extract and analyze brand elements
+# AI Style Guide Generator Project
+
+## Background and Motivation
+- Web app that generates brand style guides from website URLs
+- Uses AI to extract and analyze brand elements
 - Helps businesses maintain consistent branding
 - Built with Next.js, TypeScript, and Tailwind CSS
 - Current focus is on improving the preview and payment flow
@@ -1390,5 +1395,123 @@ No changes to templates or markdown content. Only shared component styling will 
 
 #### Executor's Feedback or Assistance Requests
 - Extraction complete. Ready to move to content generation for each section/placeholder.
+
+## Brand Name Display Issue (P1) - NEW
+Problem: Preview and full-access pages show "Your Brand" instead of actual brand name
+- Changed from 3-field form (name, description, audience) to 1-field form (brandDetailsText)
+- Lost brand name extraction and display
+- Need to extract brand name from brandDetailsText and show it in templates
+
+### Background and Motivation
+User wants to see their actual brand name in the style guide instead of generic "Your Brand" placeholder. Since we switched from a 3-field form to a single brandDetailsText field, we lost the explicit brand name capture. We need to extract the brand name from the text and display it properly.
+
+### Key Challenges and Analysis
+1. **Brand Name Extraction**: Need to extract brand name from free-form text
+2. **Storage Strategy**: Where to store the extracted brand name (localStorage vs API response)
+3. **Template Integration**: How to pass brand name to templates
+4. **Performance**: Avoid unnecessary API calls for name extraction
+5. **Consistency**: Ensure same brand name appears across preview and full-access pages
+
+### High-level Task Breakdown
+
+#### Task 1: Choose Storage Strategy
+**Goal**: Decide between localStorage vs API response approach
+**Success Criteria**: 
+- Clear decision documented
+- Approach chosen based on simplicity and performance
+- User approves the approach
+
+**Options Analysis**:
+- **Option A (localStorage)**: Extract brand name once, store in localStorage, use across pages
+  - Pros: Simple, fast, no repeated API calls
+  - Cons: Need to handle localStorage sync
+- **Option B (API response)**: Extract brand name in each API call, return with response
+  - Pros: Always fresh, no storage management
+  - Cons: Repeated extraction, slower
+
+#### Task 2: Implement Brand Name Extraction
+**Goal**: Create function to extract brand name from brandDetailsText
+**Success Criteria**:
+- Function extracts brand name accurately
+- Handles edge cases (no clear brand name, multiple names)
+- Returns clean, usable brand name
+- Tested with various inputs
+
+#### Task 3: Update Preview Flow
+**Goal**: Show actual brand name in preview page
+**Success Criteria**:
+- Preview page displays extracted brand name instead of "Your Brand"
+- Brand name appears in title and "How we use this document" section
+- No breaking changes to existing functionality
+- Tested with real brand examples
+
+#### Task 4: Update Full-Access Flow  
+**Goal**: Show actual brand name in full-access page
+**Success Criteria**:
+- Full-access page displays extracted brand name
+- Brand name used in file downloads
+- Consistent with preview page display
+- No breaking changes to payment flow
+
+#### Task 5: Test Complete Flow
+**Goal**: Verify brand name works end-to-end
+**Success Criteria**:
+- Brand name extracted correctly from form
+- Shows properly in preview
+- Shows properly in full-access after payment
+- File downloads use correct brand name
+- Works with test and live payment modes
+
+### Current Status / Progress Tracking
+- [ ] Task 1: Choose storage strategy
+- [ ] Task 2: Implement brand name extraction  
+- [ ] Task 3: Update preview flow
+- [ ] Task 4: Update full-access flow
+- [ ] Task 5: Test complete flow
+
+### Executor's Feedback or Assistance Requests
+*To be filled by Executor during implementation*
+
+## Preview Loading UX Issue (P1) - NEW
+Problem: User sees a loading interstitial on /preview instead of the preview style guide. Expected: User sees Processing state on the button in /brand-details, then is taken directly to the preview content (no extra loading screen).
+
+### Background and Motivation
+- Current flow: After submitting brand details, user sees a loading spinner on /preview while the preview is generated.
+- Desired flow: User sees the Processing state on the submit button in /brand-details, then is taken straight to the preview content (no extra loading page).
+- This will make the experience feel faster and more seamless.
+
+### Key Challenges and Analysis
+1. **Double Loading**: Both /brand-details and /preview have loading states, causing a double wait.
+2. **Data Timing**: Preview page waits for API to finish, but API call already happened in /brand-details.
+3. **State Passing**: Need to pass preview content from /brand-details to /preview without re-fetching.
+4. **Fallback**: Handle refresh or direct navigation to /preview (should still fetch if needed).
+
+### High-level Task Breakdown
+
+#### Task 1: Analyze Current Data Flow
+- Map out how preview data is fetched and passed between pages
+- Success: Clear diagram or notes on current flow
+
+#### Task 2: Update Preview Page to Use Pre-fetched Data
+- On navigation from /brand-details, use preview content from localStorage (set after API call)
+- Only fetch from API if preview content is missing (e.g. on refresh)
+- Success: Preview page shows content instantly if available
+
+#### Task 3: Remove Redundant Loading State
+- Remove or hide loading spinner on /preview if preview content is already present
+- Success: No loading interstitial when coming from /brand-details
+
+#### Task 4: Test and Validate
+- Test both normal flow and refresh/direct navigation
+- Success: Seamless experience, no double loading, fallback works
+
+### Current Status / Progress Tracking
+- [ ] Task 1: Analyze current data flow
+- [ ] Task 2: Update preview page to use pre-fetched data
+- [ ] Task 3: Remove redundant loading state
+- [ ] Task 4: Test and validate
+
+### Executor's Feedback or Assistance Requests
+*To be filled by Executor during implementation*
 
 </details>

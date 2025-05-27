@@ -365,3 +365,9 @@ export async function generateBrandSummary(brandDetails: any): Promise<Generatio
   const prompt = `Write a single paragraph (30–40 words) that starts with the brand name and summarizes the brand using all key info, keywords, and terms from the input below. Use the specified tone.\n\nBrand Info:\n${brandDetails.brandDetailsText}\nTone: ${brandDetails.tone}`;
   return generateWithOpenAI(prompt, "You are a brand strategist.", "markdown");
 }
+
+// Function to extract just the brand name from brandDetailsText
+export async function extractBrandName(brandDetails: any): Promise<GenerationResult> {
+  const prompt = `Extract only the brand name from the text below. Return just the brand name, nothing else.\n\nBrand Info:\n${brandDetails.brandDetailsText}`;
+  return generateWithOpenAI(prompt, "You are a brand analyst. Extract only the brand name from the given text.", "markdown");
+}

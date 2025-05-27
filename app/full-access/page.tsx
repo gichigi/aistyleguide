@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import { generateFile, FileFormat } from "@/lib/file-generator"
+import Header from "@/components/Header"
 
 export default function FullAccessPage() {
   const router = useRouter()
@@ -31,9 +32,9 @@ export default function FullAccessPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Load brand details, style guide, and guide type from sessionStorage
-    const savedBrandDetails = sessionStorage.getItem("brandDetails")
-    const savedGuideType = sessionStorage.getItem("styleGuidePlan")
+    // Load brand details, style guide, and guide type from localStorage
+    const savedBrandDetails = localStorage.getItem("brandDetails")
+    const savedGuideType = localStorage.getItem("styleGuidePlan")
     
     if (savedBrandDetails) {
       setBrandDetails(JSON.parse(savedBrandDetails))
@@ -179,13 +180,9 @@ export default function FullAccessPage() {
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:bg-gray-950/95 dark:border-gray-800">
-        <div className="container px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 min-w-0 max-w-[180px] sm:max-w-none">
-            <FileText className="h-5 w-5 flex-shrink-0" />
-            <span className="text-lg font-semibold truncate whitespace-nowrap">Style Guide AI</span>
-          </Link>
-          <div className="flex items-center gap-4">
+      <Header 
+        rightContent={
+          <>
             <div className="px-4 py-2 text-sm font-medium rounded-md bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 border border-green-200 dark:border-green-800">
               {guideType === "complete" ? "Complete Guide" : "Core Guide"}
             </div>
@@ -201,9 +198,9 @@ export default function FullAccessPage() {
               )}
               Download
             </Button>
-          </div>
-        </div>
-      </header>
+          </>
+        }
+      />
 
       {/* Notion Instructions Dialog */}
       <Dialog open={showNotionInstructions} onOpenChange={setShowNotionInstructions}>

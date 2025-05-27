@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { FileText, Loader2, Download, Check, X } from "lucide-react"
 import { generateFile, FileFormat } from "@/lib/file-generator"
 import { useToast } from "@/hooks/use-toast"
+import Header from "@/components/Header"
 
 const MODELS = [
   { label: "GPT-4o", value: "gpt-4o" },
@@ -162,14 +163,7 @@ export default function TestPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
-      <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:bg-gray-950/95 dark:border-gray-800">
-        <div className="container px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2 min-w-0 max-w-[180px] sm:max-w-none">
-            <FileText className="h-5 w-5 flex-shrink-0" />
-            <span className="text-lg font-semibold truncate whitespace-nowrap">Test Style Guide AI</span>
-          </div>
-        </div>
-      </header>
+      <Header />
       <main className="flex-1 container py-8 max-w-7xl">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Left: Controls */}

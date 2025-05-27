@@ -1,4 +1,4 @@
-import { generateBrandVoiceTraits, generateWithOpenAI, generateFullCoreStyleGuide, generateCompleteStyleGuide } from "./openai"
+import { generateBrandVoiceTraits, generateWithOpenAI, generateFullCoreStyleGuide, generateCompleteStyleGuide, extractBrandName } from "./openai"
 import { marked } from 'marked'
 
 // Function to load a template file via API
@@ -492,18 +492,32 @@ export async function renderStyleGuideTemplate({
     year: 'numeric'
   });
 
+  // Extract brand name if using AI content and we have brandDetailsText
+  let brandName = brandDetails.name || 'Your Brand';
+  if (useAIContent && brandDetails.brandDetailsText && !brandDetails.name) {
+    try {
+      const brandNameResult = await extractBrandName(brandDetails);
+      if (brandNameResult.success && brandNameResult.content) {
+        brandName = brandNameResult.content.trim();
+      }
+    } catch (error) {
+      console.error('Error extracting brand name:', error);
+      // Fall back to 'Your Brand' if extraction fails
+    }
+  }
+
   // Replace basic placeholders
   let result = template
     .replace(/{{DD MONTH YYYY}}/g, formattedDate)
-    .replace(/{{brand_name}}/g, brandDetails.name || 'Your Brand');
+    .replace(/{{brand_name}}/g, brandName);
 
   // Fill in brand_voice_traits and core_rules/complete_rules
   if (useAIContent) {
     // AI-generated content (like processTemplate)
     try {
       const validatedDetails = {
-        name: brandDetails.name?.trim() || '',
-        description: brandDetails.description?.trim() || '',
+        name: brandName,
+        description: brandDetails.description?.trim() || brandDetails.brandDetailsText || '',
         audience: brandDetails.audience?.trim() || '',
         tone: brandDetails.tone || '',
       };

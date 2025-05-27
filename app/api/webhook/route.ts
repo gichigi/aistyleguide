@@ -1,7 +1,19 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+// Pick the right Stripe secret key and webhook secret based on STRIPE_MODE
+type StripeMode = 'test' | 'live';
+const mode = (process.env.STRIPE_MODE as StripeMode) || 'live';
+const STRIPE_SECRET_KEY =
+  mode === 'test'
+    ? process.env.STRIPE_TEST_SECRET_KEY
+    : process.env.STRIPE_SECRET_KEY;
+const STRIPE_WEBHOOK_SECRET =
+  mode === 'test'
+    ? process.env.STRIPE_TEST_WEBHOOK_SECRET
+    : process.env.STRIPE_WEBHOOK_SECRET;
+
+const stripe = new Stripe(STRIPE_SECRET_KEY!, {
   apiVersion: "2023-10-16",
 })
 
@@ -58,7 +70,7 @@ export async function POST(request: Request) {
     const event = stripe.webhooks.constructEvent(
       payload,
       sig,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      STRIPE_WEBHOOK_SECRET!
     )
 
     // Log successful verification

@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
 
-// Define the correct API version type
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+// Pick the right Stripe secret key based on STRIPE_MODE
+type StripeMode = 'test' | 'live';
+const mode = (process.env.STRIPE_MODE as StripeMode) || 'live';
+const STRIPE_SECRET_KEY =
+  mode === 'test'
+    ? process.env.STRIPE_TEST_SECRET_KEY
+    : process.env.STRIPE_SECRET_KEY;
+
+const stripe = new Stripe(STRIPE_SECRET_KEY!, {
   apiVersion: "2023-10-16" as Stripe.LatestApiVersion,
 })
 

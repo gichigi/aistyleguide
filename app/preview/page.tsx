@@ -60,7 +60,7 @@ export default function PreviewPage() {
 
   useEffect(() => {
     // Load brand details
-    const savedBrandDetails = sessionStorage.getItem("brandDetails")
+    const savedBrandDetails = localStorage.getItem("brandDetails")
     if (savedBrandDetails) {
       setBrandDetails(JSON.parse(savedBrandDetails))
     }

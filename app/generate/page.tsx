@@ -8,6 +8,7 @@ import { FileText, Loader2, AlertCircle, Key } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
+import Header from "@/components/Header"
 
 // Default brand details to use as fallback
 const DEFAULT_BRAND_DETAILS = {
@@ -47,7 +48,7 @@ export default function GeneratePage() {
 
   useEffect(() => {
     // Check if we're in preview mode
-    const mode = sessionStorage.getItem("generationMode")
+    const mode = localStorage.getItem("generationMode")
     setIsPreviewMode(mode === "preview")
   }, [])
 
@@ -61,12 +62,12 @@ export default function GeneratePage() {
   }, [])
 
   useEffect(() => {
-    // Check if brand details exist in sessionStorage
-    const savedDetails = sessionStorage.getItem("brandDetails")
+    // Check if brand details exist in localStorage
+    const savedDetails = localStorage.getItem("brandDetails")
 
     if (!savedDetails) {
-      // If no details in sessionStorage, use default values and save them
-      sessionStorage.setItem("brandDetails", JSON.stringify(DEFAULT_BRAND_DETAILS))
+      // If no details in localStorage, use default values and save them
+      localStorage.setItem("brandDetails", JSON.stringify(DEFAULT_BRAND_DETAILS))
       setBrandDetails(DEFAULT_BRAND_DETAILS)
     } else {
       try {
@@ -76,7 +77,7 @@ export default function GeneratePage() {
       } catch (e) {
         console.error("Error parsing brand details:", e)
         // If parsing fails, use defaults
-        sessionStorage.setItem("brandDetails", JSON.stringify(DEFAULT_BRAND_DETAILS))
+        localStorage.setItem("brandDetails", JSON.stringify(DEFAULT_BRAND_DETAILS))
         setBrandDetails(DEFAULT_BRAND_DETAILS)
       }
     }
@@ -185,8 +186,8 @@ export default function GeneratePage() {
             console.log("Style guide generated successfully")
 
             // Save generated guide and brand details
-            sessionStorage.setItem("generatedStyleGuide", data.styleGuide)
-            sessionStorage.setItem("brandDetails", JSON.stringify(brandDetails))
+            localStorage.setItem("generatedStyleGuide", data.styleGuide)
+            localStorage.setItem("brandDetails", JSON.stringify(brandDetails))
 
             // Navigate to preview
             router.push("/preview")
@@ -216,7 +217,7 @@ export default function GeneratePage() {
 
             // If it's an API key error, use fallback content
             if (isApiKeyError) {
-              sessionStorage.setItem("generatedStyleGuide", FALLBACK_CONTENT)
+              localStorage.setItem("generatedStyleGuide", FALLBACK_CONTENT)
             }
 
             // Navigate to preview
@@ -235,14 +236,7 @@ export default function GeneratePage() {
   if (error) {
     return (
       <div className="flex min-h-screen flex-col">
-        <header className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="container px-4 h-16 flex items-center">
-            <Link href="/" className="flex items-center gap-2 min-w-0 max-w-[180px] sm:max-w-none">
-              <FileText className="h-5 w-5 flex-shrink-0" />
-              <span className="text-lg font-semibold truncate whitespace-nowrap">Style Guide AI</span>
-            </Link>
-          </div>
-        </header>
+        <Header />
         <main
           className={`flex-1 container py-12 flex items-center justify-center transition-opacity duration-500 ease-in-out ${fadeIn ? "opacity-100" : "opacity-0"}`}
         >
@@ -282,14 +276,7 @@ export default function GeneratePage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container px-4 h-16 flex items-center">
-          <Link href="/" className="flex items-center gap-2 min-w-0 max-w-[180px] sm:max-w-none">
-            <FileText className="h-5 w-5 flex-shrink-0" />
-            <span className="text-lg font-semibold truncate whitespace-nowrap">Style Guide AI</span>
-          </Link>
-        </div>
-      </header>
+      <Header />
       <main
         className={`flex-1 container py-12 flex items-center justify-center transition-opacity duration-500 ease-in-out ${fadeIn ? "opacity-100" : "opacity-0"}`}
       >

@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { useSearchParams } from "next/navigation"
 import Logo from "@/components/Logo"
+import Header from "@/components/Header"
 
 // Default brand details
 const defaultBrandDetails = {
@@ -84,9 +85,9 @@ export default function BrandDetailsPage() {
     }
   }, [brandDetails.brandDetailsText])
 
-  // Load saved brand details from session storage
+  // Load saved brand details from localStorage
   useEffect(() => {
-    const savedDetails = sessionStorage.getItem("brandDetails")
+    const savedDetails = localStorage.getItem("brandDetails")
     if (savedDetails) {
       try {
         const parsedDetails = JSON.parse(savedDetails)
@@ -100,17 +101,17 @@ export default function BrandDetailsPage() {
 
         setBrandDetails(updatedDetails)
 
-        // Update session storage with the validated details
-        sessionStorage.setItem("brandDetails", JSON.stringify(updatedDetails))
+        // Update localStorage with the validated details
+        localStorage.setItem("brandDetails", JSON.stringify(updatedDetails))
       } catch (e) {
         console.error("Error parsing saved brand details:", e)
         // If there's an error parsing, ensure we save the default details
-        sessionStorage.setItem("brandDetails", JSON.stringify(defaultBrandDetails))
+        localStorage.setItem("brandDetails", JSON.stringify(defaultBrandDetails))
         setBrandDetails(defaultBrandDetails)
       }
     } else {
-      // If no saved details, initialize sessionStorage with default values
-      sessionStorage.setItem("brandDetails", JSON.stringify(defaultBrandDetails))
+      // If no saved details, initialize localStorage with default values
+      localStorage.setItem("brandDetails", JSON.stringify(defaultBrandDetails))
       setBrandDetails(defaultBrandDetails)
     }
   }, [])
@@ -137,8 +138,8 @@ export default function BrandDetailsPage() {
     
     setBrandDetails((prev) => {
       const updatedDetails = { ...prev, [name]: validatedValue }
-      // Save to session storage
-      sessionStorage.setItem("brandDetails", JSON.stringify(updatedDetails))
+      // Save to localStorage
+      localStorage.setItem("brandDetails", JSON.stringify(updatedDetails))
       return updatedDetails
     })
   }
@@ -195,8 +196,8 @@ export default function BrandDetailsPage() {
     
     setBrandDetails((prev) => {
       const updatedDetails = { ...prev, [name]: value }
-      // Save to session storage
-      sessionStorage.setItem("brandDetails", JSON.stringify(updatedDetails))
+      // Save to localStorage
+      localStorage.setItem("brandDetails", JSON.stringify(updatedDetails))
       return updatedDetails
     })
   }
@@ -207,18 +208,34 @@ export default function BrandDetailsPage() {
     return !!(brandDetails.brandDetailsText && brandDetails.brandDetailsText.trim().length > 0)
   }
 
-  // Update the handleSubmit function to always generate a preview
+  // Update the handleSubmit function to call the extractBrandName API, store the result as brandDetails.name in localStorage, and keep the loading state logic unchanged
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
     try {
+      // Extract brand name using API
+      const nameResponse = await fetch("/api/extract-brand-name", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brandDetails })
+      })
+      let brandName = ""
+      if (nameResponse.ok) {
+        const nameData = await nameResponse.json()
+        if (nameData.success && nameData.brandName) {
+          brandName = nameData.brandName
+        }
+      }
+
+      // Add brand name to brandDetails
+      const detailsWithName = { ...brandDetails, name: brandName }
+
+      // Generate preview as before
       const response = await fetch("/api/preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          brandDetails: brandDetails
-        })
+        body: JSON.stringify({ brandDetails: detailsWithName })
       })
 
       if (!response.ok) {
@@ -232,8 +249,8 @@ export default function BrandDetailsPage() {
       }
 
       // Save brand details and preview
-      sessionStorage.setItem("brandDetails", JSON.stringify(brandDetails))
-      sessionStorage.setItem("previewContent", data.preview)
+      localStorage.setItem("brandDetails", JSON.stringify(detailsWithName))
+      localStorage.setItem("previewContent", data.preview)
 
       // Redirect to preview page
       router.push("/preview")
@@ -250,11 +267,7 @@ export default function BrandDetailsPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container px-4 h-16 flex items-center">
-          <Logo size="sm" />
-        </div>
-      </header>
+      <Header />
       <main
         className={`flex-1 container py-8 transition-opacity duration-500 ease-in-out ${fadeIn ? "opacity-100" : "opacity-0"}`}
       >

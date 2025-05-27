@@ -5,28 +5,36 @@ import { renderStyleGuideTemplate } from "@/lib/template-processor"
 function validateBrandDetails(details: any) {
   const errors: string[] = []
   
-  // Name validation
-  if (!details.name || details.name.trim().length === 0) {
-    errors.push("Brand name is required")
-  } else if (details.name.length > 50) {
-    errors.push("Brand name must be 50 characters or less")
+  // Check if we have brandDetailsText (new format) or separate fields (old format)
+  if (details.brandDetailsText) {
+    // New format validation
+    if (!details.brandDetailsText || details.brandDetailsText.trim().length === 0) {
+      errors.push("Brand details text is required")
+    } else if (details.brandDetailsText.length > 1000) {
+      errors.push("Brand details text must be 1000 characters or less")
+    }
+  } else {
+    // Old format validation (keep for backwards compatibility)
+    if (!details.name || details.name.trim().length === 0) {
+      errors.push("Brand name is required")
+    } else if (details.name.length > 50) {
+      errors.push("Brand name must be 50 characters or less")
+    }
+    
+    if (!details.description || details.description.trim().length === 0) {
+      errors.push("Brand description is required")
+    } else if (details.description.length > 500) {
+      errors.push("Brand description must be 500 characters or less")
+    }
+    
+    if (!details.audience || details.audience.trim().length === 0) {
+      errors.push("Target audience is required")
+    } else if (details.audience.length > 500) {
+      errors.push("Target audience must be 500 characters or less")
+    }
   }
   
-  // Description validation
-  if (!details.description || details.description.trim().length === 0) {
-    errors.push("Brand description is required")
-  } else if (details.description.length > 500) {
-    errors.push("Brand description must be 500 characters or less")
-  }
-  
-  // Audience validation
-  if (!details.audience || details.audience.trim().length === 0) {
-    errors.push("Target audience is required")
-  } else if (details.audience.length > 500) {
-    errors.push("Target audience must be 500 characters or less")
-  }
-  
-  // Tone validation
+  // Tone validation (same for both formats)
   const validTones = ["friendly", "professional", "casual", "formal", "technical"]
   if (!details.tone || !validTones.includes(details.tone)) {
     errors.push("Invalid tone selected")
