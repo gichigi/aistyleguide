@@ -8,6 +8,36 @@
 ## Background and Motivation
 - Web app that generates brand style guides from website URLs
 - Uses AI to extract and analyze brand elements
+# AI Style Guide Generator Project
+
+## Background and Motivation
+- Web app that generates brand style guides from website URLs
+- Uses AI to extract and analyze brand elements
+# AI Style Guide Generator Project
+
+## Background and Motivation
+- Web app that generates brand style guides from website URLs
+- Uses AI to extract and analyze brand elements
+# AI Style Guide Generator Project
+
+## Background and Motivation
+- Web app that generates brand style guides from website URLs
+- Uses AI to extract and analyze brand elements
+# AI Style Guide Generator Project
+
+## Background and Motivation
+- Web app that generates brand style guides from website URLs
+- Uses AI to extract and analyze brand elements
+# AI Style Guide Generator Project
+
+## Background and Motivation
+- Web app that generates brand style guides from website URLs
+- Uses AI to extract and analyze brand elements
+# AI Style Guide Generator Project
+
+## Background and Motivation
+- Web app that generates brand style guides from website URLs
+- Uses AI to extract and analyze brand elements
 - Helps businesses maintain consistent branding
 - Built with Next.js, TypeScript, and Tailwind CSS
 - Current focus is on improving the preview and payment flow
@@ -305,6 +335,13 @@ Success Criteria:
 - [ ] Review UI and layout for consistency with /full-access
 - [ ] Add subtle visual indicators (badge, watermark if needed)
 - [ ] Final user review and polish
+- [x] Mobile: Increase padding and spacing
+- [x] Mobile: Reduce font sizes
+- [x] Mobile: Stack buttons and actions vertically
+- [x] Mobile: Add section dividers
+- [x] Mobile: Make payment dialog responsive
+- [ ] Mobile: Shorten fade-out effect
+- [x] Mobile: Remove General Guidelines section
 
 ## Current Status / Progress Tracking
 - Basic app structure in place
@@ -333,6 +370,12 @@ Success Criteria:
 - All sections (date, title, how to use, guidelines, brand voice, 25 rules, contact) are present
 - Export/download is visually disabled, CTA to /start is present
 - Please review the page visually and confirm before I move to the next step (UI/layout consistency)
+- Step 1 done: Added more padding and spacing for mobile screens using Tailwind responsive classes (px-4, p-4, space-y-4, etc.).
+- Step 2 done: Reduced font sizes for mobile using Tailwind responsive text classes (text-sm, text-base, text-lg, etc.).
+- Step 5 done: Made the payment dialog full-width and bottom-sheet style on mobile (rounded top corners, no side margins, p-4). On desktop, it stays centered and max-w-lg.
+- How to verify: Open the payment dialog on a mobile device or small screen. It should slide up from the bottom, fill the width, and have rounded top corners. On desktop, it should look unchanged.
+- Step 7 done: The 'General Guidelines' section is now removed from the preview page. This only affects the preview, not the full guide.
+- How to verify: View the preview page. The 'General Guidelines' section should not appear, and users will reach the paywall faster.
 
 ## Lessons
 - Always map API response fields to match UI expectations
@@ -1513,5 +1556,54 @@ Problem: User sees a loading interstitial on /preview instead of the preview sty
 
 ### Executor's Feedback or Assistance Requests
 *To be filled by Executor during implementation*
+
+## Mobile Preview Page Improvements (Planned)
+
+### Background and Motivation
+- Most users visit the preview page on mobile
+- Current layout is cramped and hard to read
+- Users drop off before reaching the paywall
+- Need to improve mobile experience and get users to the paywall faster
+
+### Key Challenges and Analysis
+- Layout is not optimized for small screens
+- Font sizes and padding are too large for mobile
+- Buttons and actions are not stacked
+- Content blocks blend together
+- Payment dialog is not mobile-friendly
+- Fade-out effect is too low, showing too much content
+- General Guidelines section delays paywall
+
+### High-level Task Breakdown
+1. Increase Padding and Spacing
+   - Add more padding around text and between sections for mobile screens
+   - Success: Text and sections don't feel cramped on small screens
+2. Reduce Font Sizes for Mobile
+   - Use smaller font sizes for headings and body text on screens < 600px
+   - Success: More content fits on the screen, easier to read
+3. Stack Buttons and Actions Vertically
+   - Make all buttons and actions appear in a single column on mobile
+   - Success: No side-by-side buttons, everything is easy to tap
+4. Add Section Dividers
+   - Use lines or background color to separate content blocks
+   - Success: Each section is visually distinct and easy to scan
+5. Make Payment Dialog Responsive
+   - On mobile, make the payment dialog full-width or use a bottom-sheet style
+   - Success: Payment options are easy to see and interact with on mobile
+6. Shorten the Fade-Out Effect
+   - Make the fade-out start higher up so users hit the paywall sooner
+   - Success: Users see less content before the paywall, as intended
+7. Remove General Guidelines Section
+   - Cut out the "General Guidelines" section from the preview
+   - Success: Users reach the paywall with less scrolling
+
+## Project Status Board
+- [x] Mobile: Increase padding and spacing
+- [x] Mobile: Reduce font sizes
+- [x] Mobile: Stack buttons and actions vertically
+- [x] Mobile: Add section dividers
+- [x] Mobile: Make payment dialog responsive
+- [ ] Mobile: Shorten fade-out effect
+- [x] Mobile: Remove General Guidelines section
 
 </details>

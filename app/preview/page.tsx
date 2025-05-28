@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { ArrowLeft, FileText, CreditCard, Loader2, CheckCircle } from "lucide-react"
+import { ArrowLeft, CreditCard, Loader2, CheckCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import {
   Dialog,
@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast"
 import { renderStyleGuideTemplate } from "@/lib/template-processor"
 import styled from "styled-components"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import Logo from "@/components/Logo"
 
 // Add fade-out effect before paywall
 const ContentWithFadeout = styled.div`
@@ -155,10 +156,7 @@ export default function PreviewPage() {
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:bg-gray-950/95 dark:border-gray-800">
         <div className="container px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 min-w-0 max-w-[180px] sm:max-w-none">
-            <FileText className="h-5 w-5 flex-shrink-0" />
-            <span className="text-lg font-semibold truncate whitespace-nowrap">Style Guide AI</span>
-          </Link>
+          <Logo size="md" linkToHome={true} />
           {/*<div className="flex items-center">
             <div className="px-4 py-2 text-sm font-medium rounded-md bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-800">
               Preview
@@ -169,10 +167,10 @@ export default function PreviewPage() {
 
       {/* Payment Dialog */}
       <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] text-sm sm:text-base">
           <DialogHeader className="space-y-4">
-            <DialogTitle>Complete your purchase</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-base sm:text-xl">Complete your purchase</DialogTitle>
+            <DialogDescription className="text-xs sm:text-base">
               Choose your style guide package
             </DialogDescription>
           </DialogHeader>
@@ -186,13 +184,13 @@ export default function PreviewPage() {
             <TabsContent value="core" className="mt-4 space-y-4">
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-2xl font-bold">Core Style Guide</h3>
-                  <div className="mt-1 text-3xl font-bold">$99</div>
+                  <h3 className="text-lg sm:text-2xl font-bold">Core Style Guide</h3>
+                  <div className="mt-1 text-xl sm:text-3xl font-bold">$99</div>
                 </div>
 
                 <div className="rounded-lg bg-blue-50 p-4 space-y-2">
-                  <h4 className="font-semibold text-blue-700">25 Essential Rules</h4>
-                  <p className="text-sm text-blue-600">Perfect for startups and small teams</p>
+                  <h4 className="font-semibold text-blue-700 text-base sm:text-lg">25 Essential Rules</h4>
+                  <p className="text-xs sm:text-sm text-blue-600">Perfect for startups and small teams</p>
                 </div>
 
                 <div className="space-y-2">
@@ -221,7 +219,7 @@ export default function PreviewPage() {
                 <Button
                   onClick={() => handlePayment('core')}
                   disabled={isProcessingPayment}
-                  className="w-full py-6"
+                  className="w-full text-base sm:text-lg py-4 sm:py-6"
                 >
                   {isProcessingPayment ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -236,13 +234,13 @@ export default function PreviewPage() {
             <TabsContent value="complete" className="mt-4 space-y-4">
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-2xl font-bold">Complete Style Guide</h3>
-                  <div className="mt-1 text-3xl font-bold">$149</div>
+                  <h3 className="text-lg sm:text-2xl font-bold">Complete Style Guide</h3>
+                  <div className="mt-1 text-xl sm:text-3xl font-bold">$149</div>
                 </div>
 
                 <div className="rounded-lg bg-purple-50 p-4 space-y-2">
-                  <h4 className="font-semibold text-purple-700">99+ Comprehensive Rules</h4>
-                  <p className="text-sm text-purple-600">Ideal for established brands and larger teams</p>
+                  <h4 className="font-semibold text-purple-700 text-base sm:text-lg">99+ Comprehensive Rules</h4>
+                  <p className="text-xs sm:text-sm text-purple-600">Ideal for established brands and larger teams</p>
                 </div>
 
                 <div className="space-y-2">
@@ -271,7 +269,7 @@ export default function PreviewPage() {
                 <Button
                   onClick={() => handlePayment('complete')}
                   disabled={isProcessingPayment}
-                  className="w-full py-6"
+                  className="w-full text-base sm:text-lg py-4 sm:py-6"
                 >
                   {isProcessingPayment ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -289,6 +287,7 @@ export default function PreviewPage() {
               variant="secondary"
               onClick={() => setPaymentDialogOpen(false)}
               disabled={isProcessingPayment}
+              className="w-full text-base sm:text-lg py-4 sm:py-6"
             >
               Cancel
             </Button>
@@ -297,35 +296,38 @@ export default function PreviewPage() {
       </Dialog>
 
       {/* Main Content */}
-      <main className={`flex-1 container py-8 max-w-5xl transition-opacity duration-500 ease-in-out ${fadeIn ? "opacity-100" : "opacity-0"}`}>
-        <div className="flex items-center justify-between mb-6">
+      <main className={`flex-1 container py-8 max-w-5xl transition-opacity duration-500 ease-in-out ${fadeIn ? "opacity-100" : "opacity-0"} px-4 sm:px-8`}>
+        <div className="flex flex-col items-start justify-between mb-6 space-y-4 sm:space-y-0 sm:flex-row sm:items-center">
           <Link
             href="/brand-details"
-            className="inline-flex items-center gap-2 text-base font-medium px-4 py-2 rounded-md border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+            className="inline-flex items-center gap-2 text-sm sm:text-base font-medium px-4 py-2 rounded-md border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
           >
             <ArrowLeft className="h-5 w-5" /> Back to details
           </Link>
         </div>
 
         <div className="bg-white rounded-xl border shadow-sm overflow-hidden dark:bg-gray-950 dark:border-gray-800 relative">
-          <div className="p-8">
-            <div className="max-w-3xl mx-auto space-y-12">
-              <div className="prose prose-slate dark:prose-invert max-w-none style-guide-content">
+          <div className="p-4 sm:p-8">
+            <div className="max-w-3xl mx-auto space-y-8 sm:space-y-12">
+              <div className="prose prose-slate dark:prose-invert max-w-none style-guide-content prose-sm sm:prose-base">
                 <ContentWithFadeout>
                   <div dangerouslySetInnerHTML={{ __html: processPreviewContent(previewContent, brandDetails?.name) }} />
                 </ContentWithFadeout>
 
+                {/* Section Divider */}
+                <div className="my-6 border-t border-gray-200 dark:border-gray-700 w-full" />
+
                 {/* Add paywall banner */}
-                <div className="my-8 mb-28 p-6 border border-dashed border-amber-300 rounded-lg bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 text-center">
-                  <h3 className="text-lg font-medium text-amber-800 dark:text-amber-400 mb-2">
+                <div className="my-6 mb-20 p-4 sm:p-6 border border-dashed border-amber-300 rounded-lg bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 text-center">
+                  <h3 className="text-base sm:text-lg font-medium text-amber-800 dark:text-amber-400 mb-2">
                     You've reached the preview limit
                   </h3>
-                  <p className="text-amber-700 dark:text-amber-500 mb-4">
+                  <p className="text-sm sm:text-base text-amber-700 dark:text-amber-500 mb-4">
                     Unlock the full style guide to see all writing rules, formatting tips, and examples.
                   </p>
                   <Button
                     onClick={() => setPaymentDialogOpen(true)}
-                    className="w-full sm:w-auto text-lg py-6 px-6 text-base"
+                    className="w-full sm:w-auto text-base sm:text-lg py-4 sm:py-6 px-4 sm:px-6"
                   >
                     <CreditCard className="h-5 w-5 mr-2" /> Unlock Full Guide
                   </Button>

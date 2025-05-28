@@ -561,5 +561,9 @@ export async function renderStyleGuideTemplate({
   }
 
   // Convert to HTML
+  if (templateType === "preview") {
+    // Remove 'General Guidelines' section for preview only
+    result = result.replace(/## General Guidelines[\s\S]*?(?=\n## |$)/, '');
+  }
   return await markdownToHtml(result);
 }

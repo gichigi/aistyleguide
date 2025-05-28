@@ -219,7 +219,7 @@ export default function FullAccessPage() {
             </ol>
           </div>
           <DialogFooter>
-            <Button onClick={() => setShowNotionInstructions(false)}>Got it</Button>
+            <Button onClick={() => setShowNotionInstructions(false)} className="w-full">Got it</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

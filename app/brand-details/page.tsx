@@ -157,35 +157,19 @@ export default function BrandDetailsPage() {
     )
   }
 
-  // Add field validation state
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  // Only validate the main text field (brandDetailsText)
+  const [mainError, setMainError] = useState("");
 
-  // Update validation function
-  const validateField = (name: string, value: string) => {
-    const errors: Record<string, string> = {}
-    
-    if (name === "name") {
-      if (!value.trim()) {
-        errors[name] = "Brand name is required"
-      } else if (value.length > 50) {
-        errors[name] = "Brand name must be 50 characters or less"
-      }
-    } else if (name === "description") {
-      if (!value.trim()) {
-        errors[name] = "Description is required"
-      } else if (value.length > 500) {
-        errors[name] = "Description must be 500 characters or less"
-      }
-    } else if (name === "audience") {
-      if (!value.trim()) {
-        errors[name] = "Target audience is required"
-      } else if (value.length > 500) {
-        errors[name] = "Target audience must be 500 characters or less"
-      }
+  const validateMainField = (value: string) => {
+    if (!value.trim()) {
+      setMainError("Please enter a brand description.");
+      return false;
+    } else if (value.length > 500) {
+      setMainError("Description is too long.");
+      return false;
     }
-    
-    setFieldErrors(prev => ({ ...prev, ...errors }))
-    return Object.keys(errors).length === 0
+    setMainError("");
+    return true;
   }
 
   // Update handleSelectChange to ensure tone is always set
@@ -301,6 +285,7 @@ export default function BrandDetailsPage() {
                       onChange={e => {
                         const value = e.target.value.slice(0, 500) // Enforce max length
                         setBrandDetails(prev => ({ ...prev, brandDetailsText: value }))
+                        validateMainField(value)
                         // Auto-adjust height
                         e.target.style.height = "auto"
                         e.target.style.height = e.target.scrollHeight + "px"
@@ -312,6 +297,9 @@ export default function BrandDetailsPage() {
                     />
                     {showCharCount && (
                       <div className={`text-xs mt-1 ${brandDetails.brandDetailsText?.length > 450 ? 'text-yellow-600' : 'text-muted-foreground'}`}>{brandDetails.brandDetailsText?.length || 0}/500 characters</div>
+                    )}
+                    {mainError && (
+                      <div className="text-xs text-red-600 mt-1">{mainError}</div>
                     )}
                   </div>
                   <div className="grid gap-2">
@@ -337,7 +325,7 @@ export default function BrandDetailsPage() {
                 <div className="flex justify-end">
                   <Button 
                     type="submit" 
-                    disabled={loading || !(brandDetails.brandDetailsText && brandDetails.brandDetailsText.trim().length > 0)} 
+                    disabled={loading || !!mainError || !brandDetails.brandDetailsText.trim()} 
                     className="w-full sm:w-auto"
                   >
                     {loading ? (

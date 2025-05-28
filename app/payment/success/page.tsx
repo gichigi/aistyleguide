@@ -4,6 +4,7 @@ import { Suspense } from "react"
 import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
+import { Loader2 } from "lucide-react"
 
 function SuccessContent() {
   const router = useRouter()
@@ -101,11 +102,8 @@ function SuccessContent() {
             {generationStatus === 'error' && "Failed to generate style guide. Please try again."}
           </p>
           {generationStatus === 'generating' && (
-            <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-              <div 
-                className="bg-blue-600 h-2.5 rounded-full transition-all duration-300" 
-                style={{ width: `${progress}%` }}
-              ></div>
+            <div className="flex justify-center items-center py-8">
+              <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
             </div>
           )}
         </div>
