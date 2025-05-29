@@ -250,13 +250,39 @@
 }
 
 .prose.style-guide-content h2 {
-  background: #f7fafd;
-  color: #1976d2;
-  padding: 0.75em 1em;
-  border-radius: 10px;
-  margin-top: 2em;
-  margin-bottom: 1.5em;
+  color: #111827;
+  font-size: 1.5rem;
   font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  line-height: 2rem;
+}
+
+/* How to Use Document callout styling */
+.prose.style-guide-content .how-to-use-callout {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.prose.style-guide-content .how-to-use-callout h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #475569;
+}
+
+.prose.style-guide-content .how-to-use-callout p {
+  margin-bottom: 0;
+  color: #64748b;
+}
+
+/* Section divider styling */
+.prose.style-guide-content hr {
+  border: none;
+  border-top: 1px solid #e2e8f0;
+  margin: 2rem 0;
 }
 
 html, body {

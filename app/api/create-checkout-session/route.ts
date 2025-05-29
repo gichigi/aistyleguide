@@ -43,8 +43,8 @@ export async function POST(request: Request) {
             product_data: {
               name: `${guideType === 'core' ? 'Core' : 'Complete'} Style Guide`,
               description: guideType === 'core' 
-                ? 'Essential brand voice and tone guidelines'
-                : 'Comprehensive guide with all brand elements',
+                ? 'Unlock 25 essential brand writing rules and voice guidelines for clear, consistent content. Perfect for startups and small teams.'
+                : 'Get the full brand style guide with 99+ advanced rules, voice traits, and pro content templates. Ideal for agencies and growing teams.',
             },
             unit_amount: guideType === 'core' ? 9900 : 14900, // $99 or $149
           },

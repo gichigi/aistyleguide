@@ -2,6 +2,7 @@
 import { jsPDF } from "jspdf"
 import "jspdf-autotable"
 import { generatePDF } from "./pdf-utils"
+import TurndownService from 'turndown'
 
 export type FileFormat = "pdf" | "md" | "docx" | "html"
 
@@ -40,8 +41,16 @@ export async function generateFile(format: FileFormat, content: string, brandNam
  */
 function generateMarkdown(content: string): Promise<Blob> {
   try {
-  // Markdown is already in the correct format, just return as blob
-  return Promise.resolve(new Blob([content], { type: "text/markdown" }))
+    const turndownService = new TurndownService({
+      headingStyle: 'atx',
+      bulletListMarker: '-',
+      codeBlockStyle: 'fenced'
+    })
+    
+    // Convert HTML to clean markdown
+    const markdown = turndownService.turndown(content)
+    
+    return Promise.resolve(new Blob([markdown], { type: "text/markdown" }))
   } catch (error) {
     console.error('[File Generator] Markdown generation error:', {
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -155,8 +164,27 @@ function generateHTML(content: string, brandName: string): Promise<Blob> {
         li { margin: 0.5em 0; }
         .right { color: #22863a; }
         .wrong { color: #cb2431; }
-        .header { text-align: center; margin-bottom: 40px; }
-        .date { color: #666; margin-top: 10px; }
+        .how-to-use-callout { 
+          background: #f8f9fa; 
+          border: 1px solid #e1e4e8; 
+          border-radius: 6px; 
+          padding: 16px; 
+          margin: 16px 0; 
+        }
+        @media (prefers-color-scheme: dark) {
+          .how-to-use-callout { 
+            background: #161b22; 
+            border-color: #30363d; 
+          }
+        }
+        hr { 
+          border: none; 
+          border-top: 1px solid #e1e4e8; 
+          margin: 2rem 0; 
+        }
+        @media (prefers-color-scheme: dark) {
+          hr { border-top-color: #30363d; }
+        }
         code { font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace; }
         pre { background: #f6f8fa; padding: 16px; border-radius: 6px; overflow: auto; }
         @media (prefers-color-scheme: dark) {
@@ -170,7 +198,7 @@ function generateHTML(content: string, brandName: string): Promise<Blob> {
         <p class="date">Created on ${new Date().toLocaleDateString()}</p>
       </div>
       
-      ${formatContentForHTML(content)}
+      ${content}
     </body>
     </html>
   `

@@ -161,10 +161,10 @@ export default function BrandDetailsPage() {
   const [mainError, setMainError] = useState("");
 
   const validateMainField = (value: string) => {
-    if (!value.trim()) {
+      if (!value.trim()) {
       setMainError("Please enter a brand description.");
       return false;
-    } else if (value.length > 500) {
+      } else if (value.length > 500) {
       setMainError("Description is too long.");
       return false;
     }

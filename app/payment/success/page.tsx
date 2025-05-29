@@ -92,21 +92,44 @@ function SuccessContent() {
   }, [router, searchParams, toast])
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 dark:bg-gray-900">
-      <div className="w-full max-w-md space-y-8 p-8 bg-white dark:bg-gray-950 rounded-xl shadow-sm">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Payment Successful!</h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-8">
-            {generationStatus === 'generating' && "Generating your style guide..."}
-            {generationStatus === 'complete' && "Style guide generated successfully!"}
-            {generationStatus === 'error' && "Failed to generate style guide. Please try again."}
-          </p>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-blue-50">
+      <div className="bg-white rounded-xl border border-blue-100 shadow-sm p-8 text-center max-w-md mx-4">
+        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
           {generationStatus === 'generating' && (
-            <div className="flex justify-center items-center py-8">
-              <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
-            </div>
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          )}
+          {generationStatus === 'complete' && (
+            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          )}
+          {generationStatus === 'error' && (
+            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           )}
         </div>
+        
+        <h1 className="text-xl font-semibold text-gray-900 mb-2">
+          {generationStatus === 'generating' && "Payment Successful!"}
+          {generationStatus === 'complete' && "Style Guide Ready!"}
+          {generationStatus === 'error' && "Generation Failed"}
+        </h1>
+        
+        <p className="text-gray-600 text-sm mb-6">
+          {generationStatus === 'generating' && "Generating your personalized style guide..."}
+          {generationStatus === 'complete' && "Your guide is ready! Taking you there now."}
+          {generationStatus === 'error' && "We couldn't make your guide. Try again or contact support."}
+        </p>
+        
+        {generationStatus === 'generating' && (
+          <div className="bg-gray-100 rounded-full h-2 overflow-hidden">
+            <div 
+              className="bg-blue-600 h-full transition-all duration-1000 ease-out rounded-full" 
+              style={{width: `${Math.min(progress + 20, 85)}%`}}
+            ></div>
+          </div>
+        )}
       </div>
     </div>
   )

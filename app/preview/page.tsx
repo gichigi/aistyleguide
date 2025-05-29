@@ -18,6 +18,7 @@ import { renderStyleGuideTemplate } from "@/lib/template-processor"
 import styled from "styled-components"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Logo from "@/components/Logo"
+import { StyleGuideHeader } from "@/components/StyleGuideHeader"
 
 // Add fade-out effect before paywall
 const ContentWithFadeout = styled.div`
@@ -39,14 +40,106 @@ const ContentWithFadeout = styled.div`
   }
 `;
 
-// Process preview content to remove duplicate title/subtitle
+// Process preview content to remove duplicate title/subtitle but keep How to Use section
 const processPreviewContent = (content: string, brandName: string = "") => {
-  const lines = content.split('\n');
-  // Remove first h1 and subtitle if they match our header
-  if (lines[0]?.startsWith('# ') && lines[0].includes(brandName)) {
-    lines.splice(0, 2); // Remove title and subtitle
+  if (!content) return content;
+  
+  // Create a temporary DOM element to parse HTML
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = content;
+  
+  // Remove the first paragraph that contains the date (May 29, 2025)
+  const firstP = tempDiv.querySelector('p');
+  if (firstP && firstP.textContent?.match(/\w+\s+\d{1,2},\s+\d{4}/)) {
+    firstP.remove();
   }
-  return lines.join('\n');
+  
+  // Find and remove the first h1 that contains brand name or "Style Guide"
+  const firstH1 = tempDiv.querySelector('h1');
+  if (firstH1 && (
+    (brandName && firstH1.textContent?.includes(brandName)) ||
+    firstH1.textContent?.toLowerCase().includes('style guide')
+  )) {
+    firstH1.remove();
+  }
+  
+  // Remove the subtitle paragraph "An essential guide..."
+  const paragraphs = tempDiv.querySelectorAll('p');
+  paragraphs.forEach(p => {
+    if (p.textContent?.toLowerCase().includes('essential guide') || 
+        p.textContent?.toLowerCase().includes('clear and consistent')) {
+      p.remove();
+    }
+  });
+  
+  // Remove any horizontal divider lines (hr tags) that are orphaned
+  const hrTags = tempDiv.querySelectorAll('hr');
+  hrTags.forEach(hr => hr.remove());
+  
+  // Wrap "How to Use This Document" section in a callout
+  const howToUseH2 = Array.from(tempDiv.querySelectorAll('h2')).find(h2 => 
+    h2.textContent?.toLowerCase().includes('how to use this document')
+  );
+  if (howToUseH2) {
+    const calloutDiv = document.createElement('div');
+    calloutDiv.className = 'how-to-use-callout';
+    
+    // Move the h2 into the callout
+    calloutDiv.appendChild(howToUseH2.cloneNode(true));
+    
+    // Move following paragraphs until we hit another h2
+    let nextElement = howToUseH2.nextElementSibling;
+    while (nextElement && nextElement.tagName.toLowerCase() !== 'h2') {
+      const elementToMove = nextElement;
+      nextElement = nextElement.nextElementSibling;
+      calloutDiv.appendChild(elementToMove.cloneNode(true));
+      elementToMove.remove();
+    }
+    
+    // Replace the original h2 with the callout
+    howToUseH2.parentNode?.replaceChild(calloutDiv, howToUseH2);
+  }
+  
+  // Add divider and brand name to Brand Voice section
+  const brandVoiceH2 = Array.from(tempDiv.querySelectorAll('h2')).find(h2 => 
+    h2.textContent?.toLowerCase().includes('brand voice')
+  );
+  if (brandVoiceH2) {
+    // Add brand name to the heading
+    const currentText = brandVoiceH2.textContent || 'Brand Voice';
+    if (brandName && !currentText.includes(brandName)) {
+      brandVoiceH2.textContent = `${brandName} Brand Voice`;
+    }
+    
+    // Add divider before Brand Voice section
+    const divider = document.createElement('hr');
+    divider.style.border = 'none';
+    divider.style.borderTop = '1px solid #e2e8f0';
+    divider.style.margin = '2rem 0';
+    brandVoiceH2.parentNode?.insertBefore(divider, brandVoiceH2);
+    
+    // Add numbering to brand voice traits
+    let currentElement = brandVoiceH2.nextElementSibling;
+    let traitNumber = 1;
+    
+    while (currentElement) {
+      if (currentElement.tagName.toLowerCase() === 'h2') {
+        // Stop if we hit another major section
+        break;
+      }
+      if (currentElement.tagName.toLowerCase() === 'h3') {
+        // Add numbering to trait titles
+        const traitTitle = currentElement.textContent;
+        if (traitTitle && !traitTitle.match(/^\d+\./)) {
+          currentElement.textContent = `${traitNumber}. ${traitTitle}`;
+          traitNumber++;
+        }
+      }
+      currentElement = currentElement.nextElementSibling;
+    }
+  }
+  
+  return tempDiv.innerHTML;
 };
 
 export default function PreviewPage() {
@@ -155,13 +248,8 @@ export default function PreviewPage() {
     <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-900">
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:bg-gray-950/95 dark:border-gray-800">
-        <div className="container px-4 h-16 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-8 h-16 flex items-center justify-between">
           <Logo size="md" linkToHome={true} />
-          {/*<div className="flex items-center">
-            <div className="px-4 py-2 text-sm font-medium rounded-md bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-800">
-              Preview
-            </div>
-          </div>*/}
         </div>
       </header>
 
@@ -296,41 +384,55 @@ export default function PreviewPage() {
       </Dialog>
 
       {/* Main Content */}
-      <main className={`flex-1 container py-8 max-w-5xl transition-opacity duration-500 ease-in-out ${fadeIn ? "opacity-100" : "opacity-0"} px-4 sm:px-8`}>
-        <div className="flex flex-col items-start justify-between mb-6 space-y-4 sm:space-y-0 sm:flex-row sm:items-center">
+      <main className={`flex-1 py-8 transition-opacity duration-500 ease-in-out ${fadeIn ? "opacity-100" : "opacity-0"}`}>
+        <div className="max-w-5xl mx-auto">
+          <div className="mb-6 px-8">
           <Link
             href="/brand-details"
-            className="inline-flex items-center gap-2 text-sm sm:text-base font-medium px-4 py-2 rounded-md border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+              className="inline-flex items-center gap-2 text-sm sm:text-base font-medium px-4 py-2 rounded-md border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
           >
             <ArrowLeft className="h-5 w-5" /> Back to details
           </Link>
         </div>
 
-        <div className="bg-white rounded-xl border shadow-sm overflow-hidden dark:bg-gray-950 dark:border-gray-800 relative">
-          <div className="p-4 sm:p-8">
-            <div className="max-w-3xl mx-auto space-y-8 sm:space-y-12">
-              <div className="prose prose-slate dark:prose-invert max-w-none style-guide-content prose-sm sm:prose-base">
+          <div className="bg-white rounded-2xl border shadow-lg overflow-hidden">
+            <StyleGuideHeader 
+              brandName={brandDetails?.name || 'Your Brand'} 
+              guideType="core"
+            />
+            <div className="p-8 bg-white">
+              <div className="max-w-2xl mx-auto space-y-12">
+                <div className="prose prose-slate dark:prose-invert max-w-none style-guide-content prose-sm sm:prose-base">
                 <ContentWithFadeout>
                   <div dangerouslySetInnerHTML={{ __html: processPreviewContent(previewContent, brandDetails?.name) }} />
                 </ContentWithFadeout>
 
-                {/* Section Divider */}
-                <div className="my-6 border-t border-gray-200 dark:border-gray-700 w-full" />
-
                 {/* Add paywall banner */}
-                <div className="my-6 mb-20 p-4 sm:p-6 border border-dashed border-amber-300 rounded-lg bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 text-center">
-                  <h3 className="text-base sm:text-lg font-medium text-amber-800 dark:text-amber-400 mb-2">
-                    You've reached the preview limit
+                  <div className="my-6 mb-20 p-6 sm:p-8 bg-blue-50 border border-blue-100 rounded-lg shadow-sm text-center">
+                    <div className="max-w-md mx-auto">
+                      <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center mx-auto mb-4 shadow-sm">
+                        <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                      </div>
+                      <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
+                        Unlock Your Style Guide
                   </h3>
-                  <p className="text-sm sm:text-base text-amber-700 dark:text-amber-500 mb-4">
-                    Unlock the full style guide to see all writing rules, formatting tips, and examples.
+                      <p className="text-sm sm:text-base text-gray-600 mb-6 leading-relaxed">
+                        Get access to all writing rules, detailed examples, and professional formats to create a consistent brand voice.
                   </p>
                   <Button
                     onClick={() => setPaymentDialogOpen(true)}
-                    className="w-full sm:w-auto text-base sm:text-lg py-4 sm:py-6 px-4 sm:px-6"
+                        className="w-full sm:w-auto text-base sm:text-lg py-3 sm:py-4 px-6 sm:px-8 bg-gray-900 hover:bg-gray-800 text-white shadow-sm hover:shadow-md transition-all duration-200"
                   >
-                    <CreditCard className="h-5 w-5 mr-2" /> Unlock Full Guide
+                        <CreditCard className="h-4 w-4 mr-2" /> 
+                        Unlock Style Guide
                   </Button>
+                      <p className="text-xs text-gray-500 mt-4">
+                        Instant access • Multiple formats • No subscriptions
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

@@ -283,7 +283,7 @@ export default function LandingPage() {
                     <FileText className="h-9 w-9 md:h-8 md:w-8 text-primary" />
                   </div>
                   <div className="space-y-1">
-                    <h3 className="text-xl font-bold">99+ industry-standard content rules</h3>
+                    <h3 className="text-xl font-bold">99+ enterprise-grade content rules</h3>
                     <p className="text-muted-foreground">
                       Used by Apple, Spotify, BBC and other leading brands
                     </p>
@@ -296,7 +296,7 @@ export default function LandingPage() {
                   <div className="space-y-1">
                     <h3 className="text-xl font-bold">A clear brand voice framework</h3>
                     <p className="text-muted-foreground">
-                      Define your brand's personality with specific traits and examples
+                      Define your brand persona with unique brand traits
                     </p>
                   </div>
                 </div>
@@ -305,8 +305,8 @@ export default function LandingPage() {
                     <FileDown className="h-9 w-9 md:h-8 md:w-8 text-primary" />
                   </div>
                   <div className="space-y-1">
-                    <h3 className="text-xl font-bold">Beautiful PDF exports</h3>
-                    <p className="text-muted-foreground">Professional, ready-to-share formats</p>
+                    <h3 className="text-xl font-bold">Multiple export formats</h3>
+                    <p className="text-muted-foreground">PDF, Word, HTML, and Markdown for any workflow</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4 p-4 rounded-lg bg-white shadow-sm md:shadow-none md:bg-transparent md:p-0">
@@ -416,7 +416,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="text-xl font-bold">Export and share</h3>
                 <p className="text-center text-muted-foreground">
-                  Download as PDF, Markdown, or integrate with your workflow
+                  Download in multiple formats: PDF, Word, HTML, or Markdown for any workflow
                 </p>
               </div>
             </div>
@@ -580,7 +580,7 @@ export default function LandingPage() {
                       </li>
                       <li className="flex items-center">
                         <CheckCircle className="mr-2 h-4 w-4 text-blue-500" />
-                        <span>PDF & Markdown formats</span>
+                        <span>Multiple export formats</span>
                       </li>
                     </ul>
                     <Button size="lg" className="mt-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-full px-8 py-3 shadow-md" onClick={() => router.push("/brand-details")}>Get Core Guide</Button>
@@ -718,11 +718,11 @@ export default function LandingPage() {
                 },
                 {
                   q: "How long does it take?",
-                  a: "Most style guides are generated in under 2 minutes. You can review and edit before downloading.",
+                  a: "Most style guides are generated in under 2 minutes. You can review, download in multiple formats, and share with your team.",
                 },
                 {
                   q: "What formats can I download?",
-                  a: "Your style guide is available in PDF, Markdown, and HTML formats for easy sharing and integration.",
+                  a: "Your style guide is available in PDF, Word, HTML, and Markdown formats for easy sharing and integration with any workflow.",
                 },
                 {
                   q: "What's included in the style guide?",
@@ -730,15 +730,11 @@ export default function LandingPage() {
                 },
                 {
                   q: "Can I edit my style guide?",
-                  a: "Yes! You can review and edit any section before downloading, and your purchase includes free revisions.",
+                  a: "Absolutely. Once generated, you can download Word, HTML, or Markdown, then edit however you like before saving or sharing.",
                 },
                 {
                   q: "Is this better than hiring a copywriter?",
                   a: "We deliver 90% of what most brands need in minutes instead of weeks, at a fraction of the cost of hiring a professional writer.",
-                },
-                {
-                  q: "Do you offer refunds?",
-                  a: "Yes, we have a 14-day satisfaction guarantee. If you're not happy with your style guide, contact us for a full refund.",
                 },
                 {
                   q: "Can I share with my team?",
