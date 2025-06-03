@@ -13,8 +13,8 @@ const stripe = new Stripe(STRIPE_SECRET_KEY!, {
   apiVersion: "2023-10-16" as Stripe.LatestApiVersion,
 })
 
-// Ensure we use the www version of the URL
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.aistyleguide.com'
+// Use the app URL from environment
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://aistyleguide.com'
 
 export async function POST(request: Request) {
   try {

@@ -30,13 +30,13 @@ function logWebhookDetails(event: any, error?: any) {
   }
 }
 
-// Handle redirects from non-www to www domain
+// Handle redirects from www to non-www domain
 function normalizeWebhookUrl(url: string): string {
   try {
     const urlObj = new URL(url)
-    // Check if this is the non-www version
-    if (urlObj.hostname === 'aistyleguide.com') {
-      urlObj.hostname = 'www.aistyleguide.com'
+    // Check if this is the www version
+    if (urlObj.hostname === 'www.aistyleguide.com') {
+      urlObj.hostname = 'aistyleguide.com'
       console.log(`Normalized webhook URL from ${url} to ${urlObj.toString()}`)
       return urlObj.toString()
     }
