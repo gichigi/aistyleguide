@@ -23,6 +23,7 @@ import {
   Users,
   Rocket,
   Briefcase,
+  PhoneCall,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import dynamic from "next/dynamic"
@@ -242,7 +243,7 @@ export default function LandingPage() {
                     </Link>
                   </div>
                 </div>
-                {/* Secondary CTA: See Nike Example */}
+                {/* Secondary CTA: Book a Call */}
                 {SHOW_NIKE_DEMO_CTA && (
                   <Button
                     asChild
@@ -250,7 +251,15 @@ export default function LandingPage() {
                     size="lg"
                     className="w-full py-6 text-lg mt-10"
                   >
-                    <Link href="/demo">See Nike Example</Link>
+                    <Link 
+                      href="https://calendly.com/l-gichigi/customer-chat"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2"
+                    >
+                      <PhoneCall className="h-5 w-5" />
+                      Book a Call
+                    </Link>
                   </Button>
                 )}
               </form>

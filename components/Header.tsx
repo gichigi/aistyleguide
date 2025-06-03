@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import Logo from "@/components/Logo"
 import { ReactNode } from "react"
+import { PhoneCall } from "lucide-react"
 
 interface HeaderProps {
   showNavigation?: boolean
@@ -42,12 +43,17 @@ export default function Header({
         
         {showGetStarted && (
           <div className="flex items-center gap-4">
-            <Link
-              href="#example"
-              className="hidden sm:inline-block text-sm font-medium hover:underline underline-offset-4"
-            >
-              See Example
-            </Link>
+            <Button asChild variant="outline">
+              <Link
+                href="https://calendly.com/l-gichigi/customer-chat"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden sm:inline-flex items-center gap-2 text-sm font-medium"
+              >
+                <PhoneCall className="h-4 w-4" />
+                Book a Call
+              </Link>
+            </Button>
             <Button asChild>
               <Link href="#hero">Get Started</Link>
             </Button>

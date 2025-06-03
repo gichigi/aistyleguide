@@ -297,18 +297,18 @@ export default function FullAccessPage() {
       <Header 
         containerClass="max-w-5xl mx-auto px-8 flex h-16 items-center justify-between"
         rightContent={
-          <Button
-            onClick={() => setShowDownloadOptions(true)}
-            disabled={isDownloading}
-            className="gap-2"
-          >
-            {isDownloading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
+            <Button
+              onClick={() => setShowDownloadOptions(true)}
+              disabled={isDownloading}
+              className="gap-2"
+            >
+              {isDownloading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
               <ChevronDown className="h-4 w-4" />
-            )}
-            Download
-          </Button>
+              )}
+              Download
+            </Button>
         }
       />
 
