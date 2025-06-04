@@ -43,10 +43,6 @@ export default function ApiTestPage() {
     ),
   )
 
-  const [openAITestLoading, setOpenAITestLoading] = useState(false)
-  const [openAITestResponse, setOpenAITestResponse] = useState("")
-  const [openAITestError, setOpenAITestError] = useState<string | null>(null)
-
   const testExtractWebsite = async () => {
     if (!extractUrl) {
       toast({
@@ -184,48 +180,6 @@ export default function ApiTestPage() {
     }
   }
 
-  const testOpenAIConnection = async () => {
-    setOpenAITestLoading(true)
-    setOpenAITestResponse("")
-    setOpenAITestError(null)
-
-    try {
-      const response = await fetch(getAbsoluteUrl("/api/test-openai-connection"))
-      const data = await response.json()
-
-      setOpenAITestResponse(JSON.stringify(data, null, 2))
-
-      if (!response.ok || !data.success) {
-        setOpenAITestError(data.error || `API returned status ${response.status}`)
-        toast({
-          title: "OpenAI connection failed",
-          description: data.error || "Connection test failed",
-          variant: "destructive",
-        })
-      } else {
-        toast({
-          title: "OpenAI connection successful",
-          description: "The connection to OpenAI is working properly",
-        })
-      }
-    } catch (error) {
-      console.error("Error testing OpenAI connection:", error)
-      const errorMessage = error instanceof Error ? error.message : "Unknown error"
-      setOpenAITestError(errorMessage)
-      setOpenAITestResponse(
-        JSON.stringify({ error: "Failed to test OpenAI connection", message: errorMessage }, null, 2),
-      )
-
-      toast({
-        title: "OpenAI test failed",
-        description: "There was an error testing the OpenAI connection",
-        variant: "destructive",
-      })
-    } finally {
-      setOpenAITestLoading(false)
-    }
-  }
-
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
@@ -235,10 +189,9 @@ export default function ApiTestPage() {
           <p className="text-muted-foreground mb-8">Use this page to test the API endpoints for Style Guide AI.</p>
 
           <Tabs defaultValue="extract" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-8">
+            <TabsList className="grid w-full grid-cols-2 mb-8">
               <TabsTrigger value="extract">Extract Website</TabsTrigger>
               <TabsTrigger value="generate">Generate Style Guide</TabsTrigger>
-              <TabsTrigger value="openai">Test OpenAI</TabsTrigger>
             </TabsList>
 
             <TabsContent value="extract">
@@ -351,53 +304,6 @@ export default function ApiTestPage() {
                       </>
                     ) : (
                       "Test API"
-                    )}
-                  </Button>
-                </CardFooter>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="openai">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Test OpenAI Connection</CardTitle>
-                  <CardDescription>This tests the connection to the OpenAI API.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-6">
-                    {openAITestError && (
-                      <div className="bg-red-50 border border-red-200 rounded-md p-4 flex items-start gap-3">
-                        <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
-                        <div>
-                          <h4 className="font-medium text-red-800">Error</h4>
-                          <p className="text-sm text-red-700 mt-1">{openAITestError}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {openAITestResponse && (
-                      <div className="grid gap-3">
-                        <Label htmlFor="openai-response">Response</Label>
-                        <Textarea
-                          id="openai-response"
-                          readOnly
-                          value={openAITestResponse}
-                          rows={12}
-                          className="font-mono text-sm"
-                        />
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-                <CardFooter className="flex justify-end">
-                  <Button onClick={testOpenAIConnection} disabled={openAITestLoading}>
-                    {openAITestLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Testing...
-                      </>
-                    ) : (
-                      "Test OpenAI Connection"
                     )}
                   </Button>
                 </CardFooter>

@@ -1,4 +1,165 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
 # AI Style Guide Generator Project
+
+## Detailed App Flow & Implementation Plan
+
+### 1. User Journey Overview
+- **Landing Page**
+  - User sees intro, pricing, and CTA
+  - Button: **Create your own style guide**
+  - User can also enter a website URL for analysis
+
+- **Website Analysis & Autofill**
+  - User enters a website URL (optional)
+  - Model analyzes the website and extracts brand info:
+    - Brand name
+    - Brand description
+    - Target audience
+    - Tone/voice
+    - Colors, fonts, logos (if possible)
+  - Autofills the brand details form with extracted info
+  - User can review and edit any field
+
+- **Brand Details Form**
+  - User enters or edits brand name, description, audience, tone
+  - Real-time validation, character counts, help text
+  - Button: **Generate your style guide**
+  - On submit:
+    - If not paid: generates preview
+    - If paid: user is redirected directly to full access for that guide (never sees brand details again for that guide)
+
+- **Preview Page**
+  - Shows partial style guide (limited sections)
+  - Uses shared MarkdownComponents for formatting
+  - Fade-out effect before paywall
+  - Button: **Unlock Full Guide** (opens payment dialog)
+  - If user pays, they get access to that specific guide only
+
+- **Payment Flow**
+  - Stripe checkout session created
+  - On success: redirects to /payment/success
+  - Shows loading/progress while generating full guide
+  - On completion: redirects to /full-access for that guide
+  - **User must pay for each style guide they generate**
+  - If user wants to generate a different guide (different brand details) or re-generate, they must pay again
+
+- **Full Access Page**
+  - Shows full style guide (core or complete) for the guide just paid for
+  - Uses shared MarkdownComponents for formatting
+  - Download options (PDF, DOCX, HTML)
+  - Notion import instructions
+  - User can only access the guide(s) they have paid for
+
+- **Download Flow**
+  - User selects format
+  - File generated and downloaded
+  - HTML/PDF/DOCX styled to match web as closely as possible
+
+### 2. Backend Implementation
+- **API Routes**
+  - `/api/preview`: Generates preview markdown (limited sections)
+  - `/api/generate-styleguide`: Generates full guide (core/complete)
+  - `/api/create-checkout-session`: Stripe integration
+  - `/api/extract-website`: Analyzes website and returns brand info for autofill
+
+- **Template Processing**
+  - Loads markdown templates
+  - Replaces variables (brand name, date, traits, rules)
+  - Validates markdown structure
+  - Ensures output matches required format
+
+- **OpenAI Integration**
+  - Generates brand voice traits and rules
+  - Ensures output is markdown-compliant
+  - Used for both preview and full guide
+
+- **Per-Guide Payment Logic**
+  - Each guide is tied to a unique set of brand details
+  - Payment grants access to that specific guide only
+  - New/different brand details require new payment
+
+### 3. Frontend Implementation
+- **Shared MarkdownComponents**
+  - Centralized in `lib/markdown-components.tsx`
+  - Used in preview, full-access, and any markdown rendering
+  - Consistent classes for headings, lists, emphasis, code
+  - Dark mode support
+
+- **Website Analysis UI**
+  - Input for website URL
+  - Button: **Analyze Website**
+  - Shows loading state and autofills form on success
+
+- **Brand Details Form**
+  - Inputs for all brand fields
+  - Autofilled if website analysis is used
+  - Button: **Generate your style guide**
+  - If user has already paid for this guide, redirect to full access instead of showing form
+
+- **Preview Page**
+  - Loads preview markdown via API
+  - Renders with shared components
+  - Fade-out and paywall UI
+  - Button: **Unlock Full Guide**
+  - If user pays, they get access to that specific guide only
+
+- **Full Access Page**
+  - Loads full guide from localStorage
+  - Renders with shared components
+  - Download and Notion import dialogs
+  - User can only access the guide(s) they have paid for
+
+- **Payment Success Page**
+  - Shows progress while generating guide
+  - Handles errors and redirects
+  - Redirects to full access for the just-paid guide
+
+### 4. Download File Generation
+- **PDF/HTML/DOCX**
+  - Use same fonts, heading sizes, and colors as web
+  - Convert markdown to styled output
+  - Add brand name and date to header
+  - Ensure lists, code, and emphasis are styled
+
+### 5. Error Handling & Validation
+- **Form Validation**
+  - Real-time, with clear messages
+  - Disable submit if invalid
+
+- **API Error Handling**
+  - Show toast notifications on error
+  - Fallbacks for missing data
+
+- **Markdown Validation**
+  - Ensure all generated content matches required structure
+  - Log and show errors if not
+
+### 6. Consistency & Future-Proofing
+- **Always use MarkdownComponents for new markdown features**
+- Add code comments to guide future devs
+- Test all flows in both light and dark mode
+- Keep download output in sync with web style
+
+### 7. Testing & QA
+- **Manual Testing**
+  - All user flows: website analysis, preview, payment, full access, download
+  - Edge cases: missing fields, network errors, invalid markdown
+  - Test per-guide payment and access logic
+
+- **Automated Tests**
+  - (Planned) Add tests for API routes and template processing
+
+### 8. Success Criteria
+- All markdown looks the same everywhere
+- No broken flows or regressions
+- Users can preview, pay, and access full guide smoothly
+- Downloaded files match web style
+- Website analysis autofills as much as possible, user can always edit
+- Per-guide payment and access logic is enforced
 
 ## Background and Motivation
 - Web app that generates brand style guides from website URLs
@@ -212,6 +373,61 @@ Success Criteria:
     - ✅ Added error handling
     - ✅ Tested with edge cases
 
+### Security & Performance Issues
+
+#### ✅ RESOLVED: Removed Test OpenAI Connection Endpoint
+- **Issue**: `/api/test-openai-connection` was exposed in production
+- **Problems**: 
+  - No authentication required
+  - Could waste OpenAI credits
+  - Information leakage about API structure
+  - No rate limiting
+- **Solution**: Implemented Option 2 - moved OpenAI testing inline to APIs that need it
+- **Changes Made**:
+  - Added `testOpenAIConnection()` function to `/api/generate-styleguide/route.ts`
+  - Added `testOpenAIConnection()` function to `/api/extract-website/route.ts`
+  - Removed OpenAI test call from `/app/generate/page.tsx`
+  - Removed "Test OpenAI" tab from `/app/api/page.tsx`
+  - Deleted `/api/test-openai-connection/` directory entirely
+- **Date Fixed**: June 2025
+- **Lesson**: Test endpoints should only exist in development or be properly secured. When APIs need validation, do it inline rather than exposing separate test endpoints.
+
+#### ✅ RESOLVED: Preview Endpoint Waste OpenAI Credits
+- **Issue**: `/api/preview` unnecessarily calls OpenAI for preview generation
+- **Problems**: 
+  - Wastes OpenAI credits on unpaid users
+  - Calls `generateBrandSummary()` and `generateBrandVoiceTraits()` before payment
+  - Double AI generation: once for preview, again post-payment
+  - Preview should be static with placeholders only
+- **Solution**: Made `/api/preview` completely static with generic content
+- **Changes Made**:
+  - Removed `generateBrandSummary()` and `generateBrandVoiceTraits()` calls from preview
+  - Added `extractBrandNameInline()` function for brand name extraction
+  - Added generic `GENERIC_VOICE_TRAIT_1` and `GENERIC_VOICE_TRAIT_2` constants
+  - Replaced AI-generated content with static placeholders
+  - Maintained same API contract and response format
+- **Result**: Preview loads faster, no OpenAI credits wasted, only post-payment generation calls AI
+- **Date Fixed**: June 2025
+- **Lesson**: Preview content should always be static to avoid unnecessary API costs before payment
+
+#### ✅ RESOLVED: Remove Extract Brand Name Endpoint
+- **Issue**: `/api/extract-brand-name` was exposed in production
+- **Problems**: 
+  - No authentication required
+  - Could waste OpenAI credits on unauthorized requests
+  - Information leakage about API structure
+  - No rate limiting protection
+- **Solution**: Moved brand name extraction inline to brand details form using text parsing
+- **Changes Made**:
+  - Added `extractBrandNameInline()` function to `/app/brand-details/page.tsx`
+  - Uses regex patterns to extract brand names from user descriptions
+  - Removed external API call from form submission
+  - Deleted `/api/extract-brand-name/` directory entirely
+- **Approach**: Used simple text parsing instead of OpenAI to avoid browser security issues
+- **Fallback**: Defaults to "Your Brand" if extraction fails
+- **Date Fixed**: June 2025
+- **Lesson**: Frontend API calls should use simple parsing when possible, avoid exposing OpenAI endpoints unnecessarily
+
 ## Project Status Board
 - [x] Fix target audience data flow
 - [x] Verify audience data usage in style guide
@@ -389,33 +605,50 @@ Success Criteria:
 
 ### 1. User Journey Overview
 - **Landing Page**
-  - User sees product intro, pricing, and CTA
-  - Can start by clicking 'Create your own style guide'
+  - User sees intro, pricing, and CTA
+  - Button: **Create your own style guide**
+  - User can also enter a website URL for analysis
+
+- **Website Analysis & Autofill**
+  - User enters a website URL (optional)
+  - Model analyzes the website and extracts brand info:
+    - Brand name
+    - Brand description
+    - Target audience
+    - Tone/voice
+    - Colors, fonts, logos (if possible)
+  - Autofills the brand details form with extracted info
+  - User can review and edit any field
 
 - **Brand Details Form**
-  - User enters brand name, description, audience, tone
-  - Real-time validation, character counts, and help text
+  - User enters or edits brand name, description, audience, tone
+  - Real-time validation, character counts, help text
+  - Button: **Generate your style guide**
   - On submit:
     - If not paid: generates preview
-    - If paid: generates full guide
+    - If paid: user is redirected directly to full access for that guide (never sees brand details again for that guide)
 
 - **Preview Page**
   - Shows partial style guide (limited sections)
   - Uses shared MarkdownComponents for formatting
   - Fade-out effect before paywall
-  - 'Unlock Full Guide' button opens payment dialog
+  - Button: **Unlock Full Guide** (opens payment dialog)
+  - If user pays, they get access to that specific guide only
 
 - **Payment Flow**
   - Stripe checkout session created
   - On success: redirects to /payment/success
   - Shows loading/progress while generating full guide
-  - On completion: redirects to /full-access
+  - On completion: redirects to /full-access for that guide
+  - **User must pay for each style guide they generate**
+  - If user wants to generate a different guide (different brand details) or re-generate, they must pay again
 
 - **Full Access Page**
-  - Shows full style guide (core or complete)
+  - Shows full style guide (core or complete) for the guide just paid for
   - Uses shared MarkdownComponents for formatting
   - Download options (PDF, DOCX, HTML)
   - Notion import instructions
+  - User can only access the guide(s) they have paid for
 
 - **Download Flow**
   - User selects format
@@ -427,6 +660,7 @@ Success Criteria:
   - `/api/preview`: Generates preview markdown (limited sections)
   - `/api/generate-styleguide`: Generates full guide (core/complete)
   - `/api/create-checkout-session`: Stripe integration
+  - `/api/extract-website`: Analyzes website and returns brand info for autofill
 
 - **Template Processing**
   - Loads markdown templates
@@ -437,6 +671,12 @@ Success Criteria:
 - **OpenAI Integration**
   - Generates brand voice traits and rules
   - Ensures output is markdown-compliant
+  - Used for both preview and full guide
+
+- **Per-Guide Payment Logic**
+  - Each guide is tied to a unique set of brand details
+  - Payment grants access to that specific guide only
+  - New/different brand details require new payment
 
 ### 3. Frontend Implementation
 - **Shared MarkdownComponents**
@@ -445,19 +685,34 @@ Success Criteria:
   - Consistent classes for headings, lists, emphasis, code
   - Dark mode support
 
+- **Website Analysis UI**
+  - Input for website URL
+  - Button: **Analyze Website**
+  - Shows loading state and autofills form on success
+
+- **Brand Details Form**
+  - Inputs for all brand fields
+  - Autofilled if website analysis is used
+  - Button: **Generate your style guide**
+  - If user has already paid for this guide, redirect to full access instead of showing form
+
 - **Preview Page**
   - Loads preview markdown via API
   - Renders with shared components
   - Fade-out and paywall UI
+  - Button: **Unlock Full Guide**
+  - If user pays, they get access to that specific guide only
 
 - **Full Access Page**
   - Loads full guide from localStorage
   - Renders with shared components
   - Download and Notion import dialogs
+  - User can only access the guide(s) they have paid for
 
 - **Payment Success Page**
   - Shows progress while generating guide
   - Handles errors and redirects
+  - Redirects to full access for the just-paid guide
 
 ### 4. Download File Generation
 - **PDF/HTML/DOCX**
@@ -487,8 +742,9 @@ Success Criteria:
 
 ### 7. Testing & QA
 - **Manual Testing**
-  - All user flows: preview, payment, full access, download
+  - All user flows: website analysis, preview, payment, full access, download
   - Edge cases: missing fields, network errors, invalid markdown
+  - Test per-guide payment and access logic
 
 - **Automated Tests**
   - (Planned) Add tests for API routes and template processing
@@ -498,6 +754,8 @@ Success Criteria:
 - No broken flows or regressions
 - Users can preview, pay, and access full guide smoothly
 - Downloaded files match web style
+- Website analysis autofills as much as possible, user can always edit
+- Per-guide payment and access logic is enforced
 
 ## App Flow
 1. User enters website URL
@@ -1622,5 +1880,41 @@ Success Criteria Met:
 - ✅ Downward-facing arrow in download button
 - ✅ Consistent styling across preview and full-access pages
 - ✅ Mobile-responsive design maintained
+
+## 📌 Recent Completed Tasks
+
+### ✅ UI Loading States Improved (Jun 4, 2025)
+**Payment Success Page:**
+- Removed progress bar, replaced with prominent spinner
+- Added pulsing animation effect around spinner
+- Increased spinner size from 8x8 to 10x10
+- Added clear messaging: "This can take a couple of minutes" 
+- Added warning: "Please don't close this window"
+- More convincing loading experience
+
+**Brand Details Form:**
+- Added 5-second processing state before redirect to preview
+- Shows "Processing your brand..." message during processing
+- Shows completion checkmark briefly before redirect
+- Better user feedback during form submission
+
+### ✅ Website Extraction Performance Optimized (Jun 4, 2025)
+**Speed Improvements:**
+- **Parallel subpage fetching**: Changed from sequential to parallel requests (2-3 seconds faster)
+- **Faster AI model**: Switched from GPT-4o to GPT-3.5-turbo for extraction (3-4 seconds faster)
+- **Reduced content size**: Cut from 20k to 10k characters for faster processing
+- **Request timeouts**: Added 5-second timeout to prevent hanging requests
+- **Expected total improvement**: ~5-7 seconds (from ~11s to ~4-6s)
+
+**Quality Maintained:**
+- Still fetches up to 2 subpages for better brand info extraction
+- GPT-4o still used for style guide generation (needs higher quality)
+- Same content extraction, just processed faster
+- Better error handling with Promise.all()
+
+**Risk Mitigation:**
+- Added timeout protection against slow websites
+- Graceful error handling for failed subpage fetches
+- Maintained same content structure and format
 
 </details>

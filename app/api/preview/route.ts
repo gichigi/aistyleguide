@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
-import { generateBrandVoiceTraits, generateBrandSummary } from '@/lib/openai'
 import Logger from '@/lib/logger'
 
 // Cache for templates
@@ -18,6 +17,81 @@ function formatDate(): string {
   Logger.debug('Formatted date', { formatted })
   return formatted
 }
+
+// Inline brand name extraction function (same as in brand-details form)
+function extractBrandNameInline(brandDetailsText: string) {
+  try {
+    // Simple extraction logic - look for common patterns
+    const text = brandDetailsText.trim()
+    
+    // Look for patterns like "Nike is a..." or "Apple creates..."
+    const patterns = [
+      /^([A-Z][a-zA-Z0-9\s&-]{1,30})\s+(?:is|are|was|were|creates?|makes?|provides?|offers?|specializes?)/i,
+      /^([A-Z][a-zA-Z0-9\s&-]{1,30})\s+(?:helps?|serves?|works?|focuses?)/i,
+      /(?:company|brand|business|startup|organization)\s+(?:called|named)\s+([A-Z][a-zA-Z0-9\s&-]{1,30})/i,
+      /^([A-Z][a-zA-Z0-9\s&-]{1,30})\s*[,.]?\s*(?:a|an|the)/i
+    ]
+    
+    // Try each pattern
+    for (const pattern of patterns) {
+      const match = text.match(pattern)
+      if (match && match[1]) {
+        const brandName = match[1].trim()
+        // Validate it's not too generic
+        const genericWords = ['company', 'business', 'brand', 'startup', 'organization', 'team', 'we', 'our', 'this', 'that']
+        if (!genericWords.includes(brandName.toLowerCase()) && brandName.length > 1) {
+          return { success: true, brandName }
+        }
+      }
+    }
+    
+    // Fallback: look for first capitalized word that's not too common
+    const words = text.split(/\s+/)
+    for (const word of words) {
+      if (/^[A-Z][a-zA-Z0-9&-]{1,20}$/.test(word)) {
+        const commonWords = ['The', 'This', 'That', 'Our', 'We', 'Company', 'Business', 'Brand', 'Team']
+        if (!commonWords.includes(word)) {
+          return { success: true, brandName: word }
+        }
+      }
+    }
+    
+    // Final fallback
+    return { success: true, brandName: "Your Brand" }
+  } catch (error) {
+    console.error("Brand name extraction failed:", error)
+    return { success: true, brandName: "Your Brand" }
+  }
+}
+
+// Generic voice traits for static preview
+const GENERIC_VOICE_TRAIT_1 = `### 1. Clear & Concise
+
+***What It Means***
+
+→ Use simple, direct language that anyone can understand.
+→ Break down complex ideas into easy steps.
+→ Keep sentences short and to the point.
+
+***What It Doesn't Mean***
+
+✗ Leaving out important details for the sake of brevity.
+✗ Using jargon or technical terms without explanation.
+✗ Oversimplifying topics that need nuance.`
+
+const GENERIC_VOICE_TRAIT_2 = `### 2. Friendly & Approachable
+
+***What It Means***
+
+→ Write as if you're talking to a real person.
+→ Use a warm, welcoming tone in every message.
+→ Encourage questions and feedback.
+
+***What It Doesn't Mean***
+
+✗ Being overly casual or unprofessional.
+✗ Using slang that not everyone will understand.
+✗ Ignoring the needs or concerns of your audience.`
 
 // Clean up markdown content
 function cleanMarkdown(content: string): string {
@@ -76,10 +150,10 @@ async function loadTemplatePreview(templateName: string): Promise<string> {
   }
 }
 
-// Process preview content with brand details and voice traits
+// Process preview content with brand details (static - no AI calls)
 async function processPreview(content: string, brandDetails: any): Promise<string> {
   try {
-    Logger.info('Processing preview', { brand: brandDetails.name })
+    Logger.info('Processing static preview', { brand: brandDetails.name })
     
     // Replace basic placeholders
     let preview = content
@@ -90,67 +164,20 @@ async function processPreview(content: string, brandDetails: any): Promise<strin
         `support@${brandDetails.name.toLowerCase().replace(/\s+/g, '')}.com`
       )
 
-    // Generate voice traits
-    Logger.info('Generating voice traits')
-    const voiceTraitsResult = await generateBrandVoiceTraits(brandDetails)
+    // Use static generic voice traits instead of AI-generated ones
+    Logger.info('Using static voice traits for preview')
     
-    if (!voiceTraitsResult.success) {
-      Logger.error('Voice trait generation failed', new Error(voiceTraitsResult.error))
-      throw new Error(`Failed to generate voice traits: ${voiceTraitsResult.error}`)
-    }
-
-    // Add type guard for content
-    if (!voiceTraitsResult.content) {
-      Logger.error('Voice traits content is missing')
-      throw new Error('Voice traits content is missing')
-    }
-
-    Logger.debug('Voice traits generated', { content: voiceTraitsResult.content })
-
-    // Extract and format voice traits with type safety
-    const traits = voiceTraitsResult.content
-      .split(/(?=###\s)/g)
-      .filter(trait => trait.trim())
-      .slice(0, 2) // Get first two traits for preview
-
-    if (traits.length === 0) {
-      Logger.error('No valid voice traits found in content')
-      throw new Error('No valid voice traits found in content')
-    }
-
-    Logger.debug('Extracted traits', { count: traits.length, traits })
-
-    // Format each trait to ensure consistent structure
-    const formattedTraits = traits.map(trait => {
-      const lines = trait.split('\n')
-      const title = lines[0].replace('###', '').trim()
-      const description = lines.slice(1).join('\n').trim()
-      
-      if (!title || !description) {
-        const error = new Error('Invalid trait format - missing title or description')
-        Logger.error('Invalid trait format detected', error, { trait })
-        throw error
-      }
-      
-      return `### ${title}\n${description}`
-    })
-
-    Logger.debug('Formatted traits', { traits: formattedTraits })
-
-    // Replace voice trait placeholders
-    formattedTraits.forEach((trait, index) => {
-      const placeholder = `{{voice_trait_${index + 1}}}`
-      Logger.debug(`Replacing trait ${index + 1}`, { placeholder })
-      preview = preview.replace(new RegExp(placeholder, 'g'), trait)
-    })
+    // Replace voice trait placeholders with generic content
+    preview = preview.replace(/{{voice_trait_1}}/g, GENERIC_VOICE_TRAIT_1)
+    preview = preview.replace(/{{voice_trait_2}}/g, GENERIC_VOICE_TRAIT_2)
 
     // Remove any remaining template variables and clean up
     preview = cleanMarkdown(preview.replace(/{{.*?}}/g, ''))
-    Logger.debug('Final preview', { length: preview.length })
+    Logger.debug('Final static preview', { length: preview.length })
 
     return preview
   } catch (error) {
-    Logger.error('Preview processing failed', error instanceof Error ? error : new Error('Unknown error'))
+    Logger.error('Static preview processing failed', error instanceof Error ? error : new Error('Unknown error'))
     throw error
   }
 }
@@ -166,7 +193,7 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { brandDetails } = body
 
-    Logger.info('Preview generation request received', { brand: brandDetails?.brandDetailsText })
+    Logger.info('Static preview generation request received', { brand: brandDetails?.brandDetailsText })
 
     // Clear template cache to force refresh
     clearTemplateCache()
@@ -183,34 +210,34 @@ export async function POST(request: Request) {
       )
     }
 
-    // Generate a concise brand summary (used as the brand name/description)
-    const summaryResult = await generateBrandSummary(brandDetails)
-    if (!summaryResult.success || !summaryResult.content) {
-      Logger.error('Brand summary generation failed', new Error(summaryResult.error))
-      throw new Error(`Failed to generate brand summary: ${summaryResult.error}`)
+    // Extract brand name using inline function (no AI call)
+    const nameResult = extractBrandNameInline(brandDetails.brandDetailsText)
+    let brandName = "Your Brand"
+    if (nameResult.success && nameResult.brandName) {
+      brandName = nameResult.brandName
     }
 
-    // Use the summary as the brand name for template processing
+    // Create processed brand details for template processing
     const processedBrandDetails = {
       ...brandDetails,
-      name: summaryResult.content,
-      description: summaryResult.content,
+      name: brandName,
+      description: brandDetails.brandDetailsText,
       audience: '',
     }
 
     // Load template preview (using core template for previews)
     const templateContent = await loadTemplatePreview('core_template_preview')
 
-    // Process preview with brand details
+    // Process preview with brand details (static - no AI)
     const processedPreview = await processPreview(templateContent, processedBrandDetails)
 
-    Logger.info('Preview generation successful', { brand: processedBrandDetails.name })
+    Logger.info('Static preview generation successful', { brand: processedBrandDetails.name })
     return NextResponse.json({ 
       preview: processedPreview,
       success: true
     })
   } catch (error) {
-    Logger.error('Preview generation failed', error instanceof Error ? error : new Error('Unknown error'))
+    Logger.error('Static preview generation failed', error instanceof Error ? error : new Error('Unknown error'))
     return NextResponse.json(
       { 
         success: false,

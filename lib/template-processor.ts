@@ -1,24 +1,41 @@
-import { generateBrandVoiceTraits, generateWithOpenAI, generateFullCoreStyleGuide, generateCompleteStyleGuide, extractBrandName } from "./openai"
+import { generateBrandVoiceTraits, generateWithOpenAI, generateFullCoreStyleGuide, generateCompleteStyleGuide } from "./openai"
 import { marked } from 'marked'
 
 // Function to load a template file via API
 export async function loadTemplate(templateName: string): Promise<string> {
+  console.log(`[loadTemplate] Called with templateName: "${templateName}"`)
+  
   try {
     // Use absolute URL with origin for server-side calls
     const baseUrl = typeof window !== 'undefined' 
       ? window.location.origin 
       : process.env.NEXT_PUBLIC_APP_URL || ''
     
-    const response = await fetch(`${baseUrl}/api/load-template?name=${templateName}`)
+    console.log(`[loadTemplate] Base URL: "${baseUrl}"`)
+    console.log(`[loadTemplate] Environment: ${typeof window !== 'undefined' ? 'client-side' : 'server-side'}`)
+    
+    const fullUrl = `${baseUrl}/api/load-template?name=${templateName}`
+    console.log(`[loadTemplate] Fetching from: "${fullUrl}"`)
+    
+    const response = await fetch(fullUrl)
+    console.log(`[loadTemplate] Response status: ${response.status}`)
+    
     const data = await response.json()
+    console.log(`[loadTemplate] Response data:`, {
+      hasContent: !!data.content,
+      contentLength: data.content?.length || 0,
+      error: data.error || 'none'
+    })
 
     if (!response.ok) {
+      console.error(`[loadTemplate] API error:`, data)
       throw new Error(data.error || `Failed to load template: ${templateName}`)
     }
 
+    console.log(`[loadTemplate] Successfully loaded template "${templateName}" (${data.content.length} chars)`)
     return data.content
   } catch (error) {
-    console.error(`Error loading template ${templateName}:`, error)
+    console.error(`[loadTemplate] Error loading template ${templateName}:`, error)
     throw new Error(`Failed to load template: ${templateName}`)
   }
 }
@@ -476,13 +493,24 @@ export async function renderStyleGuideTemplate({
   useAIContent?: boolean,
   templateType?: "preview" | "core" | "complete"
 }): Promise<string> {
+  console.log(`[renderStyleGuideTemplate] Called with:`, {
+    useAIContent,
+    templateType,
+    hasBrandDetails: !!brandDetails,
+    brandName: brandDetails?.name || 'not set'
+  })
+  
   // Pick template name
   let templateName = "core_template_preview";
   if (templateType === "core") templateName = "core_template";
   if (templateType === "complete") templateName = "complete_template";
+  
+  console.log(`[renderStyleGuideTemplate] Selected template: "${templateName}"`)
 
   // Load template
+  console.log(`[renderStyleGuideTemplate] Loading template...`)
   const template = await loadTemplate(templateName);
+  console.log(`[renderStyleGuideTemplate] Template loaded successfully (${template.length} chars)`)
 
   // Format date
   const currentDate = new Date();
@@ -494,25 +522,18 @@ export async function renderStyleGuideTemplate({
 
   // Extract brand name if using AI content and we have brandDetailsText
   let brandName = brandDetails.name || 'Your Brand';
-  if (useAIContent && brandDetails.brandDetailsText && !brandDetails.name) {
-    try {
-      const brandNameResult = await extractBrandName(brandDetails);
-      if (brandNameResult.success && brandNameResult.content) {
-        brandName = brandNameResult.content.trim();
-      }
-    } catch (error) {
-      console.error('Error extracting brand name:', error);
-      // Fall back to 'Your Brand' if extraction fails
-    }
-  }
+  // Brand name should now always be provided by the frontend
 
   // Replace basic placeholders
   let result = template
     .replace(/{{DD MONTH YYYY}}/g, formattedDate)
     .replace(/{{brand_name}}/g, brandName);
+    
+  console.log(`[renderStyleGuideTemplate] Basic placeholders replaced`)
 
   // Fill in brand_voice_traits and core_rules/complete_rules
   if (useAIContent) {
+    console.log(`[renderStyleGuideTemplate] Generating AI content...`)
     // AI-generated content (like processTemplate)
     try {
       const validatedDetails = {

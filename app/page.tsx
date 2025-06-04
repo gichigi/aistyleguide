@@ -222,12 +222,12 @@ export default function LandingPage() {
                       {isExtracting ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                          Checking...
+                          Checking
                         </>
                       ) : isSuccess ? (
                         <>
                           <CheckCircle className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                          Success
+                          Done!
                         </>
                       ) : (
                         <>

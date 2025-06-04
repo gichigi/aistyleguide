@@ -137,20 +137,12 @@ export default function GeneratePage() {
           router.push("/preview")
         } else {
           try {
-            // First test the API key
-            const testResponse = await fetch("/api/test-openai-connection")
-            const testData = await testResponse.json()
-
-            if (!testData.success) {
-              throw new Error(testData.error || "API key validation failed")
-            }
-
             console.log("Calling generate-styleguide API with brand details:", brandDetails)
             const response = await fetch("/api/generate-styleguide", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                brandInfo: brandDetails,
+                brandDetails: brandDetails,
                 plan: localStorage.getItem("styleGuidePlan") || "core",
               }),
             })

@@ -53,7 +53,9 @@ export async function POST(request: Request) {
   // Normalize the URL for logging purposes
   const normalizedUrl = normalizeWebhookUrl(originalUrl)
   
-  const payload = await request.text()
+  // Get raw buffer for signature verification (critical for Stripe webhooks)
+  const payload = await request.arrayBuffer()
+  const payloadBuffer = Buffer.from(payload)
   const sig = request.headers.get("stripe-signature")
   
   console.log(`[${new Date().toISOString()}] Webhook received:`)
@@ -66,9 +68,9 @@ export async function POST(request: Request) {
   }
 
   try {
-    // Verify webhook signature
+    // Verify webhook signature using raw buffer
     const event = stripe.webhooks.constructEvent(
-      payload,
+      payloadBuffer,
       sig,
       STRIPE_WEBHOOK_SECRET!
     )
@@ -100,7 +102,7 @@ export async function POST(request: Request) {
     // Log webhook processing failure
     try {
       // Try to parse the event even if signature verification failed
-      const event = JSON.parse(payload)
+      const event = JSON.parse(payloadBuffer.toString())
       logWebhookDetails(event, err)
     } catch (parseErr) {
       console.error("Could not parse webhook payload:", parseErr)

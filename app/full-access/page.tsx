@@ -37,6 +37,17 @@ export default function FullAccessPage() {
     const savedBrandDetails = localStorage.getItem("brandDetails")
     const savedGuideType = localStorage.getItem("styleGuidePlan")
     
+    if (!savedBrandDetails) {
+      console.error("[Full Access] No brand details found in localStorage")
+      toast({
+        title: "Session expired",
+        description: "Please fill in your brand details again.",
+        variant: "destructive",
+      })
+      router.push("/brand-details?paymentComplete=true")
+      return
+    }
+    
     if (savedBrandDetails) {
       setBrandDetails(JSON.parse(savedBrandDetails))
     }
@@ -64,6 +75,11 @@ export default function FullAccessPage() {
         }
       } catch (error) {
         console.error("Error generating full access guide:", error)
+        toast({
+          title: "Generation failed", 
+          description: "Could not generate your style guide. Please try again.",
+          variant: "destructive",
+        })
         router.push("/brand-details?paymentComplete=true")
       }
       setIsLoading(false)

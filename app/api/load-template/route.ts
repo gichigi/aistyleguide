@@ -23,13 +23,18 @@ interface ErrorResponse {
 }
 
 export async function GET(request: Request) {
+  console.log(`[API /load-template] Request received`)
+  
   try {
     // Get template name from URL params
     const { searchParams } = new URL(request.url)
     const templateName = searchParams.get("name")
+    
+    console.log(`[API /load-template] Template name requested: "${templateName}"`)
 
     // Validate template name
     if (!templateName) {
+      console.log(`[API /load-template] ERROR: No template name provided`)
       const error: ErrorResponse = {
         error: "Template name is required",
         type: ErrorTypes.INVALID_TEMPLATE_NAME,
@@ -41,6 +46,7 @@ export async function GET(request: Request) {
 
     // Validate template name format
     if (!/^[a-zA-Z0-9_]+$/.test(templateName)) {
+      console.log(`[API /load-template] ERROR: Invalid template name format: "${templateName}"`)
       const error: ErrorResponse = {
         error: "Invalid template name format",
         type: ErrorTypes.INVALID_TEMPLATE_NAME,
@@ -53,14 +59,17 @@ export async function GET(request: Request) {
 
     // Check if template is in cache
     if (templateCache[templateName]) {
+      console.log(`[API /load-template] Returning cached template: "${templateName}"`)
       return NextResponse.json({ content: templateCache[templateName] })
     }
 
     // Load template file
     const templatePath = path.join(process.cwd(), "templates", `${templateName}.md`)
+    console.log(`[API /load-template] Loading from path: "${templatePath}"`)
     
     // Check if file exists
     if (!fs.existsSync(templatePath)) {
+      console.log(`[API /load-template] ERROR: Template file not found at: "${templatePath}"`)
       const error: ErrorResponse = {
         error: "Template not found",
         type: ErrorTypes.TEMPLATE_NOT_FOUND,
@@ -73,12 +82,15 @@ export async function GET(request: Request) {
 
     try {
       const template = await fs.promises.readFile(templatePath, "utf8")
+      console.log(`[API /load-template] Successfully read template: "${templateName}" (${template.length} chars)`)
       
       // Cache the template
       templateCache[templateName] = template
+      console.log(`[API /load-template] Template cached: "${templateName}"`)
 
       return NextResponse.json({ content: template })
     } catch (readError) {
+      console.log(`[API /load-template] ERROR: Failed to read file: "${templatePath}"`)
       const error: ErrorResponse = {
         error: "Failed to read template file",
         type: ErrorTypes.FILE_READ_ERROR,
@@ -89,6 +101,7 @@ export async function GET(request: Request) {
       return NextResponse.json(error, { status: 500 })
     }
   } catch (error) {
+    console.log(`[API /load-template] ERROR: Unexpected error`)
     const errorResponse: ErrorResponse = {
       error: "Unexpected error loading template",
       type: ErrorTypes.UNKNOWN_ERROR,

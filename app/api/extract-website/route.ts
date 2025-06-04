@@ -3,6 +3,7 @@ import { generateWithOpenAI } from "@/lib/openai"
 import Logger from "@/lib/logger"
 import { validateUrl } from "@/lib/url-validation"
 import * as cheerio from "cheerio"
+import OpenAI from "openai"
 
 // Define interfaces for brand details
 interface TargetAudienceDetail {
@@ -69,6 +70,37 @@ function flattenTargetAudience(audience: TargetAudienceDetail): string {
   return parts.join(" who are ")
 }
 
+// Test OpenAI connection inline
+async function testOpenAIConnection() {
+  try {
+    const apiKey = process.env.OPENAI_API_KEY
+    if (!apiKey) {
+      throw new Error("OpenAI API key not found")
+    }
+
+    const openai = new OpenAI({ apiKey })
+    
+    // Simple test call with faster model
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: "Test" }],
+      max_tokens: 5,
+    })
+
+    if (!response.choices?.[0]?.message) {
+      throw new Error("Invalid OpenAI response")
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error("OpenAI test failed:", error)
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : "OpenAI connection failed" 
+    }
+  }
+}
+
 export async function POST(request: Request) {
   Logger.info("Received extract website request")
 
@@ -108,13 +140,10 @@ export async function POST(request: Request) {
       )
     }
 
-    // First test the API key
-    const testUrl = new URL("/api/test-openai-connection", request.url).toString()
-    const testResponse = await fetch(testUrl)
-    const testData = await testResponse.json()
-
-    if (!testData.success) {
-      throw new Error(testData.error || "API key validation failed")
+    // Test OpenAI connection inline
+    const testResult = await testOpenAIConnection()
+    if (!testResult.success) {
+      throw new Error(testResult.error || "API key validation failed")
     }
 
     // Fetch the website HTML
@@ -146,25 +175,38 @@ export async function POST(request: Request) {
     // Limit to 2 subpages
     const subpagesToCrawl = subpageLinks.slice(0, 2)
     let subpageText = ''
-    for (const subUrl of subpagesToCrawl) {
-      try {
-        const subRes = await fetch(subUrl)
-        const subHtml = await subRes.text()
-        const $sub = cheerio.load(subHtml)
-        const subTitle = $sub('title').text()
-        const subMeta = $sub('meta[name="description"]').attr('content') || ''
-        const subH1 = $sub('h1').first().text()
-        const subH2 = $sub('h2').first().text()
-        let subMain = $sub('main').text() || $sub('body').text()
-        subMain = subMain.replace(/\s+/g, ' ').trim().slice(0, 2000)
-        subpageText += `\n[Subpage: ${subUrl}]\n${subTitle}\n${subMeta}\n${subH1}\n${subH2}\n${subMain}`
-      } catch (e) { /* skip errors */ }
+    
+    // Fetch subpages in parallel for better performance
+    if (subpagesToCrawl.length > 0) {
+      const subpagePromises = subpagesToCrawl.map(async (subUrl) => {
+        try {
+          const subRes = await fetch(subUrl, { 
+            signal: AbortSignal.timeout(5000) // 5 second timeout
+          })
+          const subHtml = await subRes.text()
+          const $sub = cheerio.load(subHtml)
+          const subTitle = $sub('title').text()
+          const subMeta = $sub('meta[name="description"]').attr('content') || ''
+          const subH1 = $sub('h1').first().text()
+          const subH2 = $sub('h2').first().text()
+          let subMain = $sub('main').text() || $sub('body').text()
+          subMain = subMain.replace(/\s+/g, ' ').trim().slice(0, 2000)
+          return `\n[Subpage: ${subUrl}]\n${subTitle}\n${subMeta}\n${subH1}\n${subH2}\n${subMain}`
+        } catch (e) { 
+          console.log(`Failed to fetch subpage ${subUrl}:`, e)
+          return '' // Return empty string on error
+        }
+      })
+      
+      // Wait for all subpage fetches to complete
+      const subpageResults = await Promise.all(subpagePromises)
+      subpageText = subpageResults.join('')
     }
 
     // Combine all extracted text
     let summary = [title, metaDesc, h1, h2, mainContent, subpageText].filter(Boolean).join('\n')
-    // Truncate to 20k chars
-    summary = summary.slice(0, 20000)
+    // Reduce to 10k chars for faster processing
+    summary = summary.slice(0, 10000)
 
     // Generate prompt for website extraction with improved guidance
     const prompt = `Analyze the following website content and extract the brand's core identity.
@@ -190,7 +232,9 @@ ${summary}
 
     const result = await generateWithOpenAI(
       prompt,
-      "You are an expert brand analyst with experience writing clear, readable brand summaries. Use simple language and short sentences. Avoid complex words, marketing jargon, and run-on sentences. Make your description easily scannable and accessible to all readers."
+      "You are an expert brand analyst with experience writing clear, readable brand summaries. Use simple language and short sentences. Avoid complex words, marketing jargon, and run-on sentences. Make your description easily scannable and accessible to all readers.",
+      "json", // Use json format for faster processing
+      500 // Reduce max tokens since we only need a short paragraph
     )
 
     if (!result.success || !result.content) {

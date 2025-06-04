@@ -45,10 +45,11 @@ export async function generateWithOpenAI(
   prompt: string, 
   systemPrompt: string,
   responseFormat: ResponseFormat = "json",
-  max_tokens: number = 2000
+  max_tokens: number = 2000,
+  model: string = "gpt-3.5-turbo" // Default to faster model
 ): Promise<GenerationResult> {
   const maxAttempts = 3
-  Logger.info("Starting OpenAI generation", { prompt: prompt.substring(0, 100) + "...", format: responseFormat })
+  Logger.info("Starting OpenAI generation", { prompt: prompt.substring(0, 100) + "...", format: responseFormat, model })
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
@@ -56,7 +57,7 @@ export async function generateWithOpenAI(
       
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
       const response = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: model,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: prompt }
@@ -124,7 +125,7 @@ export async function generateWithOpenAI(
 // Function to generate brand voice traits
 export async function generateBrandVoiceTraits(brandDetails: any): Promise<GenerationResult> {
   const prompt = `You are a brand strategist. Based on the following brand information, generate exactly 3 unique, complementary brand voice traits for this brand.\n\nBrand Info:\n• Brand Name: ${brandDetails.name}\n• Audience: ${brandDetails.audience}\n• Tone: ${brandDetails.tone}\n• What they do: ${brandDetails.summary || brandDetails.description}\n\nFor each trait, provide:\n1. A short, bold title as a numbered Markdown header (use \`### 1. TraitName\`, \`### 2. TraitName\`, etc.), with a blank line before and after.\n2. A **ONE SENTENCE** description of the trait and why it's important for this brand.\n3. "What It Means": 3 specific, actionable examples, each starting with → (unicode arrow, not emoji).  \n   - Place these under a bolded subheading: \`***What It Means***\`  \n   - Add a blank line before and after this section.\n4. "What It Doesn't Mean": 3 clarifications to avoid misinterpretation, each starting with ✗ (unicode cross, not emoji).  \n   - Place these under a bolded subheading: \`***What It Doesn't Mean***\`  \n   - Add a blank line before and after this section.\n\nFormatting rules:\n- Always use a blank line between each trait and each section.\n- Use numbered Markdown headers for trait names (### 1. TraitName, ### 2. TraitName, etc.).\n- Do not use bullet points.\n- Do not use meta-text, headings, or quote marks around trait titles.\n\nExample format:\n\n### 1. Simplicity\n\nA one-sentence description of the trait and why it's important.\n\n***What It Means***\n\n→ Use plain English and avoid jargon or unnecessary complexity.  \n→ Short, punchy sentences that get straight to the point.  \n→ Prioritize clarity so anyone can understand our message without a dictionary.\n\n***What It Doesn't Mean***\n\n✗ Dumbing down ideas or skipping important details.  \n✗ Ignoring nuance when discussing more advanced topics.  \n✗ Simplistic design or lack of depth in our overall communications.\n\n### 2. Boldness\n\nA one-sentence description of the trait and why it's important.\n\n***What It Means***\n\n→ Take clear stances on important topics.  \n→ Use confident, assertive language.  \n→ Encourage creative risk-taking in messaging.\n\n***What It Doesn't Mean***\n\n✗ Being aggressive or dismissive of other views.  \n✗ Making unsupported claims.  \n✗ Ignoring feedback or new ideas.\n\n### 3. Empathy\n\nA one-sentence description of the trait and why it's important.\n\n***What It Means***\n\n→ Show understanding of the user's needs and feelings.  \n→ Use language that acknowledges challenges and celebrates wins.  \n→ Make content feel personal and supportive.\n\n***What It Doesn't Mean***\n\n✗ Overpromising solutions to every problem.  \n✗ Using patronizing or insincere language.  \n✗ Ignoring the diversity of user experiences.\n\n---\nNow, generate 3 traits in this format.`;
-  return generateWithOpenAI(prompt, "You are a brand strategist.", "markdown");
+  return generateWithOpenAI(prompt, "You are a brand strategist.", "markdown", 2000, "gpt-4o");
 }
 
 /* Function to generate style guide rules
@@ -218,7 +219,7 @@ Use the Oxford comma in lists of three or more items.
 
 ---
 Generate exactly 25 rules, each about a different aspect of writing style.`;
-  return generateWithOpenAI(prompt, "You are a writing style guide expert.", "markdown");
+  return generateWithOpenAI(prompt, "You are a writing style guide expert.", "markdown", 3000, "gpt-4o");
 }
 
 // Function to generate the entire complete style guide in one go

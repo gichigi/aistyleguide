@@ -1,46 +1,61 @@
 import { NextResponse } from "next/server"
 import { renderStyleGuideTemplate } from "@/lib/template-processor"
+import OpenAI from "openai"
 
-// Add validation function
+// Simplified validation function - only new format
 function validateBrandDetails(details: any) {
   const errors: string[] = []
   
-  // Check if we have brandDetailsText (new format) or separate fields (old format)
-  if (details.brandDetailsText) {
-    // New format validation
-    if (!details.brandDetailsText || details.brandDetailsText.trim().length === 0) {
-      errors.push("Brand details text is required")
-    } else if (details.brandDetailsText.length > 1000) {
-      errors.push("Brand details text must be 1000 characters or less")
-    }
-  } else {
-    // Old format validation (keep for backwards compatibility)
-    if (!details.name || details.name.trim().length === 0) {
-      errors.push("Brand name is required")
-    } else if (details.name.length > 50) {
-      errors.push("Brand name must be 50 characters or less")
-    }
-    
-    if (!details.description || details.description.trim().length === 0) {
-      errors.push("Brand description is required")
-    } else if (details.description.length > 500) {
-      errors.push("Brand description must be 500 characters or less")
-    }
-    
-    if (!details.audience || details.audience.trim().length === 0) {
-      errors.push("Target audience is required")
-    } else if (details.audience.length > 500) {
-      errors.push("Target audience must be 500 characters or less")
-    }
+  // Required fields
+  if (!details.name || details.name.trim().length === 0) {
+    errors.push("Brand name is required")
   }
   
-  // Tone validation (same for both formats)
+  if (!details.description || details.description.trim().length === 0) {
+    errors.push("Brand description is required")
+  }
+  
+  // Audience is optional since it's always set to "general audience"
+  // No validation needed
+  
+  // Tone validation
   const validTones = ["friendly", "professional", "casual", "formal", "technical"]
   if (!details.tone || !validTones.includes(details.tone)) {
     errors.push("Invalid tone selected")
   }
   
   return errors
+}
+
+// Test OpenAI connection inline
+async function testOpenAIConnection() {
+  try {
+    const apiKey = process.env.OPENAI_API_KEY
+    if (!apiKey) {
+      throw new Error("OpenAI API key not found")
+    }
+
+    const openai = new OpenAI({ apiKey })
+    
+    // Simple test call
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: "Test" }],
+      max_tokens: 5,
+    })
+
+    if (!response.choices?.[0]?.message) {
+      throw new Error("Invalid OpenAI response")
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error("OpenAI test failed:", error)
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : "OpenAI connection failed" 
+    }
+  }
 }
 
 export async function POST(request: Request) {
@@ -50,13 +65,10 @@ export async function POST(request: Request) {
   try {
     console.log("Received request to generate-styleguide API")
 
-    // First test the API key
-    const testUrl = new URL("/api/test-openai-connection", request.url).toString()
-    const testResponse = await fetch(testUrl)
-    const testData = await testResponse.json()
-
-    if (!testData.success) {
-      throw new Error(testData.error || "API key validation failed")
+    // Test OpenAI connection inline
+    const testResult = await testOpenAIConnection()
+    if (!testResult.success) {
+      throw new Error(testResult.error || "API key validation failed")
     }
 
     // Get the request body and handle potential parsing errors
@@ -75,9 +87,17 @@ export async function POST(request: Request) {
       )
     }
 
-    // Safely extract brandDetails with a default empty object if it doesn't exist
-    brandDetails = requestBody?.brandInfo || requestBody?.brandDetails || {}
+    // Extract brandDetails from request body
+    brandDetails = requestBody?.brandDetails || {}
     console.log("Extracted brand details:", brandDetails)
+    console.log("Brand details structure:", {
+      hasName: !!brandDetails.name,
+      hasDescription: !!brandDetails.description,
+      hasAudience: !!brandDetails.audience,
+      hasBrandDetailsText: !!brandDetails.brandDetailsText,
+      tone: brandDetails.tone,
+      keys: Object.keys(brandDetails)
+    })
 
     // Validate brand details
     const validationErrors = validateBrandDetails(brandDetails)

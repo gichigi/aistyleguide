@@ -23,10 +23,57 @@ const defaultBrandDetails = {
   tone: "friendly",
 }
 
+// Inline brand name extraction function
+function extractBrandNameInline(brandDetailsText: string) {
+  try {
+    // Simple extraction logic - look for common patterns
+    const text = brandDetailsText.trim()
+    
+    // Look for patterns like "Nike is a..." or "Apple creates..."
+    const patterns = [
+      /^([A-Z][a-zA-Z0-9\s&-]{1,30})\s+(?:is|are|was|were|creates?|makes?|provides?|offers?|specializes?)/i,
+      /^([A-Z][a-zA-Z0-9\s&-]{1,30})\s+(?:helps?|serves?|works?|focuses?)/i,
+      /(?:company|brand|business|startup|organization)\s+(?:called|named)\s+([A-Z][a-zA-Z0-9\s&-]{1,30})/i,
+      /^([A-Z][a-zA-Z0-9\s&-]{1,30})\s*[,.]?\s*(?:a|an|the)/i
+    ]
+    
+    // Try each pattern
+    for (const pattern of patterns) {
+      const match = text.match(pattern)
+      if (match && match[1]) {
+        const brandName = match[1].trim()
+        // Validate it's not too generic
+        const genericWords = ['company', 'business', 'brand', 'startup', 'organization', 'team', 'we', 'our', 'this', 'that']
+        if (!genericWords.includes(brandName.toLowerCase()) && brandName.length > 1) {
+          return { success: true, brandName }
+        }
+      }
+    }
+    
+    // Fallback: look for first capitalized word that's not too common
+    const words = text.split(/\s+/)
+    for (const word of words) {
+      if (/^[A-Z][a-zA-Z0-9&-]{1,20}$/.test(word)) {
+        const commonWords = ['The', 'This', 'That', 'Our', 'We', 'Company', 'Business', 'Brand', 'Team']
+        if (!commonWords.includes(word)) {
+          return { success: true, brandName: word }
+        }
+      }
+    }
+    
+    // Final fallback
+    return { success: true, brandName: "Your Brand" }
+  } catch (error) {
+    console.error("Brand name extraction failed:", error)
+    return { success: true, brandName: "Your Brand" }
+  }
+}
+
 export default function BrandDetailsPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
+  const [processingStep, setProcessingStep] = useState<'idle' | 'processing' | 'complete'>('idle')
   const searchParams = useSearchParams()
   const fromExtraction = searchParams.get("fromExtraction") === "true"
   const fromPayment = searchParams.get("paymentComplete") === "true"
@@ -133,9 +180,6 @@ export default function BrandDetailsPage() {
       validatedValue = value.slice(0, 500)
     }
     
-    // Validate the field
-    validateField(name, validatedValue)
-    
     setBrandDetails((prev) => {
       const updatedDetails = { ...prev, [name]: validatedValue }
       // Save to localStorage
@@ -192,28 +236,32 @@ export default function BrandDetailsPage() {
     return !!(brandDetails.brandDetailsText && brandDetails.brandDetailsText.trim().length > 0)
   }
 
-  // Update the handleSubmit function to call the extractBrandName API, store the result as brandDetails.name in localStorage, and keep the loading state logic unchanged
+  // Update the handleSubmit function to use inline brand name extraction instead of external API
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setProcessingStep('processing')
 
     try {
-      // Extract brand name using API
-      const nameResponse = await fetch("/api/extract-brand-name", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ brandDetails })
-      })
+      // Show processing state for 5 seconds
+      await new Promise(resolve => setTimeout(resolve, 5000))
+      
+      // Extract brand name using inline function
+      const nameResult = extractBrandNameInline(brandDetails.brandDetailsText)
       let brandName = ""
-      if (nameResponse.ok) {
-        const nameData = await nameResponse.json()
-        if (nameData.success && nameData.brandName) {
-          brandName = nameData.brandName
-        }
+      if (nameResult.success && nameResult.brandName) {
+        brandName = nameResult.brandName
       }
 
-      // Add brand name to brandDetails
-      const detailsWithName = { ...brandDetails, name: brandName }
+      // Map the simplified form data to the expected template processor format
+      const detailsWithName = { 
+        ...brandDetails, 
+        name: brandName,
+        // Map brandDetailsText to description for template processor compatibility
+        description: brandDetails.brandDetailsText,
+        // Set default audience since we no longer collect it separately
+        audience: "general audience"
+      }
 
       // Generate preview as before
       const response = await fetch("/api/preview", {
@@ -233,13 +281,21 @@ export default function BrandDetailsPage() {
       }
 
       // Save brand details and preview
+      console.log("[Brand Details] Saving to localStorage:", detailsWithName)
       localStorage.setItem("brandDetails", JSON.stringify(detailsWithName))
       localStorage.setItem("previewContent", data.preview)
+      console.log("[Brand Details] Successfully saved brand details with extracted name")
+
+      setProcessingStep('complete')
+      
+      // Brief pause to show completion
+      await new Promise(resolve => setTimeout(resolve, 500))
 
       // Redirect to preview page
       router.push("/preview")
     } catch (error) {
       setLoading(false)
+      setProcessingStep('idle')
       console.error("Error:", error)
       toast({
         title: "Error",
@@ -328,10 +384,17 @@ export default function BrandDetailsPage() {
                     disabled={loading || !!mainError || !brandDetails.brandDetailsText.trim()} 
                     className="w-full sm:w-auto"
                   >
-                    {loading ? (
+                    {processingStep === 'processing' ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Processing...
+                      </>
+                    ) : processingStep === 'complete' ? (
+                      <>
+                        <svg className="mr-2 h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Complete
                       </>
                     ) : (
                       "Generate Style Guide"

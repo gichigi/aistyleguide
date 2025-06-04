@@ -11,7 +11,6 @@ function SuccessContent() {
   const searchParams = useSearchParams()
   const { toast } = useToast()
   const [generationStatus, setGenerationStatus] = useState<'generating' | 'complete' | 'error'>('generating')
-  const [progress, setProgress] = useState(0)
 
   useEffect(() => {
     const sessionId = searchParams.get("session_id")
@@ -37,15 +36,30 @@ function SuccessContent() {
         // Get brand details
         const brandDetails = localStorage.getItem("brandDetails")
         if (!brandDetails) {
-          throw new Error("No brand details found")
+          console.error("[Payment Success] No brand details found in localStorage")
+          toast({
+            title: "Session expired",
+            description: "Please fill in your brand details again.",
+            variant: "destructive",
+          })
+          // Redirect to brand details page with payment complete flag
+          router.push("/brand-details?paymentComplete=true")
+          return
         }
+
+        console.log("[Payment Success] Found brand details, generating style guide...")
+        
+        // Parse and log the brand details
+        const parsedBrandDetails = JSON.parse(brandDetails)
+        console.log("[Payment Success] Parsed brand details:", parsedBrandDetails)
+        console.log("[Payment Success] Sending to API with plan:", guideType)
 
         // Generate style guide
         const response = await fetch("/api/generate-styleguide", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            brandInfo: JSON.parse(brandDetails),
+            brandDetails: parsedBrandDetails,
             plan: guideType
           })
         })
@@ -64,7 +78,6 @@ function SuccessContent() {
         
         // Update status
         setGenerationStatus('complete')
-        setProgress(100)
 
         // Show success message
         toast({
@@ -94,40 +107,41 @@ function SuccessContent() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-blue-50">
       <div className="bg-white rounded-xl border border-blue-100 shadow-sm p-8 text-center max-w-md mx-4">
-        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6 relative">
           {generationStatus === 'generating' && (
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+            <>
+              <div className="absolute inset-0 bg-blue-200 rounded-full animate-ping opacity-75"></div>
+              <Loader2 className="h-10 w-10 animate-spin text-blue-600 relative z-10" />
+            </>
           )}
           {generationStatus === 'complete' && (
-            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           )}
           {generationStatus === 'error' && (
-            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           )}
         </div>
         
-        <h1 className="text-xl font-semibold text-gray-900 mb-2">
+        <h1 className="text-xl font-semibold text-gray-900 mb-3">
           {generationStatus === 'generating' && "Payment Successful!"}
           {generationStatus === 'complete' && "Style Guide Ready!"}
           {generationStatus === 'error' && "Generation Failed"}
         </h1>
         
-        <p className="text-gray-600 text-sm mb-6">
-          {generationStatus === 'generating' && "Generating your personalized style guide..."}
+        <p className="text-gray-600 text-sm mb-4">
+          {generationStatus === 'generating' && "We're generating your personalized style guide now."}
           {generationStatus === 'complete' && "Your guide is ready! Taking you there now."}
           {generationStatus === 'error' && "We couldn't make your guide. Try again or contact support."}
         </p>
         
         {generationStatus === 'generating' && (
-          <div className="bg-gray-100 rounded-full h-2 overflow-hidden">
-            <div 
-              className="bg-blue-600 h-full transition-all duration-1000 ease-out rounded-full" 
-              style={{width: `${Math.min(progress + 20, 85)}%`}}
-            ></div>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
+            <p className="font-medium mb-1">This can take a couple of minutes</p>
+            <p>Please don't close this window</p>
           </div>
         )}
       </div>
