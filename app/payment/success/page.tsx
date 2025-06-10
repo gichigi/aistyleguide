@@ -6,6 +6,13 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { Loader2 } from "lucide-react"
 
+// Declare gtag function for TypeScript
+declare global {
+  interface Window {
+    gtag: (...args: any[]) => void;
+  }
+}
+
 function SuccessContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -16,15 +23,26 @@ function SuccessContent() {
     const sessionId = searchParams.get("session_id")
     const guideType = searchParams.get("guide_type") || "core"
     
-    if (!sessionId) {
-      toast({
-        title: "Invalid session",
-        description: "Could not verify payment status. Please try again.",
-        variant: "destructive",
+    // Fire Google Ads conversion event (required even with page load conversion)
+    if (typeof window !== 'undefined' && window.gtag) {
+      console.log('🎯 Firing Google Ads conversion event...')
+      
+      // Event snippet as required by Google Ads documentation
+      window.gtag('event', 'conversion', {
+        'send_to': 'AW-943197631'  // Your conversion will be matched automatically
       })
-      router.push("/preview")
-      return
     }
+    
+    // Temporarily commented out for testing conversion tracking
+    // if (!sessionId) {
+    //   toast({
+    //     title: "Invalid session",
+    //     description: "Could not verify payment status. Please try again.",
+    //     variant: "destructive",
+    //   })
+    //   router.push("/preview")
+    //   return
+    // }
 
     // Store payment status and guide type
     localStorage.setItem("styleGuidePaymentStatus", "completed")

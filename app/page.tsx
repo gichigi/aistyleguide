@@ -694,7 +694,7 @@ export default function LandingPage() {
               </div>
               <div className="flex flex-col items-center p-6 rounded-xl border bg-gradient-to-b from-white to-gray-50 shadow-sm hover:shadow-md transition-all">
                 <Users className="h-10 w-10 text-indigo-600 mb-2" />
-                <h3 className="text-lg font-bold">Marketing Teams</h3>
+                <h3 className="text-lg font-bold">Marketing</h3>
               </div>
               <div className="flex flex-col items-center p-6 rounded-xl border bg-gradient-to-b from-white to-gray-50 shadow-sm hover:shadow-md transition-all">
                 <Rocket className="h-10 w-10 text-green-600 mb-2" />

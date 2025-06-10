@@ -14,7 +14,7 @@ export default function TestimonialsSection() {
       image: "/headshot-3.jpg" // First headshot image
     },
     {
-      name: "Anna Yermakova",
+      name: "Anna",
       title: "",
       company: "Naked Brand",
       quote:

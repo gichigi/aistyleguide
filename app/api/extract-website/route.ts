@@ -147,8 +147,25 @@ export async function POST(request: Request) {
     }
 
     // Fetch the website HTML
-    const siteResponse = await fetch(urlValidation.url)
+    const siteResponse = await fetch(urlValidation.url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'DNT': '1',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+      }
+    })
     let html = await siteResponse.text()
+    
+    // Debug: Log what we actually got
+    Logger.debug("Fetched HTML preview", { 
+      url: urlValidation.url,
+      htmlPreview: html.slice(0, 500),
+      contentLength: html.length 
+    })
 
     // Use cheerio to extract key info from homepage
     const $ = cheerio.load(html)
@@ -159,6 +176,15 @@ export async function POST(request: Request) {
     // Try to get main content (simple: first <main>, fallback: body text)
     let mainContent = $('main').text() || $('body').text()
     mainContent = mainContent.replace(/\s+/g, ' ').trim().slice(0, 2000)
+
+    // Debug: Log extracted content
+    Logger.debug("Extracted content", { 
+      title, 
+      metaDesc, 
+      h1, 
+      h2, 
+      mainContentPreview: mainContent.slice(0, 200) 
+    })
 
     // Find links to About, Company, Team pages
     const subpageLinks: string[] = []
@@ -181,7 +207,16 @@ export async function POST(request: Request) {
       const subpagePromises = subpagesToCrawl.map(async (subUrl) => {
         try {
           const subRes = await fetch(subUrl, { 
-            signal: AbortSignal.timeout(5000) // 5 second timeout
+            signal: AbortSignal.timeout(5000), // 5 second timeout
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+              'Accept-Language': 'en-US,en;q=0.5',
+              'Accept-Encoding': 'gzip, deflate, br',
+              'DNT': '1',
+              'Connection': 'keep-alive',
+              'Upgrade-Insecure-Requests': '1',
+            }
           })
           const subHtml = await subRes.text()
           const $sub = cheerio.load(subHtml)
@@ -224,7 +259,10 @@ Your paragraph should be:
 - Focused on their current offerings, not history
 - Use short sentences and simple punctuation
 
-Example: 'Nike is a leading sports brand, selling a wide range of workout products, services and experiences worldwide. Nike targets athletes and sports enthusiasts globally, focusing on those who want high-quality sportswear and equipment.'
+Examples: 
+'Nike is a leading sports brand, selling a wide range of workout products, services and experiences worldwide. Nike targets athletes and sports enthusiasts globally, focusing on those who want high-quality sportswear and equipment.'
+
+'OpenAI is a technology company specializing in artificial intelligence research and development. OpenAI offers cutting-edge AI products and services to businesses and developers worldwide. Their target audience includes organizations looking to leverage advanced AI solutions.'
 
 Website Content:
 ${summary}
