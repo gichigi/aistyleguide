@@ -182,6 +182,9 @@ export default function FullAccessPage() {
   const guideContent = getGuideContent()
 
   const exportPDF = async () => {
+    // Only run on client side
+    if (typeof window === 'undefined') return;
+    
     const element = document.getElementById('pdf-export-content')
     if (!element) return
     // @ts-ignore
@@ -199,6 +202,11 @@ export default function FullAccessPage() {
   // Process content to remove duplicate headings that conflict with our header
   const processFullAccessContent = (content: string, brandName: string = "") => {
     if (!content) return content;
+    
+    // Only process on client side to avoid SSR issues
+    if (typeof window === 'undefined') {
+      return content;
+    }
     
     // Remove the first h1 heading if it contains the brand name
     const tempDiv = document.createElement('div');
