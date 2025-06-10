@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ArrowLeft, FileText, Loader2, Check, X, ChevronDown } from "lucide-react"
@@ -18,7 +18,7 @@ import { generateFile, FileFormat } from "@/lib/file-generator"
 import Header from "@/components/Header"
 import { StyleGuideHeader } from "@/components/StyleGuideHeader"
 
-export default function FullAccessPage() {
+function FullAccessContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
@@ -489,5 +489,13 @@ export default function FullAccessPage() {
         </DialogContent>
       </Dialog>
     </div>
+  )
+}
+
+export default function FullAccessPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <FullAccessContent />
+    </Suspense>
   )
 }
