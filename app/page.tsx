@@ -24,6 +24,7 @@ import {
   Rocket,
   Briefcase,
   PhoneCall,
+  Check,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import dynamic from "next/dynamic"
@@ -593,6 +594,14 @@ export default function LandingPage() {
                       </li>
                     </ul>
                     <Button size="lg" className="mt-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-full px-8 py-3 shadow-md" onClick={() => router.push("/brand-details")}>Get Core Guide</Button>
+                    
+                    {/* Add guarantee */}
+                    <div className="flex items-center justify-center gap-2 text-xs text-green-600 mt-3">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                      <span className="font-medium">30-day guarantee</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -607,29 +616,22 @@ export default function LandingPage() {
                       <p className="text-5xl font-bold text-indigo-700">$149</p>
                       <p className="text-sm text-muted-foreground">One-time payment</p>
                     </div>
-                    <ul className="space-y-2 text-left">
-                      <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-indigo-600" />
-                        <span>Everything in Core Guide</span>
-                      </li>
-                      <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-indigo-600" />
-                        <span>99+ modern writing rules</span>
-                      </li>
-                      <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-indigo-600" />
-                        <span>Used by Apple, Spotify, BBC</span>
-                      </li>
-                      <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-indigo-600" />
-                        <span>Formatting standards</span>
-                      </li>
-                      <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-indigo-600" />
-                        <span>Example corrections</span>
-                      </li>
+                    <ul className="text-left space-y-2 text-sm">
+                      <li className="flex items-center gap-2"><Check className="h-4 w-4 text-indigo-600" />Everything in Core Guide</li>
+                      <li className="flex items-center gap-2"><Check className="h-4 w-4 text-indigo-600" />99+ writing rules (used by Apple, Spotify, BBC)</li>
+                      <li className="flex items-center gap-2"><Check className="h-4 w-4 text-indigo-600" />Advanced formatting standards</li>
+                      <li className="flex items-center gap-2"><Check className="h-4 w-4 text-indigo-600" />Multiple download formats</li>
+                      <li className="flex items-center gap-2"><Check className="h-4 w-4 text-indigo-600" />Best for agencies & larger teams</li>
                     </ul>
-                    <Button size="lg" className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-full px-8 py-3 shadow-md" onClick={() => router.push("/brand-details")}>Get Complete Guide</Button>
+                    <Button size="lg" className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-full px-8 py-3 shadow-md" onClick={() => router.push("/brand-details?guideType=complete")}>Get Complete Guide</Button>
+                    
+                    {/* Add guarantee */}
+                    <div className="flex items-center justify-center gap-2 text-xs text-green-600 mt-3">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                      <span className="font-medium">30-day guarantee</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -752,6 +754,10 @@ export default function LandingPage() {
                 {
                   q: "How do I contact support?",
                   a: <span>Email us at <a href="mailto:support@aistyleguide.com?subject=Support%20Request&body=Hello%20AIStyleGuide%20Support%20Team,%0A%0AI%20need%20help%20with:%0A%0A[Please%20describe%20your%20issue%20here]%0A%0AThanks,%0A[Your%20Name]" className="text-primary hover:underline">support@aistyleguide.com</a> for any questions. We typically respond within 24 hours on business days.</span>,
+                },
+                {
+                  q: "How do I get a refund?",
+                  a: <span>We offer a 30-day money-back guarantee. Simply email <a href="mailto:support@aistyleguide.com?subject=Refund%20Request%20-%20Style%20Guide%20Purchase&body=Hi%20AIStyleGuide%20Support%20Team,%0A%0AI%20would%20like%20to%20request%20a%20refund%20for%20my%20style%20guide%20purchase.%0A%0APurchase%20Details:%0A- Guide%20Type:%20[Core%20or%20Complete]%0A- Purchase%20Date:%20[Date]%0A- Email%20used%20for%20purchase:%20[Email]%0A%0AReason%20for%20refund%20(optional):%20%0A%0AThanks,%0A[Your%20Name]" className="text-primary hover:underline">support@aistyleguide.com</a> within 30 days of your purchase for a full refund. No questions asked - we process refunds quickly, usually within 1-2 business days.</span>,
                 },
               ].map((item, i) => (
                 <div key={i} className="py-6">
