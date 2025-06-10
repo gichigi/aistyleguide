@@ -434,9 +434,17 @@ export default function PreviewPage() {
                       <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
                         Unlock Your Style Guide
                   </h3>
-                      <p className="text-sm sm:text-base text-gray-600 mb-6 leading-relaxed">
+                      <p className="text-sm sm:text-base text-gray-600 mb-4 leading-relaxed">
                         Get access to all writing rules, detailed examples, and professional formats to create a consistent brand voice.
                   </p>
+                  
+                  {/* Add subtle pricing transparency */}
+                  <div className="mb-4">
+                    <p className="text-sm text-gray-500 mb-3">
+                      Starting from <span className="font-semibold text-gray-700">$99</span>
+                    </p>
+                  </div>
+                  
                   <Button
                     onClick={() => setPaymentDialogOpen(true)}
                         className="w-full sm:w-auto text-base sm:text-lg py-3 sm:py-4 px-6 sm:px-8 bg-gray-900 hover:bg-gray-800 text-white shadow-sm hover:shadow-md transition-all duration-200"
