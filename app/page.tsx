@@ -24,6 +24,7 @@ import {
   Rocket,
   Briefcase,
   PhoneCall,
+  Check,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import dynamic from "next/dynamic"
@@ -593,6 +594,14 @@ export default function LandingPage() {
                       </li>
                     </ul>
                     <Button size="lg" className="mt-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-full px-8 py-3 shadow-md" onClick={() => router.push("/brand-details")}>Get Core Guide</Button>
+                    
+                    {/* Add guarantee */}
+                    <div className="flex items-center justify-center gap-2 text-xs text-green-600 mt-3">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                      <span className="font-medium">30-day guarantee</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -607,29 +616,22 @@ export default function LandingPage() {
                       <p className="text-5xl font-bold text-indigo-700">$149</p>
                       <p className="text-sm text-muted-foreground">One-time payment</p>
                     </div>
-                    <ul className="space-y-2 text-left">
-                      <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-indigo-600" />
-                        <span>Everything in Core Guide</span>
-                      </li>
-                      <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-indigo-600" />
-                        <span>99+ modern writing rules</span>
-                      </li>
-                      <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-indigo-600" />
-                        <span>Used by Apple, Spotify, BBC</span>
-                      </li>
-                      <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-indigo-600" />
-                        <span>Formatting standards</span>
-                      </li>
-                      <li className="flex items-center">
-                        <CheckCircle className="mr-2 h-4 w-4 text-indigo-600" />
-                        <span>Example corrections</span>
-                      </li>
+                    <ul className="text-left space-y-2 text-sm">
+                      <li className="flex items-center gap-2"><Check className="h-4 w-4 text-indigo-600" />Everything in Core Guide</li>
+                      <li className="flex items-center gap-2"><Check className="h-4 w-4 text-indigo-600" />99+ writing rules (used by Apple, Spotify, BBC)</li>
+                      <li className="flex items-center gap-2"><Check className="h-4 w-4 text-indigo-600" />Advanced formatting standards</li>
+                      <li className="flex items-center gap-2"><Check className="h-4 w-4 text-indigo-600" />Multiple download formats</li>
+                      <li className="flex items-center gap-2"><Check className="h-4 w-4 text-indigo-600" />Best for agencies & larger teams</li>
                     </ul>
-                    <Button size="lg" className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-full px-8 py-3 shadow-md" onClick={() => router.push("/brand-details")}>Get Complete Guide</Button>
+                    <Button size="lg" className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-full px-8 py-3 shadow-md" onClick={() => router.push("/brand-details?guideType=complete")}>Get Complete Guide</Button>
+                    
+                    {/* Add guarantee */}
+                    <div className="flex items-center justify-center gap-2 text-xs text-green-600 mt-3">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                      <span className="font-medium">30-day guarantee</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
