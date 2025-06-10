@@ -17,6 +17,15 @@ const stripe = new Stripe(STRIPE_SECRET_KEY!, {
   apiVersion: "2023-10-16",
 })
 
+// Store sent emails to prevent spam (in production, use a database)
+const sentEmails = new Set<string>();
+
+// Generate discount code for abandoned cart recovery
+function generateDiscountCode(): string {
+  const codes = ['SAVE20', 'COMEBACK20', 'FINISH20', 'RETURN20'];
+  return codes[Math.floor(Math.random() * codes.length)];
+}
+
 // Log webhook event details for debugging
 function logWebhookDetails(event: any, error?: any) {
   const timestamp = new Date().toISOString()
@@ -44,6 +53,108 @@ function normalizeWebhookUrl(url: string): string {
   } catch (e) {
     console.error('Failed to normalize URL:', e)
     return url
+  }
+}
+
+// Handle successful payment
+async function handlePaymentSuccess(session: Stripe.Checkout.Session) {
+  try {
+    console.log('Processing successful payment:', session.id);
+    
+    // Extract customer details for personal follow-up email
+    const customerEmail = session.customer_details?.email;
+    const customerName = session.customer_details?.name;
+    const amount = session.amount_total || 0;
+    const currency = session.currency || 'usd';
+    
+    if (!customerEmail) {
+      console.log('No customer email found, skipping personal follow-up email');
+      return;
+    }
+    
+    // Check if we already sent a personal follow-up email for this session
+    const emailKey = `thankyou_${session.id}`;
+    if (sentEmails.has(emailKey)) {
+      console.log('Personal follow-up email already sent for session:', session.id);
+      return;
+    }
+    
+    // Send personal follow-up email from Tahi (with cache busting for development)
+    const cacheBust = process.env.NODE_ENV === 'development' ? `?v=${Date.now()}` : ''
+    console.log('🔄 Importing email service with cache bust:', cacheBust)
+    const { emailService } = await import(`@/lib/email-service${cacheBust}`)
+    console.log('✅ Email service imported successfully')
+    const emailResult = await emailService.sendThankYouEmail({
+      customerEmail,
+      customerName: customerName || undefined,
+      sessionId: session.id,
+      amount,
+      currency,
+    });
+    
+    if (emailResult.success) {
+      sentEmails.add(emailKey);
+      console.log('✅ Personal follow-up email sent successfully to:', customerEmail);
+    } else {
+      console.error('❌ Failed to send personal follow-up email:', emailResult.error);
+    }
+    
+  } catch (error) {
+    console.error('Error handling payment success:', error);
+  }
+}
+
+// Handle expired session (abandoned cart)
+async function handleSessionExpired(session: Stripe.Checkout.Session) {
+  try {
+    console.log('Processing expired session:', session.id);
+    
+    // Extract customer details and recovery info
+    const customerEmail = session.customer_details?.email;
+    const customerName = session.customer_details?.name;
+    const recoveryUrl = session.after_expiration?.recovery?.url;
+    const expiresAt = session.after_expiration?.recovery?.expires_at;
+    
+    // Check if customer consented to promotional emails
+    const hasConsent = session.consent?.promotions === 'opt_in';
+    
+    if (!customerEmail || !recoveryUrl || !hasConsent) {
+      console.log('Missing email, recovery URL, or consent - skipping abandoned cart email');
+      console.log('Email:', !!customerEmail, 'Recovery URL:', !!recoveryUrl, 'Consent:', hasConsent);
+      return;
+    }
+    
+    // Check if we already sent an abandoned cart email for this customer
+    const emailKey = `abandoned_${customerEmail}`;
+    if (sentEmails.has(emailKey)) {
+      console.log('Abandoned cart email already sent to:', customerEmail);
+      return;
+    }
+    
+    // Generate discount code
+    const discountCode = generateDiscountCode();
+    
+    // Send abandoned cart recovery email (with cache busting for development)
+    const cacheBust = process.env.NODE_ENV === 'development' ? `?v=${Date.now()}` : ''
+    const { emailService } = await import(`@/lib/email-service${cacheBust}`)
+    const emailResult = await emailService.sendAbandonedCartEmail({
+      customerEmail,
+      customerName: customerName || undefined,
+      recoveryUrl,
+      discountCode,
+      expiresAt: expiresAt || Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60), // 30 days default
+    });
+    
+    if (emailResult.success) {
+      sentEmails.add(emailKey);
+      console.log('✅ Abandoned cart email sent successfully to:', customerEmail);
+      console.log('🎯 Discount code:', discountCode);
+    } else {
+      console.error('❌ Failed to send abandoned cart email:', emailResult.error);
+    }
+    
+  } catch (error) {
+    console.error('Error handling session expiration:', error);
   }
 }
 
@@ -81,13 +192,22 @@ export async function POST(request: Request) {
     switch (event.type) {
       case "checkout.session.completed":
         // Handle successful payment
-        console.log("Payment successful:", event.data.object)
-        // Implement your payment processing logic here
+        console.log("Payment successful:", event.data.object.id)
+        await handlePaymentSuccess(event.data.object as Stripe.Checkout.Session)
         break
+        
+      case "checkout.session.async_payment_succeeded":
+        // Handle delayed payment success (bank transfers, etc.)
+        console.log("Async payment successful:", event.data.object.id)
+        await handlePaymentSuccess(event.data.object as Stripe.Checkout.Session)
+        break
+        
       case "checkout.session.expired":
-        // Handle expired session
-        console.log("Session expired:", event.data.object)
+        // Handle expired session (abandoned cart)
+        console.log("Session expired:", event.data.object.id)
+        await handleSessionExpired(event.data.object as Stripe.Checkout.Session)
         break
+        
       default:
         console.log(`Unhandled event type: ${event.type}`)
     }

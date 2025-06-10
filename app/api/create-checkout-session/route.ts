@@ -33,7 +33,10 @@ export async function POST(request: Request) {
       )
     }
 
-    // Create checkout session
+    // Calculate expiration time (2 hours from now for abandoned cart recovery)
+    const expiresAt = Math.floor(Date.now() / 1000) + (2 * 60 * 60); // 2 hours
+
+    // Create checkout session with email capture and abandoned cart recovery
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -54,9 +57,28 @@ export async function POST(request: Request) {
       mode: 'payment',
       success_url: `${BASE_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}&guide_type=${guideType}`,
       cancel_url: `${BASE_URL}/payment/cancel`,
+      
+      // Abandoned cart recovery configuration
+      expires_at: expiresAt,
+      after_expiration: {
+        recovery: {
+          enabled: true,
+          allow_promotion_codes: true, // Allow discount codes in recovery emails
+        },
+      },
+      
+      // Collect customer email even if they don't complete payment
+      customer_email: undefined, // Let Stripe collect it during checkout
+      
+      // Add metadata to track guide type for webhooks
+      metadata: {
+        guide_type: guideType,
+        created_at: new Date().toISOString(),
+      },
     })
 
     console.log(`Checkout session created: ${session.id}`)
+    console.log(`Session expires at: ${new Date(expiresAt * 1000).toISOString()}`)
     
     return NextResponse.json({ url: session.url })
   } catch (error) {

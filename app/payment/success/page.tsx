@@ -177,13 +177,7 @@ function SuccessContent() {
               <p>Please don't close this window</p>
             </div>
             
-            {/* Add guarantee for reassurance */}
-            <div className="flex items-center justify-center gap-2 text-xs text-green-600 mt-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-              <span className="font-medium">Protected by 30-day money-back guarantee</span>
-            </div>
+
           </div>
         )}
 
@@ -205,41 +199,49 @@ function SuccessContent() {
         )}
 
         {generationStatus === 'error' && (
-          <div className="w-full">
-            <h1 className="text-xl font-semibold text-gray-900 mb-3">
-              Don't worry - your payment went through!
-            </h1>
-            
-            <div className="text-gray-600 text-sm mb-6 space-y-3">
-              <p className="font-medium">We're having a technical issue generating your style guide.</p>
-              <p>This happens occasionally and <strong>we'll fix this right away</strong>.</p>
-              <p>Your purchase is secure and we have all your details.</p>
-            </div>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <h3 className="font-semibold text-blue-900 mb-2">📧 Get immediate help</h3>
-              <p className="text-blue-800 text-sm mb-3">
-                Email our support team - we typically respond within 1-2 hours:
+          <div className="space-y-6">
+            {/* Reassuring message */}
+            <div className="space-y-2">
+              <p className="text-base text-gray-700">
+                Something went wrong during generation, but <strong>your payment was successful</strong>.
               </p>
-              <a
-                href={`mailto:support@aistyleguide.com?subject=URGENT:%20Payment%20Successful%20-%20Style%20Guide%20Generation%20Failed&body=Hi%20AIStyleGuide%20Support%20Team,%0A%0AI%20just%20completed%20my%20payment%20but%20my%20style%20guide%20failed%20to%20generate.%0A%0ASession%20Details:%0A- Session ID: ${sessionId || 'Not available'}%0A- Guide Type: ${guideType}%0A- Time: ${new Date().toLocaleString()}%0A- URL: ${typeof window !== 'undefined' ? window.location.href : 'Not available'}%0A%0APlease%20help%20me%20get%20my%20style%20guide%20as%20soon%20as%20possible.%0A%0AThanks,%0A[Your%20Name]`}
-                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                Email Support Now
-              </a>
+              <p className="text-sm text-gray-600">
+                We'll get this sorted for you right away.
+              </p>
             </div>
 
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h3 className="font-semibold text-green-900 mb-2">✅ What we'll do</h3>
-              <ul className="text-green-800 text-sm space-y-1">
-                <li>• Generate your style guide manually</li>
-                <li>• Send it to you within 24 hours</li>
-                <li>• Include all formats (PDF, Word, etc.)</li>
-                <li>• No additional charge required</li>
-              </ul>
+            {/* Primary action - Try again */}
+            <div className="space-y-3">
+              <Button 
+                onClick={() => window.location.reload()}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
+                size="lg"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Try Again
+              </Button>
+              
+              <p className="text-xs text-center text-gray-500">
+                Most generation issues resolve with a simple retry
+              </p>
+            </div>
+
+            {/* Support contact */}
+            <div className="border-t pt-4">
+              <p className="text-sm text-gray-600 mb-2">
+                Still having trouble?{' '}
+                <a
+                  href={`mailto:support@aistyleguide.com?subject=Payment%20Successful%20-%20Style%20Guide%20Generation%20Failed&body=Hi%20AIStyleGuide%20Support%20Team,%0A%0AI%20completed%20my%20payment%20but%20the%20style%20guide%20failed%20to%20generate.%0A%0ASession%20Details:%0A- Session ID: ${sessionId || 'Not available'}%0A- Guide Type: ${guideType}%0A- Time: ${new Date().toLocaleString()}%0A%0APlease%20help%20me%20get%20my%20style%20guide.%0A%0AThanks!`}
+                  className="text-blue-600 hover:text-blue-800 underline font-medium"
+                >
+                  Contact support
+                </a>
+              </p>
+              <p className="text-xs text-gray-500">
+                We typically respond within 1-2 hours
+              </p>
             </div>
           </div>
         )}

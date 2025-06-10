@@ -14,7 +14,8 @@ Web app that generates brand style guides from website URLs using AI to extract 
 3. **Brand Details** → User reviews/edits brand information  
 4. **Preview** → Shows partial style guide with paywall
 5. **Payment** → Stripe checkout for full access
-6. **Full Access** → Complete style guide with download options
+6. **Email Capture** → Collects email for thank you & abandoned cart recovery
+7. **Full Access** → Complete style guide with download options
 
 ## ✅ Major Completed Tasks
 
@@ -46,14 +47,43 @@ Web app that generates brand style guides from website URLs using AI to extract 
 - ✅ **Preview vs full generation** - Static previews, full AI generation post-payment
 - ✅ **Chunked rule generation** - Generates rules by section for better reliability
 
+### Email Automation System (Latest - Jan 2025)
+- ✅ **Resend Integration**: Real email service replacing mock implementation
+- ✅ **Thank You Emails**: Automatic emails after successful payment
+- ✅ **Abandoned Cart Recovery**: 20% discount emails for expired sessions
+- ✅ **Email Capture**: Stripe checkout collects promotional consent
+- ✅ **Webhook Enhancement**: Handles both success and expiration events
+- ✅ **Professional Templates**: HTML + text versions with branding
+
+### Conversion Rate Optimization (Dec 2024)
+- ✅ **Pricing Transparency**: "Starting from $99" messaging
+- ✅ **30-Day Guarantee**: Money-back guarantee with trust badges
+- ✅ **Social Proof**: Customer testimonials and success stories
+- ✅ **FAQ Section**: Addresses common concerns about refunds
+- ✅ **Enhanced Loading**: Better animations and user feedback
+
 ## 🚧 Active Issues
 
 ### High Priority (P0)
+- 🔄 **Email Mystery (Investigate Later)**:
+  - ✅ Personal founder-led email template created with feedback questions & Calendly link
+  - ✅ Fixed Node.js ESM caching issue - webhook uses dynamic imports with cache busting
+  - ✅ Confirmed Stripe automatic emails are disabled in dashboard
+  - ❓ Still receiving old email template despite code changes - needs deeper investigation
+  - ⏸️ Abandoned cart emails - skipped (users don't provide email until Stripe checkout)
+  - ✅ MCP Resend integration tested and working
+- ✅ **UI Cleanup**:
+  - ✅ Removed money-back guarantee references from /payment/success and /full-access pages
+  - ✅ Removed "Starting from $99" from paywall banner
+  - ✅ Removed "100% money-back guarantee" from paywall, made 3 bullet points green
 - 🔄 **Payment flow improvements** - Add generation status tracking, better success page UI
 - 🔄 **Content rendering validation** - Ensure all 25 style rules display correctly in full access
 - 🔄 **Mobile fade-out optimization** - Shorten fade-out effect to reach paywall faster
 
 ### Medium Priority (P1)  
+- 🔄 **Email Features (Later)**:
+  - Feature 3: Style guide delivery via email (PDF attachment)
+  - Feature 4: Welcome/onboarding email sequence
 - 🔄 **Preview loading UX** - Remove loading interstitial, show processing state on button instead
 - 🔄 **Error handling enhancement** - Better error messages, retry options, fallback handling
 - 🔄 **Template enforcement** - Use core_template.md as single source of truth for structure
@@ -62,6 +92,16 @@ Web app that generates brand style guides from website URLs using AI to extract 
 - 🔄 **Automated testing** - Add tests for API routes and template processing
 - 🔄 **Analytics integration** - Track user behavior and conversion metrics
 - 🔄 **Performance monitoring** - Add logging and monitoring for production issues
+
+### Email Setup Required
+- **Need**: Resend API key from dashboard
+- **Need**: Domain verification (DNS records for aistyleguide.com)
+- **Current**: Using placeholder API key `re_your_api_key_here`
+
+### Testing Needed
+- **Abandoned Cart Flow**: Test 2-hour session expiration
+- **Email Templates**: Verify HTML rendering across email clients
+- **Discount Codes**: Test recovery URL functionality
 
 ## 📚 Key Lessons Learned
 
@@ -89,6 +129,38 @@ Web app that generates brand style guides from website URLs using AI to extract 
 - **Error logging is essential** - Detailed logs help debug production issues quickly
 - **Fallback handling** - Always have graceful degradation for API failures
 
+### Email Best Practices
+- **Always provide text version** for accessibility
+- **Use professional styling** with inline CSS for email clients
+- **Include clear CTAs** with prominent buttons
+- **Respect consent** - only send to opted-in users
+- **Prevent spam** by tracking sent emails
+
+### Node.js ESM Module Caching
+- **ESM cache cannot be cleared** - unlike CommonJS require.cache, ESM has no invalidation API
+- **Dynamic imports with cache busting** - use query parameters for development hot reloading
+- **Memory leak warning** - cache busting creates permanent entries, only use in development
+- **Static imports cache forever** - avoid top-level imports for modules that need hot reloading
+
+### Email Template Mystery (Unresolved)
+- **Problem**: Still getting old "🎉 Your AI Style Guide is Ready!" email despite code changes
+- **Confirmed NOT the issue**: Stripe automatic emails (disabled in dashboard)
+- **Applied fixes**: ESM cache busting, server restarts, cleared .next cache
+- **Next debugging steps**: Check if webhook is even firing, add more logging, verify localhost webhook URL
+- **Workaround**: Could force webhook calls or test in production environment
+
+### Stripe Abandoned Cart
+- **Requires promotional consent** to capture emails
+- **Recovery URLs expire** after 30 days for security
+- **Session expiry** can be 30 minutes to 24 hours
+- **Discount codes** increase conversion rates significantly
+
+### Development Workflow
+- **Test mode first** - use Stripe test keys for development
+- **Webhook testing** - use Stripe CLI for local development
+- **Environment switching** - clean separation of test/live configs
+- **Email testing** - use real email addresses in test mode
+
 ## 🗺️ Future Roadmap
 
 ### Short Term (Next 2 weeks)
@@ -113,6 +185,7 @@ Web app that generates brand style guides from website URLs using AI to extract 
 
 ### Current Architecture
 - **Frontend**: Next.js 14, TypeScript, Tailwind CSS, Lucide Icons
+- **terminal**: Always use pnpm instead of NPM for packagae install
 - **Backend**: Next.js API routes, OpenAI API, Stripe integration
 - **Storage**: localStorage for client state, sessionStorage for temporary data
 - **Templates**: Markdown-based with variable replacement system
@@ -142,6 +215,25 @@ Web app that generates brand style guides from website URLs using AI to extract 
 - **Input validation** - All form inputs validated on client and server
 - **Rate limiting considerations** - Timeouts and error handling for external requests
 - **Credit protection** - Static previews prevent unnecessary OpenAI usage
+
+### Email Service (`lib/email-service.ts`)
+- **Provider**: Resend (developer-friendly, good deliverability)
+- **Templates**: Thank you emails, abandoned cart recovery
+- **Features**: HTML + text versions, discount codes, professional styling
+- **Spam Prevention**: Tracks sent emails to avoid duplicates
+
+### Stripe Configuration
+- **Email Capture**: `consent_collection.promotions = 'auto'`
+- **Session Expiry**: 2 hours for abandoned cart recovery
+- **Recovery URLs**: 30-day validity with discount codes
+- **Webhooks**: `checkout.session.completed`, `checkout.session.expired`
+
+### Environment Variables
+```
+RESEND_API_KEY=re_your_api_key_here
+STRIPE_MODE=test (switches between test/live)
+NEXT_PUBLIC_APP_URL=http://localhost:3000 (for local testing)
+```
 
 ---
 
