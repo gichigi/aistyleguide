@@ -360,6 +360,18 @@ export default function FullAccessPage() {
             >
               <ArrowLeft className="h-5 w-5" /> Back to details
             </Link>
+            
+            {/* Add refund option */}
+            <div className="mt-4 flex items-center gap-4 text-sm text-gray-600">
+              <span>✓ 30-day money-back guarantee</span>
+              <span>•</span>
+              <a
+                href={`mailto:support@aistyleguide.com?subject=Refund%20Request%20-%20Style%20Guide%20Purchase&body=Hi%20AIStyleGuide%20Support%20Team,%0A%0AI%20would%20like%20to%20request%20a%20refund%20for%20my%20style%20guide%20purchase.%0A%0APurchase%20Details:%0A- Brand Name: ${brandDetails?.name || 'Not available'}%0A- Guide Type: ${guideType}%0A- Purchase Date: ${new Date().toLocaleDateString()}%0A%0AReason for refund (optional): %0A%0AThanks,%0A[Your%20Name]`}
+                className="text-blue-600 hover:text-blue-800 underline"
+              >
+                Request refund
+              </a>
+            </div>
           </div>
           
           <div className="bg-white rounded-2xl border shadow-lg overflow-hidden">

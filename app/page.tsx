@@ -755,6 +755,10 @@ export default function LandingPage() {
                   q: "How do I contact support?",
                   a: <span>Email us at <a href="mailto:support@aistyleguide.com?subject=Support%20Request&body=Hello%20AIStyleGuide%20Support%20Team,%0A%0AI%20need%20help%20with:%0A%0A[Please%20describe%20your%20issue%20here]%0A%0AThanks,%0A[Your%20Name]" className="text-primary hover:underline">support@aistyleguide.com</a> for any questions. We typically respond within 24 hours on business days.</span>,
                 },
+                {
+                  q: "How do I get a refund?",
+                  a: <span>We offer a 30-day money-back guarantee. Simply email <a href="mailto:support@aistyleguide.com?subject=Refund%20Request%20-%20Style%20Guide%20Purchase&body=Hi%20AIStyleGuide%20Support%20Team,%0A%0AI%20would%20like%20to%20request%20a%20refund%20for%20my%20style%20guide%20purchase.%0A%0APurchase%20Details:%0A- Guide%20Type:%20[Core%20or%20Complete]%0A- Purchase%20Date:%20[Date]%0A- Email%20used%20for%20purchase:%20[Email]%0A%0AReason%20for%20refund%20(optional):%20%0A%0AThanks,%0A[Your%20Name]" className="text-primary hover:underline">support@aistyleguide.com</a> within 30 days of your purchase for a full refund. No questions asked - we process refunds quickly, usually within 1-2 business days.</span>,
+                },
               ].map((item, i) => (
                 <div key={i} className="py-6">
                   <h3 className="text-lg font-semibold">{item.q}</h3>

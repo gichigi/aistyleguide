@@ -395,6 +395,22 @@ export default function PreviewPage() {
             >
               Cancel
             </Button>
+            
+            {/* Add refund information */}
+            <div className="w-full mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="text-center">
+                <h4 className="text-sm font-semibold text-gray-700 mb-1">30-Day Money-Back Guarantee</h4>
+                <p className="text-xs text-gray-600 mb-2">
+                  Not satisfied? Get a full refund within 30 days.
+                </p>
+                <a
+                  href="mailto:support@aistyleguide.com?subject=Refund%20Request%20-%20Style%20Guide%20Purchase&body=Hi%20AIStyleGuide%20Support%20Team,%0A%0AI%20would%20like%20to%20request%20a%20refund%20for%20my%20style%20guide%20purchase.%0A%0APurchase%20Details:%0A- Guide%20Type:%20[Core%20or%20Complete]%0A- Purchase%20Date:%20[Date]%0A- Email%20used%20for%20purchase:%20[Email]%0A%0AReason%20for%20refund%20(optional):%20%0A%0AThanks,%0A[Your%20Name]"
+                  className="text-xs text-blue-600 hover:text-blue-800 underline"
+                >
+                  Email for refund: support@aistyleguide.com
+                </a>
+              </div>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
