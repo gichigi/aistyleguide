@@ -215,6 +215,23 @@ function SuccessContent() {
               </svg>
               <span className="font-medium">Protected by 30-day money-back guarantee</span>
             </div>
+            
+            {/* Add refund instructions */}
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+              <h4 className="text-xs font-semibold text-gray-700 mb-2">Need a refund?</h4>
+              <p className="text-xs text-gray-600 mb-2">
+                Simply email us within 30 days for a full refund:
+              </p>
+              <a
+                href={`mailto:support@aistyleguide.com?subject=Refund%20Request%20-%20Style%20Guide%20Purchase&body=Hi%20AIStyleGuide%20Support%20Team,%0A%0AI%20would%20like%20to%20request%20a%20refund%20for%20my%20style%20guide%20purchase.%0A%0APurchase%20Details:%0A- Session ID: ${sessionId || 'Not available'}%0A- Guide Type: ${guideType}%0A- Purchase Date: ${new Date().toLocaleDateString()}%0A%0AReason for refund (optional): %0A%0AThanks,%0A[Your%20Name]`}
+                className="text-xs text-blue-600 hover:text-blue-800 underline font-medium"
+              >
+                support@aistyleguide.com
+              </a>
+              <p className="text-xs text-gray-500 mt-1">
+                No questions asked • Fast processing
+              </p>
+            </div>
           </div>
         )}
       </div>
