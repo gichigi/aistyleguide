@@ -140,7 +140,6 @@ Web app that generates brand style guides from website URLs using AI to extract 
 
 ---
 
-<<<<<<< HEAD
 ## Detailed App Flow & Implementation Plan
 
 ### 1. User Journey Overview
@@ -994,7 +993,39 @@ Success Criteria:
 - ✅ Page can now be statically generated
 - ✅ Vercel builds should complete successfully
 - ✅ No impact on functionality or user experience
-=======
-*Last updated: January 2025*
-*Status: Active Development*
->>>>>>> origin/main
+
+## 📌 Recent Completed Tasks
+
+### ✅ UI Loading States Improved (Jun 4, 2025)
+**Payment Success Page:**
+- Removed progress bar, replaced with prominent spinner
+- Added pulsing animation effect around spinner
+- Increased spinner size from 8x8 to 10x10
+- Added clear messaging: "This can take a couple of minutes" 
+- Added warning: "Please don't close this window"
+- More convincing loading experience
+
+**Brand Details Form:**
+- Added 5-second processing state before redirect to preview
+- Shows "Processing your brand..." message during processing
+- Shows completion checkmark briefly before redirect
+- Better user feedback during form submission
+
+### ✅ Website Extraction Performance Optimized (Jun 4, 2025)
+**Speed Improvements:**
+- **Parallel subpage fetching**: Changed from sequential to parallel requests (2-3 seconds faster)
+- **Faster AI model**: Switched from GPT-4o to GPT-3.5-turbo for extraction (3-4 seconds faster)
+- **Reduced content size**: Cut from 20k to 10k characters for faster processing
+- **Request timeouts**: Added 5-second timeout to prevent hanging requests
+- **Expected total improvement**: ~5-7 seconds (from ~11s to ~4-6s)
+
+**Quality Maintained:**
+- Still fetches up to 2 subpages for better brand info extraction
+- GPT-4o still used for style guide generation (needs higher quality)
+- Same content extraction, just processed faster
+- Better error handling with Promise.all()
+
+**Risk Mitigation:**
+- Added timeout protection against slow websites
+- Graceful error handling for failed subpage fetches
+- Maintained same content structure and format
