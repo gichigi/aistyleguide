@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ArrowLeft, FileText, Loader2, Check, X, ChevronDown } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import {
   Dialog,
   DialogContent,
@@ -18,8 +18,9 @@ import { generateFile, FileFormat } from "@/lib/file-generator"
 import Header from "@/components/Header"
 import { StyleGuideHeader } from "@/components/StyleGuideHeader"
 
-export default function FullAccessPage() {
+function FullAccessContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
   const [copied, setCopied] = useState(false)
   const [showNotionInstructions, setShowNotionInstructions] = useState(false)
@@ -33,9 +34,13 @@ export default function FullAccessPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    // Check if already generated
+    const alreadyGenerated = searchParams.get("generated") === "true"
+    
     // Load brand details, style guide, and guide type from localStorage
     const savedBrandDetails = localStorage.getItem("brandDetails")
     const savedGuideType = localStorage.getItem("styleGuidePlan")
+    const savedStyleGuide = localStorage.getItem("generatedStyleGuide")
     
     if (!savedBrandDetails) {
       console.error("[Full Access] No brand details found in localStorage")
@@ -55,42 +60,53 @@ export default function FullAccessPage() {
       setGuideType(savedGuideType)
     }
 
-    const loadFullAccessGuide = async () => {
-      if (!savedBrandDetails) return
-      try {
-        const parsedBrandDetails = JSON.parse(savedBrandDetails)
-        const response = await fetch('/api/generate-styleguide', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            brandDetails: parsedBrandDetails,
-            plan: savedGuideType === 'complete' ? 'complete' : 'core',
-          }),
-        })
-        const data = await response.json()
-        if (data.success) {
-          setGeneratedStyleGuide(data.styleGuide)
-        } else {
-          throw new Error(data.error || 'Failed to generate style guide')
-        }
-      } catch (error) {
-        console.error("Error generating full access guide:", error)
-        toast({
-          title: "Generation failed", 
-          description: "Could not generate your style guide. Please try again.",
-          variant: "destructive",
-        })
-        router.push("/brand-details?paymentComplete=true")
-      }
+    // If already generated and we have the guide, use it
+    if (alreadyGenerated && savedStyleGuide) {
+      console.log("[Full Access] Using already generated style guide")
+      setGeneratedStyleGuide(savedStyleGuide)
       setIsLoading(false)
+    } else {
+      // Only generate if not already done
+      const loadFullAccessGuide = async () => {
+        if (!savedBrandDetails) return
+        try {
+          const parsedBrandDetails = JSON.parse(savedBrandDetails)
+          const response = await fetch('/api/generate-styleguide', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              brandDetails: parsedBrandDetails,
+              plan: savedGuideType === 'complete' ? 'complete' : 'core',
+            }),
+          })
+          const data = await response.json()
+          if (data.success) {
+            setGeneratedStyleGuide(data.styleGuide)
+            // Save to localStorage for future use
+            localStorage.setItem("generatedStyleGuide", data.styleGuide)
+          } else {
+            throw new Error(data.error || 'Failed to generate style guide')
+          }
+        } catch (error) {
+          console.error("Error generating full access guide:", error)
+          toast({
+            title: "Generation failed", 
+            description: "Could not generate your style guide. Please try again.",
+            variant: "destructive",
+          })
+          router.push("/brand-details?paymentComplete=true")
+        }
+        setIsLoading(false)
+      }
+      loadFullAccessGuide()
     }
-    loadFullAccessGuide()
+    
     // Trigger fade-in animation
     const timer = setTimeout(() => {
       setFadeIn(true)
     }, 100)
     return () => clearTimeout(timer)
-  }, [router])
+  }, [router, searchParams, toast])
 
   const handleCopy = () => {
     setCopied(true)
@@ -166,6 +182,9 @@ export default function FullAccessPage() {
   const guideContent = getGuideContent()
 
   const exportPDF = async () => {
+    // Only run on client side
+    if (typeof window === 'undefined') return;
+    
     const element = document.getElementById('pdf-export-content')
     if (!element) return
     // @ts-ignore
@@ -183,6 +202,11 @@ export default function FullAccessPage() {
   // Process content to remove duplicate headings that conflict with our header
   const processFullAccessContent = (content: string, brandName: string = "") => {
     if (!content) return content;
+    
+    // Only process on client side to avoid SSR issues
+    if (typeof window === 'undefined') {
+      return content;
+    }
     
     // Remove the first h1 heading if it contains the brand name
     const tempDiv = document.createElement('div');
@@ -477,5 +501,13 @@ export default function FullAccessPage() {
         </DialogContent>
       </Dialog>
     </div>
+  )
+}
+
+export default function FullAccessPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <FullAccessContent />
+    </Suspense>
   )
 }
