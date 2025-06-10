@@ -18,10 +18,15 @@ function SuccessContent() {
   const searchParams = useSearchParams()
   const { toast } = useToast()
   const [generationStatus, setGenerationStatus] = useState<'generating' | 'complete' | 'error'>('generating')
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [guideType, setGuideType] = useState<string>('core')
 
   useEffect(() => {
-    const sessionId = searchParams.get("session_id")
-    const guideType = searchParams.get("guide_type") || "core"
+    const sessionIdParam = searchParams.get("session_id")
+    const guideTypeParam = searchParams.get("guide_type") || "core"
+    
+    setSessionId(sessionIdParam)
+    setGuideType(guideTypeParam)
     
     // Fire Google Ads conversion event (required even with page load conversion)
     if (typeof window !== 'undefined' && window.gtag) {
@@ -34,7 +39,7 @@ function SuccessContent() {
     }
     
     // Temporarily commented out for testing conversion tracking
-    // if (!sessionId) {
+    // if (!sessionIdParam) {
     //   toast({
     //     title: "Invalid session",
     //     description: "Could not verify payment status. Please try again.",
@@ -46,7 +51,7 @@ function SuccessContent() {
 
     // Store payment status and guide type
     localStorage.setItem("styleGuidePaymentStatus", "completed")
-    localStorage.setItem("styleGuidePlan", guideType)
+    localStorage.setItem("styleGuidePlan", guideTypeParam)
 
     // Start generation process
     const generateGuide = async () => {
@@ -70,7 +75,7 @@ function SuccessContent() {
         // Parse and log the brand details
         const parsedBrandDetails = JSON.parse(brandDetails)
         console.log("[Payment Success] Parsed brand details:", parsedBrandDetails)
-        console.log("[Payment Success] Sending to API with plan:", guideType)
+        console.log("[Payment Success] Sending to API with plan:", guideTypeParam)
 
         // Generate style guide
         const response = await fetch("/api/generate-styleguide", {
@@ -78,7 +83,7 @@ function SuccessContent() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             brandDetails: parsedBrandDetails,
-            plan: guideType
+            plan: guideTypeParam
           })
         })
 
@@ -138,9 +143,49 @@ function SuccessContent() {
             </svg>
           )}
           {generationStatus === 'error' && (
-            <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <>
+              <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6 relative">
+                <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+              
+              <h1 className="text-xl font-semibold text-gray-900 mb-3">
+                Don't worry - your payment went through!
+              </h1>
+              
+              <div className="text-gray-600 text-sm mb-6 space-y-3">
+                <p className="font-medium">We're having a technical issue generating your style guide.</p>
+                <p>This happens occasionally and <strong>we'll fix this right away</strong>.</p>
+                <p>Your purchase is secure and we have all your details.</p>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <h3 className="font-semibold text-blue-900 mb-2">📧 Get immediate help</h3>
+                <p className="text-blue-800 text-sm mb-3">
+                  Email our support team - we typically respond within 1-2 hours:
+                </p>
+                <a
+                  href={`mailto:support@aistyleguide.com?subject=URGENT:%20Payment%20Successful%20-%20Style%20Guide%20Generation%20Failed&body=Hi%20AIStyleGuide%20Support%20Team,%0A%0AI%20just%20completed%20my%20payment%20but%20my%20style%20guide%20failed%20to%20generate.%0A%0ASession%20Details:%0A- Session ID: ${sessionId || 'Not available'}%0A- Guide Type: ${guideType}%0A- Time: ${new Date().toLocaleString()}%0A- URL: ${typeof window !== 'undefined' ? window.location.href : 'Not available'}%0A%0APlease%20help%20me%20get%20my%20style%20guide%20as%20soon%20as%20possible.%0A%0AThanks,%0A[Your%20Name]`}
+                  className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  Email Support Now
+                </a>
+              </div>
+
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h3 className="font-semibold text-green-900 mb-2">✅ What we'll do</h3>
+                <ul className="text-green-800 text-sm space-y-1">
+                  <li>• Generate your style guide manually</li>
+                  <li>• Send it to you within 24 hours</li>
+                  <li>• Include all formats (PDF, Word, etc.)</li>
+                  <li>• No additional charge required</li>
+                </ul>
+              </div>
+            </>
           )}
         </div>
         
