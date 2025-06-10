@@ -34,23 +34,6 @@ export default function CancelPage() {
             </svg>
             <span className="font-medium">Risk-free with our 30-day money-back guarantee</span>
           </div>
-          
-          {/* Add easy refund info */}
-          <div className="mb-6 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-            <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-2">Easy refunds available</h4>
-            <p className="text-xs text-blue-600 dark:text-blue-400 mb-2">
-              If you change your mind after purchasing, simply email us for a quick refund:
-            </p>
-            <a
-              href="mailto:support@aistyleguide.com?subject=Refund%20Request%20-%20Style%20Guide%20Purchase&body=Hi%20AIStyleGuide%20Support%20Team,%0A%0AI%20would%20like%20to%20request%20a%20refund%20for%20my%20style%20guide%20purchase.%0A%0APurchase%20Details:%0A- Guide%20Type:%20[Core%20or%20Complete]%0A- Purchase%20Date:%20[Date]%0A- Email%20used%20for%20purchase:%20[Email]%0A%0AReason%20for%20refund%20(optional):%20%0A%0AThanks,%0A[Your%20Name]"
-              className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline font-medium"
-            >
-              support@aistyleguide.com
-            </a>
-            <p className="text-xs text-blue-500 dark:text-blue-400 mt-1">
-              Usually processed within 1-2 business days
-            </p>
-          </div>
         </div>
         <div className="flex justify-center">
           <Button
