@@ -1,10 +1,146 @@
----
-description: 
-globs: 
-alwaysApply: false
----
-# AI Style Guide Generator Project
+# AI Style Guide Generator - Project Scratchpad
 
+## 📋 Project Overview
+Web app that generates brand style guides from website URLs using AI to extract and analyze brand elements. Built with Next.js, TypeScript, Tailwind CSS, OpenAI API, and Stripe.
+
+## 🎯 Core User Journey
+1. **Landing Page** → Enter website URL or create manually
+2. **Website Analysis** → AI extracts brand info and autofills form
+3. **Brand Details** → User reviews/edits brand information  
+4. **Preview** → Shows partial style guide with paywall
+5. **Payment** → Stripe checkout for full access
+6. **Full Access** → Complete style guide with download options
+
+## ✅ Major Completed Tasks
+
+### Core Functionality
+- ✅ **Landing page with URL input and brand extraction** - AI analyzes websites and autofills brand details
+- ✅ **Brand details form with validation** - Real-time validation, character limits, error handling
+- ✅ **Preview system with paywall** - Shows partial guide, fade-out effect, payment dialog
+- ✅ **Payment integration** - Stripe checkout, per-guide payment model, success handling
+- ✅ **Full access page** - Complete style guide display with download options
+- ✅ **Template processing system** - Loads templates, replaces variables, validates output
+- ✅ **Download functionality** - PDF, DOCX, HTML generation with consistent styling
+
+### Technical Improvements
+- ✅ **Type safety fixes** - Added type guards, proper error handling, null checks throughout
+- ✅ **Security improvements** - Removed test endpoints, inline validation, prevented credit waste
+- ✅ **Performance optimizations** - Parallel subpage fetching, faster AI models, request timeouts
+- ✅ **Mobile responsiveness** - Improved padding, font sizes, stacked buttons, responsive dialogs
+- ✅ **UI polish** - Professional headers, consistent navigation, loading states, better UX
+
+### Data Flow & State Management  
+- ✅ **Fixed target audience data flow** - Proper mapping between API and UI, session storage sync
+- ✅ **Brand name extraction** - Extracts and displays actual brand names instead of placeholders
+- ✅ **Template consistency** - Shared MarkdownComponents, unified styling, dark mode support
+- ✅ **Payment flow integration** - Guide type handling, localStorage persistence, proper redirects
+
+### Content Generation & Validation
+- ✅ **OpenAI integration** - Brand voice traits, style rules, markdown-compliant output
+- ✅ **Template validation** - Ensures generated content matches required structure
+- ✅ **Preview vs full generation** - Static previews, full AI generation post-payment
+- ✅ **Chunked rule generation** - Generates rules by section for better reliability
+
+## 🚧 Active Issues
+
+### High Priority (P0)
+- 🔄 **Payment flow improvements** - Add generation status tracking, better success page UI
+- 🔄 **Content rendering validation** - Ensure all 25 style rules display correctly in full access
+- 🔄 **Mobile fade-out optimization** - Shorten fade-out effect to reach paywall faster
+
+### Medium Priority (P1)  
+- 🔄 **Preview loading UX** - Remove loading interstitial, show processing state on button instead
+- 🔄 **Error handling enhancement** - Better error messages, retry options, fallback handling
+- 🔄 **Template enforcement** - Use core_template.md as single source of truth for structure
+
+### Low Priority (P2)
+- 🔄 **Automated testing** - Add tests for API routes and template processing
+- 🔄 **Analytics integration** - Track user behavior and conversion metrics
+- 🔄 **Performance monitoring** - Add logging and monitoring for production issues
+
+## 📚 Key Lessons Learned
+
+### Technical Architecture
+- **Template consistency is critical** - Always use shared MarkdownComponents for uniform styling
+- **Type safety prevents runtime errors** - Add type guards before accessing potentially undefined values  
+- **State management matters** - Router navigation should not happen during render phase
+- **Security by design** - Never expose test endpoints in production, validate all inputs
+
+### User Experience
+- **Loading states are essential** - Always provide feedback instead of blank screens
+- **Mobile-first approach** - Most users access on mobile, optimize accordingly
+- **Payment UX is crucial** - Clear pricing, smooth flow, proper error handling
+- **Preview strategy** - Static previews save costs, full generation only post-payment
+
+### AI Integration
+- **OpenAI responses need validation** - Always check format and handle edge cases
+- **Chunked generation is more reliable** - Small, focused prompts work better than large ones
+- **Cost optimization matters** - Use appropriate models (GPT-3.5 vs GPT-4) based on task complexity
+- **Content limits prevent issues** - Enforce character limits to avoid token overruns
+
+### Development Process
+- **Data flow validation** - Test data through all system layers before deploying
+- **Parallel tool usage** - Use multiple tools simultaneously for efficiency
+- **Error logging is essential** - Detailed logs help debug production issues quickly
+- **Fallback handling** - Always have graceful degradation for API failures
+
+## 🗺️ Future Roadmap
+
+### Short Term (Next 2 weeks)
+- **Complete payment flow polish** - Status tracking, better UI, proper redirects
+- **Finalize mobile optimizations** - Fade-out timing, responsive improvements
+- **Content validation testing** - Ensure all generated content displays correctly
+- **Performance monitoring setup** - Add logging for production debugging
+
+### Medium Term (1-2 months)  
+- **Advanced customization options** - Allow users to modify generated style guides
+- **Template variety** - Add different style guide formats and structures
+- **Export enhancements** - Better PDF styling, additional formats (JSON, Figma)
+- **User dashboard** - Allow users to manage multiple purchased guides
+
+### Long Term (3+ months)
+- **Team collaboration features** - Share guides within organizations
+- **API for developers** - Allow programmatic access to style guide generation
+- **White-label solution** - Allow agencies to rebrand and resell the tool
+- **Advanced AI features** - Visual brand analysis, competitive analysis integration
+
+## 🔧 Technical Notes
+
+### Current Architecture
+- **Frontend**: Next.js 14, TypeScript, Tailwind CSS, Lucide Icons
+- **Backend**: Next.js API routes, OpenAI API, Stripe integration
+- **Storage**: localStorage for client state, sessionStorage for temporary data
+- **Templates**: Markdown-based with variable replacement system
+- **Styling**: Tailwind Typography, shared MarkdownComponents, dark mode support
+
+### Key Files & Directories
+- `app/page.tsx` - Landing page with URL input
+- `app/brand-details/page.tsx` - Brand information form  
+- `app/preview/page.tsx` - Style guide preview with paywall
+- `app/full-access/page.tsx` - Complete style guide display
+- `app/api/extract-website/` - Website analysis and brand extraction
+- `app/api/generate-styleguide/` - Full style guide generation
+- `app/api/preview/` - Preview content generation (static)
+- `lib/template-processor.ts` - Template loading and processing
+- `lib/markdown-components.tsx` - Shared markdown rendering components
+- `templates/core_template.md` - Main style guide template
+
+### Performance Optimizations
+- **Parallel API calls** - Website analysis fetches multiple pages simultaneously
+- **Model selection** - GPT-3.5-turbo for extraction, GPT-4 for generation
+- **Content optimization** - 10k character limit for AI processing
+- **Request timeouts** - 5-second timeout to prevent hanging requests
+- **Static previews** - No AI costs for preview generation
+
+### Security Measures  
+- **No test endpoints in production** - All testing moved inline or removed
+- **Input validation** - All form inputs validated on client and server
+- **Rate limiting considerations** - Timeouts and error handling for external requests
+- **Credit protection** - Static previews prevent unnecessary OpenAI usage
+
+---
+
+<<<<<<< HEAD
 ## Detailed App Flow & Implementation Plan
 
 ### 1. User Journey Overview
@@ -858,3 +994,7 @@ Success Criteria:
 - ✅ Page can now be statically generated
 - ✅ Vercel builds should complete successfully
 - ✅ No impact on functionality or user experience
+=======
+*Last updated: January 2025*
+*Status: Active Development*
+>>>>>>> origin/main
