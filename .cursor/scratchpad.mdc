@@ -832,3 +832,29 @@ Success Criteria:
 - ✅ Functions only execute on client side
 - ✅ No impact on functionality
 - ✅ Vercel builds should now succeed
+
+### Next.js 15 Suspense Boundary Fix (June 10, 2025) ✓
+
+**Issue Found:**
+- Build error: `useSearchParams() should be wrapped in a suspense boundary at page "/full-access"`
+- Next.js 15+ requires `useSearchParams` to be wrapped in Suspense for static generation
+- Error prevented successful Vercel deployment
+
+**Fix Applied:**
+1. Renamed main component to `FullAccessContent`
+2. Created wrapper component with Suspense:
+   ```typescript
+   export default function FullAccessPage() {
+     return (
+       <Suspense fallback={<div>Loading...</div>}>
+         <FullAccessContent />
+       </Suspense>
+     )
+   }
+   ```
+
+**Result:**
+- ✅ Next.js 15 CSR bailout error resolved
+- ✅ Page can now be statically generated
+- ✅ Vercel builds should complete successfully
+- ✅ No impact on functionality or user experience
