@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { AlertTriangle, CheckCircle, FileText } from "lucide-react"
+import { AlertTriangle, CheckCircle, FileText, MessageSquare, Clock } from "lucide-react"
 
 interface Violation {
   type: 'long-sentence' | 'passive-voice' | 'jargon' | 'spelling-inconsistency';
@@ -33,18 +33,57 @@ const severityColors = {
   low: 'bg-blue-100 text-blue-800 border-blue-200'
 }
 
-const typeLabels = {
-  'long-sentence': 'Long Sentence',
-  'passive-voice': 'Passive Voice',
-  'jargon': 'Jargon',
-  'spelling-inconsistency': 'Spelling'
+const typeConfig = {
+  'long-sentence': {
+    label: 'Long Sentences',
+    icon: Clock,
+    description: 'Sentences over 25 words that may be hard to read',
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-50',
+    borderColor: 'border-orange-200'
+  },
+  'passive-voice': {
+    label: 'Passive Voice',
+    icon: MessageSquare,
+    description: 'Passive constructions that weaken your message',
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-50',
+    borderColor: 'border-purple-200'
+  },
+  'jargon': {
+    label: 'Jargon',
+    icon: AlertTriangle,
+    description: 'Technical terms that may confuse readers',
+    color: 'text-red-600',
+    bgColor: 'bg-red-50',
+    borderColor: 'border-red-200'
+  },
+  'spelling-inconsistency': {
+    label: 'Spelling Inconsistency',
+    icon: FileText,
+    description: 'Mixed US/UK spelling or inconsistent terms',
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50',
+    borderColor: 'border-blue-200'
+  }
 }
+
+
 
 export default function AuditResults({ result, websiteUrl }: AuditResultsProps) {
   const { violations, summary } = result
 
+  // Group violations by type
+  const violationsByType = violations.reduce((acc, violation) => {
+    if (!acc[violation.type]) {
+      acc[violation.type] = []
+    }
+    acc[violation.type].push(violation)
+    return acc
+  }, {} as Record<string, Violation[]>)
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Summary Card */}
       <Card>
         <CardHeader>
@@ -70,7 +109,7 @@ export default function AuditResults({ result, websiteUrl }: AuditResultsProps) 
           </div>
           
           {summary.totalViolations > 0 && (
-            <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+            <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
               <div className="flex items-center gap-2 text-orange-800">
                 <AlertTriangle className="h-4 w-4" />
                 <span className="font-medium">
@@ -82,52 +121,73 @@ export default function AuditResults({ result, websiteUrl }: AuditResultsProps) 
         </CardContent>
       </Card>
 
-      {/* Violations List */}
-      {violations.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Top Issues Found</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {violations.slice(0, 5).map((violation, index) => (
-              <div key={index} className="border rounded-lg p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Badge className={severityColors[violation.severity]}>
-                      {violation.severity.toUpperCase()}
-                    </Badge>
-                    <span className="font-medium">{typeLabels[violation.type]}</span>
-                  </div>
-                  <span className="text-xs text-gray-500">
-                    {new URL(violation.page).pathname || '/'}
-                  </span>
-                </div>
-                
-                <div className="text-sm text-gray-700 bg-gray-50 p-3 rounded border-l-4 border-gray-300">
-                  "{violation.text.slice(0, 200)}{violation.text.length > 200 ? '...' : ''}"
-                </div>
-                
-                <div className="text-sm text-blue-700 bg-blue-50 p-2 rounded">
-                  💡 {violation.suggestion}
-                </div>
-              </div>
-            ))}
+      {/* Violations by Type */}
+      {Object.keys(violationsByType).length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {Object.entries(violationsByType).map(([type, typeViolations]) => {
+            const config = typeConfig[type as keyof typeof typeConfig]
+            const Icon = config.icon
             
-            {violations.length > 5 && (
-              <div className="text-center text-gray-500 text-sm">
-                + {violations.length - 5} more issues found
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            return (
+              <Card key={type} className={`h-fit ${config.borderColor} border-2`}>
+                <CardHeader className={`${config.bgColor} border-b ${config.borderColor}`}>
+                  <CardTitle className="flex items-center gap-3">
+                    <Icon className={`h-6 w-6 ${config.color}`} />
+                    <span className="text-lg">{config.label}</span>
+                    <Badge variant="secondary" className="ml-auto text-sm px-2 py-1">
+                      {typeViolations.length}
+                    </Badge>
+                  </CardTitle>
+                  <p className="text-sm text-gray-600 mt-2">{config.description}</p>
+                </CardHeader>
+                <CardContent className="p-6 space-y-5">
+                  {typeViolations.slice(0, 3).map((violation, index) => (
+                    <div key={index} className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="mb-4">
+                        <div className="text-base text-gray-900 bg-gray-50 p-4 rounded-md border-l-4 border-gray-400 leading-relaxed">
+                          <span className="font-medium">"{violation.text.slice(0, 200)}{violation.text.length > 200 ? '...' : ''}"</span>
+                          {violation.type === 'long-sentence' && (
+                            <div className="mt-2 text-xs text-gray-500">
+                              {violation.text.split(/\s+/).length} words
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="mb-4">
+                        <div className="text-sm text-blue-800 bg-blue-50 p-3 rounded-md border-l-4 border-blue-300 leading-relaxed">
+                          <span className="font-medium">💡 {violation.suggestion}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-end pt-2 border-t border-gray-100">
+                        <span className="text-xs text-gray-400">
+                          {new URL(violation.page).pathname || '/'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {typeViolations.length > 3 && (
+                    <div className="text-center py-4">
+                      <button className="text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-full transition-colors">
+                        View {typeViolations.length - 3} more {config.label.toLowerCase()}
+                      </button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
       )}
 
       {/* No Issues */}
       {violations.length === 0 && (
         <Card>
-          <CardContent className="text-center py-8">
-            <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Great Copy!</h3>
+          <CardContent className="text-center py-12">
+            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+            <h3 className="text-xl font-medium text-gray-900 mb-2">Great Copy!</h3>
             <p className="text-gray-600">
               No major writing issues found on {websiteUrl}
             </p>

@@ -44,7 +44,7 @@ function detectLongSentences(paragraphs: string[], pageUrl: string): Violation[]
           type: 'long-sentence',
           severity: words > 35 ? 'high' : 'medium',
           text: sentence,
-          suggestion: `Break this ${words}-word sentence into 2-3 shorter sentences.`,
+          suggestion: `Break into ${Math.ceil(words / 15)} shorter sentences.`,
           page: pageUrl,
           position: paragraphIndex * 100 + sentenceIndex
         });
@@ -75,7 +75,7 @@ function detectPassiveVoice(paragraphs: string[], pageUrl: string): Violation[] 
           type: 'passive-voice',
           severity: 'medium',
           text: sentence.trim(),
-          suggestion: 'Consider rewriting in active voice for stronger impact.',
+          suggestion: 'Rewrite in active voice.',
           page: pageUrl,
           position: paragraphIndex * 100 + sentenceIndex
         });
