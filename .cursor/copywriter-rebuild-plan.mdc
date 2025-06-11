@@ -1,0 +1,370 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Copywriter-First Rebuild Plan
+
+## 🎯 **Vision Statement**
+Transform AIStyleGuide from "quick generator" to "professional copywriter tool" that builds trust through analysis-first approach and proves value before payment.
+
+## 📋 **Core Problem Solved**
+Current flow optimized for speed but copywriters need **depth and confidence**. Users won't pay without seeing proof the tool understands good writing and their specific brand.
+
+---
+
+## 🚀 **New User Journey (o3 Plan)**
+
+### 1. **Landing → Single Input**
+```
+Hero field: "Paste your URL or describe the brand in one sentence"
+• If URL → run crawler
+• If text string → skip crawl, drop into GPT enrichment prompt
+Sub-copy: "We'll audit your live copy first, then draft a custom style guide"
+```
+
+### 2. **Crawl & Copy-Violation Audit (behind the scenes)**
+- Scrape visible marketing pages (home, /about, /pricing, blog top 3)
+- Run quick rule engine (regex + GPT) for violations:
+  - Passive voice density
+  - Over-long sentences (> 25 words)
+  - Banned jargon list (user can edit later)
+  - British vs. US spelling inconsistency
+- Return audit banner: "12 issues found across 4 pages – here are 3 examples"
+- CTA → "Next: confirm brand basics"
+
+### 3. **Dynamic "Yes/No & Quick-Pick" Questionnaire (6-8 items)**
+- **Yes/No**: "Do you prefer British English?" (Toggle)
+- **Either/Or chips**: "Use 1st person 'we' or 3rd person 'the team'?"
+- **Short text (optional)**: "Any phrases we should never use?" (100 chars each)
+- **Pre-selected answers** inferred from crawl ("We detected US spelling – ok to keep?")
+
+### 4. **Preview Mode (right side panel)**
+- Initial 1-pager draft appears in seconds
+- Sections:
+  1. Mission + audience snapshot (scraped + user-edited)
+  2. Highlights of detected violations → paired with corrective rule
+  3. 3 brand-voice traits (with "Regenerate" chip per trait)
+- Sticky bar: "Looks good? Generate full 25-rule PDF → $99" / "Want tweaks? Regenerate section"
+
+### 5. **Sample PDF Download (free, water-marked)**
+- Generate 4 pages (cover + overview + 3 rules)
+- Watermark diagonal "Preview – incomplete"
+- Trigger Stripe checkout to unlock full guide
+
+### 6. **Post-Purchase Flow**
+- Stripe webhook → Resend email with full PDF + Markdown + magic link
+- Store session in DB for re-downloads
+- Optional: Re-audit invitation after implementation
+
+---
+
+## 🛠 **Technical Implementation Plan**
+
+### **Week 1: Copy Audit Foundation**
+
+#### **Day 1-2: Enhanced Website Crawler**
+**File**: `lib/website-crawler.ts` (new)
+```typescript
+interface CrawlResult {
+  pages: {
+    url: string;
+    title: string;
+    content: string;
+    wordCount: number;
+  }[];
+  violations: Violation[];
+  brandPatterns: BrandPattern[];
+}
+```
+
+**Features needed:**
+- Scrape 4-5 key pages (home, about, pricing, blog posts)
+- Extract clean text content (cheerio + readability)
+- Parallel page fetching for speed
+- Content length limits (10k chars per page)
+- Error handling for protected/missing pages
+
+#### **Day 3-4: Violation Detection Engine**
+**File**: `lib/copy-audit.ts` (new)
+```typescript
+interface Violation {
+  type: 'passive-voice' | 'long-sentence' | 'jargon' | 'spelling-inconsistency';
+  severity: 'high' | 'medium' | 'low';
+  text: string;
+  suggestion: string;
+  page: string;
+  position: number;
+}
+```
+
+**Detection rules:**
+- **Passive voice**: Regex + GPT validation (`/\b(was|were|is|are|been|being)\s+\w+ed\b/g`)
+- **Long sentences**: Split by periods, count words > 25
+- **Jargon detection**: Built-in list + context analysis
+- **Spelling consistency**: US vs UK patterns (`color/colour`, `ize/ise`)
+- **Readability scores**: Flesch-Kincaid, sentence complexity
+
+#### **Day 5: Audit Results UI**
+**File**: `components/audit-results.tsx` (new)
+- Violation summary banner
+- Expandable violation details
+- Before/after examples
+- Violation → rule connections
+- Progress to next step CTA
+
+### **Week 2: Dynamic Flow & Preview**
+
+#### **Day 6-7: Smart Questionnaire**
+**File**: `components/smart-questionnaire.tsx` (new)
+```typescript
+interface QuestionnaireData {
+  spelling: 'US' | 'UK' | 'mixed';
+  voice: 'first-person' | 'third-person' | 'mixed';
+  formality: 'casual' | 'professional' | 'technical';
+  bannedPhrases: string[];
+  preferredTerms: Record<string, string>;
+}
+```
+
+**Question types:**
+- Toggle switches for binary choices
+- Chip selectors for multiple options
+- Text inputs for custom terms
+- Pre-populated based on audit findings
+- Confidence indicators ("We're 90% sure...")
+
+#### **Day 8-9: Preview Mode with Regeneration**
+**File**: `components/preview-panel.tsx` (new)
+- Side-by-side layout (questionnaire | preview)
+- Real-time preview updates
+- Section-specific regeneration
+- Violation → rule mapping display
+- Composable prompt system
+
+**Composable prompts structure:**
+```typescript
+interface PromptSegments {
+  brandContext: string;
+  violationContext: string;
+  userPreferences: string;
+  sectionFocus: 'voice-traits' | 'rules' | 'examples';
+}
+```
+
+#### **Day 10: Watermarked PDF System**
+**File**: `lib/pdf-generator.ts` (enhance existing)
+- Generate 4-page preview (cover + 3 sections)
+- Diagonal watermark overlay
+- Different template from full version
+- Fast generation (< 3 seconds)
+- Preview-specific content selection
+
+### **Week 3: Integration & Polish**
+
+#### **Day 11-12: New Landing Page Integration**
+**File**: `app/page.tsx` (major refactor)
+- Update hero section with new input field
+- Handle URL vs description logic
+- Route to audit flow vs manual flow
+- Maintain existing comparison table
+- Update copy to reflect audit-first approach
+
+#### **Day 13-14: API Route Updates**
+**Files**: 
+- `app/api/audit-website/route.ts` (new)
+- `app/api/generate-preview/route.ts` (new)
+- `app/api/regenerate-section/route.ts` (new)
+
+**New endpoints needed:**
+```typescript
+// POST /api/audit-website
+{ url: string } → { violations: Violation[], patterns: BrandPattern[] }
+
+// POST /api/generate-preview  
+{ auditData: AuditData, preferences: QuestionnaireData } → { preview: PreviewData }
+
+// POST /api/regenerate-section
+{ section: string, context: any } → { updatedSection: string }
+```
+
+#### **Day 15: Testing & Bug Fixes**
+- End-to-end flow testing
+- Mobile responsiveness
+- Error handling edge cases
+- Performance optimization
+- User experience polish
+
+---
+
+## 🔧 **Technical Architecture**
+
+### **New Components Structure**
+```
+components/
+├── audit-results.tsx          # Violation display & summary
+├── smart-questionnaire.tsx    # Pre-populated form with overrides
+├── preview-panel.tsx          # Live preview with regeneration
+├── watermarked-pdf.tsx        # Sample PDF component
+└── copywriter-flow.tsx        # Main flow orchestrator
+```
+
+### **New API Routes**
+```
+app/api/
+├── audit-website/            # Website crawling + violation detection
+├── generate-preview/         # Quick preview generation
+├── regenerate-section/       # Section-specific updates
+└── create-sample-pdf/        # Watermarked preview PDF
+```
+
+### **Enhanced Libraries**
+```
+lib/
+├── website-crawler.ts        # Multi-page scraping
+├── copy-audit.ts            # Violation detection engine
+├── brand-analyzer.ts        # Pattern recognition
+├── composable-prompts.ts    # Modular AI prompts
+└── pdf-watermark.ts         # Preview PDF generation
+```
+
+### **Database Schema (if needed)**
+```sql
+-- Optional: Store audit results for re-use
+CREATE TABLE audit_sessions (
+  id UUID PRIMARY KEY,
+  url TEXT,
+  violations JSONB,
+  brand_patterns JSONB,
+  user_preferences JSONB,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+---
+
+## 📊 **Success Metrics**
+
+### **User Trust Indicators**
+- Time spent on audit results page
+- Questionnaire completion rate
+- Preview regeneration usage
+- Sample PDF download rate
+
+### **Conversion Metrics**
+- Audit → questionnaire conversion
+- Preview → sample PDF conversion  
+- Sample PDF → purchase conversion
+- Overall landing → purchase conversion
+
+### **Quality Metrics**
+- Violation detection accuracy
+- User override frequency
+- Preview satisfaction (regeneration rate)
+- Post-purchase satisfaction
+
+---
+
+## 🚀 **Deployment Strategy**
+
+### **Branch Strategy**
+```bash
+# Create feature branch
+git checkout -b feature/copywriter-rebuild
+
+# Development workflow
+git checkout feature/copywriter-rebuild
+# ... make changes ...
+git commit -m "feat: add copy audit engine"
+git push origin feature/copywriter-rebuild
+
+# Weekly merges to main
+git checkout main
+git merge feature/copywriter-rebuild
+git push origin main
+```
+
+### **Feature Flags**
+```typescript
+// Enable new flow gradually
+const ENABLE_COPYWRITER_FLOW = process.env.NODE_ENV === 'development' || 
+                               process.env.ENABLE_COPYWRITER_FLOW === 'true';
+```
+
+### **A/B Testing Setup**
+- 50% traffic to new flow
+- 50% traffic to existing flow
+- Compare conversion rates
+- Gradual rollout based on performance
+
+---
+
+## ⚠️ **Risk Mitigation**
+
+### **Technical Risks**
+- **Website crawling failures**: Fallback to manual entry
+- **AI response quality**: Multiple validation layers
+- **Performance issues**: Caching + parallel processing
+- **PDF generation errors**: Graceful degradation
+
+### **User Experience Risks**
+- **Audit overwhelm**: Limit to top 3-5 violations
+- **Questionnaire fatigue**: Keep to 6-8 questions max
+- **Preview confusion**: Clear violation → rule connections
+- **Mobile experience**: Responsive design priority
+
+### **Business Risks**
+- **Conversion drop**: A/B test before full rollout
+- **User confusion**: Clear onboarding + help text
+- **Technical debt**: Maintain existing flow during transition
+- **Timeline pressure**: MVP first, polish later
+
+---
+
+## 📅 **Detailed Timeline**
+
+### **Week 1: Foundation (Jan 13-17)**
+- **Mon**: Website crawler + content extraction
+- **Tue**: Violation detection engine
+- **Wed**: Brand pattern analysis
+- **Thu**: Audit results UI
+- **Fri**: Integration testing + bug fixes
+
+### **Week 2: Flow & Preview (Jan 20-24)**
+- **Mon**: Smart questionnaire component
+- **Tue**: Preview panel with regeneration
+- **Wed**: Composable prompt system
+- **Thu**: Watermarked PDF generation
+- **Fri**: End-to-end flow testing
+
+### **Week 3: Integration (Jan 27-31)**
+- **Mon**: Landing page refactor
+- **Tue**: API route updates
+- **Wed**: Mobile optimization
+- **Thu**: Performance tuning
+- **Fri**: Production deployment
+
+---
+
+## 🎯 **Definition of Done**
+
+### **MVP Requirements**
+- ✅ Website audit shows 3-5 key violations
+- ✅ Questionnaire pre-populated from audit
+- ✅ Preview updates in real-time
+- ✅ Sample PDF generates with watermark
+- ✅ Existing payment flow works
+- ✅ Mobile responsive design
+- ✅ Error handling for edge cases
+
+### **Success Criteria**
+- **User feedback**: "I would use this over ChatGPT"
+- **Conversion rate**: Matches or exceeds current flow
+- **Performance**: Audit completes in < 10 seconds
+- **Quality**: 90%+ violation detection accuracy
+- **Reliability**: < 5% error rate in production
+
+---
+
+*Last updated: January 2025*
+*Status: Ready for Development*
