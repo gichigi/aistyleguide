@@ -41,17 +41,27 @@ Web app that generates brand style guides from website URLs using AI to extract 
 
 ## 🚧 Active Tasks
 
-### High Priority (P0)
+### **🎯 NEW: Copywriter-First Rebuild (Separate Branch)**
+*Transform from "quick generator" to "professional copywriter tool"*
+
+### Critical Priority (P0) 
+- 🔄 **Copy Audit Engine** - Build violation detection (passive voice, sentence length, jargon, spelling inconsistencies)
+- 🔄 **Error handling enhancement** - Better error messages, retry options, fallback handling for existing flow
+- 🔄 **Product Quality Assurance** - Ensure all 25 style rules display correctly, validate download functionality
 - 🔄 **Payment Flow Polish** - Add real-time generation status tracking, better success page UX, proper error handling
-- 🔄 **Product Quality Assurance** - Ensure all 25 style rules display correctly, validate download functionality  
-- 🔄 **Mobile Conversion Optimization** - Shorten fade-out effect, optimize mobile paywall dialog
 
-### Medium Priority (P1)  
+### High Priority (P1)
+- 🔄 **Dynamic Questionnaire UI** - Pre-populated form based on audit findings, smart defaults with user override
+- 🔄 **Preview Mode with Regeneration** - Side panel preview, section-by-section regeneration, violation→rule connections
+- 🔄 **Watermarked PDF Samples** - Free 4-page preview with watermark to prove value before purchase
+
+### Medium Priority (P2)
+- 🔄 **Mobile Conversion Optimization** - Shorten fade-out effect, optimize mobile paywall dialog  
 - 🔄 **Preview loading UX** - Remove loading interstitial, show processing state on button instead
-- 🔄 **Error handling enhancement** - Better error messages, retry options, fallback handling
-- 🔄 **Email Features** - Style guide delivery via email, welcome/onboarding sequence
+- 🔄 **Composable Prompt System** - Modular prompts for section regeneration without full rebuild
 
-### Low Priority (P2)
+### Low Priority (P3)
+- 🔄 **Email Features** - Style guide delivery via email, welcome/onboarding sequence
 - 🔄 **Automated testing** - Add tests for API routes and template processing
 - 🔄 **Analytics integration** - Track user behavior and conversion metrics
 - 🔄 **Performance monitoring** - Add logging and monitoring for production issues
@@ -101,11 +111,10 @@ Web app that generates brand style guides from website URLs using AI to extract 
 
 ## 🗺️ Future Roadmap
 
-### Short Term (Next 2 weeks)
-- **Complete payment flow polish** - Status tracking, better UI, proper redirects
-- **Finalize mobile optimizations** - Fade-out timing, responsive improvements
-- **Content validation testing** - Ensure all generated content displays correctly
-- **Performance monitoring setup** - Add logging for production debugging
+### Short Term (Next 3 weeks) - Copywriter Rebuild
+- **Week 1: Copy Audit Foundation** - Violation detection engine, audit results UI
+- **Week 2: Dynamic Flow** - Pre-populated questionnaire, preview with regeneration
+- **Week 3: Polish & Testing** - Watermarked samples, composable prompts, user testing
 
 ### Medium Term (1-2 months)  
 - **Advanced customization options** - Allow users to modify generated style guides
