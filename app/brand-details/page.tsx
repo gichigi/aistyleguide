@@ -16,11 +16,12 @@ import { useToast } from "@/hooks/use-toast"
 import { useSearchParams } from "next/navigation"
 import Logo from "@/components/Logo"
 import Header from "@/components/Header"
+import VoiceTraitSelector from "@/components/VoiceTraitSelector"
 
 // Default brand details
 const defaultBrandDetails = {
   brandDetailsText: "",
-  tone: "friendly",
+  englishVariant: "american" as "american" | "british",
 }
 
 // Inline brand name extraction function
@@ -79,6 +80,7 @@ export default function BrandDetailsPage() {
   const fromPayment = searchParams.get("paymentComplete") === "true"
   const urlGuideType = searchParams.get("guideType")
   const [guideType, setGuideType] = useState(urlGuideType || "core")
+  const [selectedTraits, setSelectedTraits] = useState<string[]>([])
   const [paymentComplete, setPaymentComplete] = useState(false)
   const [fadeIn, setFadeIn] = useState(false)
   const [showCharCount, setShowCharCount] = useState(false)
@@ -142,8 +144,7 @@ export default function BrandDetailsPage() {
         const updatedDetails = {
           ...defaultBrandDetails,
           ...parsedDetails,
-          // Only default tone if missing
-          tone: parsedDetails.tone || "friendly"
+          englishVariant: parsedDetails.englishVariant || "american",
         }
 
         setBrandDetails(updatedDetails)
@@ -216,24 +217,12 @@ export default function BrandDetailsPage() {
     return true;
   }
 
-  // Update handleSelectChange to ensure tone is always set
-  const handleSelectChange = (name: string, value: string) => {
-    if (name === "tone" && !value) {
-      value = "friendly" // Ensure tone always has a value
-    }
-    
-    setBrandDetails((prev) => {
-      const updatedDetails = { ...prev, [name]: value }
-      // Save to localStorage
-      localStorage.setItem("brandDetails", JSON.stringify(updatedDetails))
-      return updatedDetails
-    })
-  }
-
   // Update isFormValid function
   const isFormValid = () => {
-    // Only require brandDetailsText to be non-empty
-    return !!(brandDetails.brandDetailsText && brandDetails.brandDetailsText.trim().length > 0)
+    // Need brand description and exactly 3 traits
+    return (
+      !!brandDetails.brandDetailsText.trim() && selectedTraits.length === 3
+    )
   }
 
   // Update the handleSubmit function to use inline brand name extraction instead of external API
@@ -260,7 +249,9 @@ export default function BrandDetailsPage() {
         // Map brandDetailsText to description for template processor compatibility
         description: brandDetails.brandDetailsText,
         // Set default audience since we no longer collect it separately
-        audience: "general audience"
+        audience: "general audience",
+        traits: selectedTraits,
+        englishVariant: brandDetails.englishVariant,
       }
 
       // Generate preview as before
@@ -283,6 +274,7 @@ export default function BrandDetailsPage() {
       // Save brand details and preview
       console.log("[Brand Details] Saving to localStorage:", detailsWithName)
       localStorage.setItem("brandDetails", JSON.stringify(detailsWithName))
+      localStorage.setItem("selectedTraits", JSON.stringify(selectedTraits))
       localStorage.setItem("previewContent", data.preview)
       console.log("[Brand Details] Successfully saved brand details with extracted name")
 
@@ -303,6 +295,14 @@ export default function BrandDetailsPage() {
         variant: "destructive",
       })
     }
+  }
+
+  const handleVariantChange = (value: "american" | "british") => {
+    setBrandDetails(prev => {
+      const updated = { ...prev, englishVariant: value }
+      localStorage.setItem("brandDetails", JSON.stringify(updated))
+      return updated
+    })
   }
 
   return (
@@ -359,29 +359,30 @@ export default function BrandDetailsPage() {
                     )}
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="tone">Preferred tone</Label>
+                    <Label htmlFor="englishVariant">English</Label>
                     <Select
-                      onValueChange={(value) => handleSelectChange("tone", value)}
-                      value={brandDetails.tone || "friendly"}
-                      defaultValue="friendly"
+                      onValueChange={(val) => handleVariantChange(val as "american" | "british")}
+                      value={brandDetails.englishVariant}
                     >
-                      <SelectTrigger id="tone" className="w-full">
+                      <SelectTrigger id="englishVariant" className="w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="friendly">Friendly</SelectItem>
-                        <SelectItem value="professional">Professional</SelectItem>
-                        <SelectItem value="casual">Casual</SelectItem>
-                        <SelectItem value="formal">Formal</SelectItem>
-                        <SelectItem value="technical">Technical</SelectItem>
+                        <SelectItem value="american">American English</SelectItem>
+                        <SelectItem value="british">British English</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
+                {/* Voice Trait Selector */}
+                <div className="mb-6">
+                  <h2 className="text-xl font-bold mb-4">Brand voice traits</h2>
+                  <VoiceTraitSelector onChange={setSelectedTraits} />
+                </div>
                 <div className="flex justify-end">
                   <Button 
                     type="submit" 
-                    disabled={loading || !!mainError || !brandDetails.brandDetailsText.trim()} 
+                    disabled={loading || !!mainError || !isFormValid()} 
                     className="w-full sm:w-auto"
                   >
                     {processingStep === 'processing' ? (
