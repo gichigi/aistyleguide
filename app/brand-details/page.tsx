@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Slider } from "@/components/ui/slider"
 import Link from "next/link"
 import { ArrowLeft, FileText, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -22,7 +23,18 @@ import VoiceTraitSelector from "@/components/VoiceTraitSelector"
 const defaultBrandDetails = {
   brandDetailsText: "",
   englishVariant: "american" as "american" | "british",
+  formalityLevel: 2, // Default to neutral (0=Very Casual, 1=Casual, 2=Neutral, 3=Formal, 4=Very Formal)
+  readingLevel: "6-8" as "6-8" | "10-12" | "13+", // Default to general public (6-8=General Public, 10-12=Professional, 13+=Technical/Academic)
 }
+
+// Formality level labels
+const formalityLabels = [
+  "Very Casual",
+  "Casual", 
+  "Neutral",
+  "Formal",
+  "Very Formal"
+]
 
 // Inline brand name extraction function
 function extractBrandNameInline(brandDetailsText: string) {
@@ -30,19 +42,21 @@ function extractBrandNameInline(brandDetailsText: string) {
     // Simple extraction logic - look for common patterns
     const text = brandDetailsText.trim()
     
-    // Look for patterns like "Nike is a..." or "Apple creates..."
+    // Look for patterns like "Nike is a..." or "Apple creates..." - updated to handle ® symbols
     const patterns = [
-      /^([A-Z][a-zA-Z0-9\s&-]{1,30})\s+(?:is|are|was|were|creates?|makes?|provides?|offers?|specializes?)/i,
-      /^([A-Z][a-zA-Z0-9\s&-]{1,30})\s+(?:helps?|serves?|works?|focuses?)/i,
-      /(?:company|brand|business|startup|organization)\s+(?:called|named)\s+([A-Z][a-zA-Z0-9\s&-]{1,30})/i,
-      /^([A-Z][a-zA-Z0-9\s&-]{1,30})\s*[,.]?\s*(?:a|an|the)/i
+      /^([A-Z][a-zA-Z0-9\s&®™©-]{1,30}?)\s+(?:is|are|was|were|creates?|makes?|provides?|offers?|specializes?)/i,
+      /^([A-Z][a-zA-Z0-9\s&®™©-]{1,30}?)\s+(?:helps?|serves?|works?|focuses?)/i,
+      /(?:company|brand|business|startup|organization)\s+(?:called|named)\s+([A-Z][a-zA-Z0-9\s&®™©-]{1,30})/i,
+      /^([A-Z][a-zA-Z0-9\s&®™©-]{1,30}?)\s*[,.]?\s*(?:a|an|the)/i
     ]
     
     // Try each pattern
     for (const pattern of patterns) {
       const match = text.match(pattern)
       if (match && match[1]) {
-        const brandName = match[1].trim()
+        let brandName = match[1].trim()
+        // Clean up trailing punctuation and symbols
+        brandName = brandName.replace(/[®™©]*$/, '').trim()
         // Validate it's not too generic
         const genericWords = ['company', 'business', 'brand', 'startup', 'organization', 'team', 'we', 'our', 'this', 'that']
         if (!genericWords.includes(brandName.toLowerCase()) && brandName.length > 1) {
@@ -54,10 +68,11 @@ function extractBrandNameInline(brandDetailsText: string) {
     // Fallback: look for first capitalized word that's not too common
     const words = text.split(/\s+/)
     for (const word of words) {
-      if (/^[A-Z][a-zA-Z0-9&-]{1,20}$/.test(word)) {
+      if (/^[A-Z][a-zA-Z0-9&®™©-]{1,20}$/.test(word)) {
+        const cleanWord = word.replace(/[®™©]*$/, '').trim()
         const commonWords = ['The', 'This', 'That', 'Our', 'We', 'Company', 'Business', 'Brand', 'Team']
-        if (!commonWords.includes(word)) {
-          return { success: true, brandName: word }
+        if (!commonWords.includes(cleanWord)) {
+          return { success: true, brandName: cleanWord }
         }
       }
     }
@@ -82,6 +97,7 @@ export default function BrandDetailsPage() {
   const [guideType, setGuideType] = useState(urlGuideType || "core")
   const [selectedTraits, setSelectedTraits] = useState<string[]>([])
   const [paymentComplete, setPaymentComplete] = useState(false)
+  const [formalityLevel, setFormalityLevel] = useState(2)
   const [fadeIn, setFadeIn] = useState(false)
   const [showCharCount, setShowCharCount] = useState(false)
 
@@ -145,9 +161,12 @@ export default function BrandDetailsPage() {
           ...defaultBrandDetails,
           ...parsedDetails,
           englishVariant: parsedDetails.englishVariant || "american",
+          formalityLevel: parsedDetails.formalityLevel ?? 2,
+          readingLevel: parsedDetails.readingLevel || "6-8",
         }
 
         setBrandDetails(updatedDetails)
+        setFormalityLevel(updatedDetails.formalityLevel)
 
         // Update localStorage with the validated details
         localStorage.setItem("brandDetails", JSON.stringify(updatedDetails))
@@ -252,6 +271,8 @@ export default function BrandDetailsPage() {
         audience: "general audience",
         traits: selectedTraits,
         englishVariant: brandDetails.englishVariant,
+        formalityLevel: brandDetails.formalityLevel,
+        readingLevel: brandDetails.readingLevel,
       }
 
       // Generate preview as before
@@ -358,20 +379,70 @@ export default function BrandDetailsPage() {
                       <div className="text-xs text-red-600 mt-1">{mainError}</div>
                     )}
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="englishVariant">English</Label>
-                    <Select
-                      onValueChange={(val) => handleVariantChange(val as "american" | "british")}
-                      value={brandDetails.englishVariant}
-                    >
-                      <SelectTrigger id="englishVariant" className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="american">American English</SelectItem>
-                        <SelectItem value="british">British English</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="englishVariant">Language</Label>
+                      <Select
+                        onValueChange={(val) => handleVariantChange(val as "american" | "british")}
+                        value={brandDetails.englishVariant}
+                      >
+                        <SelectTrigger id="englishVariant" className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="american">American English</SelectItem>
+                          <SelectItem value="british">British English</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="formalityLevel">Formality</Label>
+                      <Select
+                        onValueChange={(val) => {
+                          const level = parseInt(val)
+                          setFormalityLevel(level)
+                          setBrandDetails(prev => {
+                            const updated = { ...prev, formalityLevel: level }
+                            localStorage.setItem("brandDetails", JSON.stringify(updated))
+                            return updated
+                          })
+                        }}
+                        value={brandDetails.formalityLevel?.toString() || "2"}
+                      >
+                        <SelectTrigger id="formalityLevel" className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="0">Very Casual</SelectItem>
+                          <SelectItem value="1">Casual</SelectItem>
+                          <SelectItem value="2">Neutral</SelectItem>
+                          <SelectItem value="3">Formal</SelectItem>
+                          <SelectItem value="4">Very Formal</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="readingLevel">Reading Level</Label>
+                      <Select
+                        onValueChange={(val) => {
+                          setBrandDetails(prev => {
+                            const updated = { ...prev, readingLevel: val as "6-8" | "10-12" | "13+" }
+                            localStorage.setItem("brandDetails", JSON.stringify(updated))
+                            return updated
+                          })
+                        }}
+                        value={brandDetails.readingLevel || "6-8"}
+                      >
+                        <SelectTrigger id="readingLevel" className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="6-8">Grade 6-8 (General Public)</SelectItem>
+                          <SelectItem value="10-12">Grade 10-12 (Professional)</SelectItem>
+                          <SelectItem value="13+">Grade 13+ (Technical/Academic)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
                 {/* Voice Trait Selector */}

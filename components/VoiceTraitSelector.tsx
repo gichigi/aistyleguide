@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { TRAITS } from "@/lib/traits"
 import TraitCard from "./TraitCard"
 
@@ -8,6 +8,32 @@ const traitNames = Object.keys(TRAITS) as (keyof typeof TRAITS)[]
 
 export default function VoiceTraitSelector({ onChange }: { onChange?: (traits: string[]) => void }) {
   const [selectedTraits, setSelectedTraits] = useState<string[]>([])
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('selectedTraits')
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed) && parsed.length <= 3) {
+          const validTraits = parsed.filter(t => traitNames.includes(t))
+          setSelectedTraits(validTraits)
+        }
+      }
+    } catch (error) {
+      console.error('Error loading traits from localStorage:', error)
+    }
+  }, [])
+
+  // Save to localStorage when traits change
+  useEffect(() => {
+    try {
+      localStorage.setItem('selectedTraits', JSON.stringify(selectedTraits))
+      onChange?.(selectedTraits)
+    } catch (error) {
+      console.error('Error saving traits to localStorage:', error)
+    }
+  }, [selectedTraits, onChange])
 
   const toggleTrait = (name: string) => {
     let updated: string[]
@@ -19,7 +45,6 @@ export default function VoiceTraitSelector({ onChange }: { onChange?: (traits: s
       return // max 3
     }
     setSelectedTraits(updated)
-    onChange && onChange(updated)
   }
 
   const traitDisabled = (name: string) => selectedTraits.length >= 3 && !selectedTraits.includes(name)

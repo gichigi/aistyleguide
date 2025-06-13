@@ -111,6 +111,58 @@ Web app that generates brand style guides from website URLs using AI to extract 
 
 ## 🗺️ Future Roadmap
 
+### **🆕 PRIORITY: Freemium Pricing Strategy (Option C)**
+*Move auth gate after preview, implement tiered value*
+
+**Implementation:**
+- **Basic Style Guide (FREE)**: 10 core rules + voice traits, view + download
+- **Full Style Guide ($99)**: 25+ rules + examples + formats  
+- **Complete Guide ($149)**: 99+ rules + custom branding + team features
+
+**Benefits:**
+- Users see real value before paying
+- Lower barrier to entry → more trials
+- Higher conversion → proven value
+- Reduces purchase anxiety
+
+**Technical Changes Needed:**
+- Update template processor to handle free tier limits
+- Modify auth flow to gate features, not preview
+- Add tier-based content generation
+- Update payment flow and pricing modals
+
+### **🆕 FUTURE: Freemium + Auth Strategy (Turboscribe Model)**
+*Add authentication when ready to scale with usage limits*
+
+**Freemium Structure:**
+- **Free Tier**: 3 basic guides/month (10 rules) → Auth required to track usage
+- **Pro Tier**: Unlimited full guides (25+ rules) → $99
+- **Complete Tier**: Everything + team features → $149
+
+**Implementation Phases:**
+1. **Phase 1**: No auth, focus on product-market fit and core experience
+2. **Phase 2**: Add freemium + auth when conversion proven
+
+**Auth Benefits with Free Tier:**
+- Track usage limits ("2/3 free guides used this month")
+- Prevent abuse of free tier
+- User dashboard ("Your previous guides")
+- Email nurturing for upgrades
+- Personalization and saved guides
+
+**When to Add Auth:**
+- ✅ Proven conversion on paid tiers
+- ✅ Users asking to "save guides"
+- ✅ Clear usage patterns established
+- ✅ Email marketing campaigns ready
+
+**Technical Requirements for Phase 2:**
+- User authentication system
+- Usage tracking and limits
+- User dashboard for guide history
+- Email automation for upgrade campaigns
+- Tier-based feature gating
+
 ### Short Term (Next 3 weeks) - Copywriter Rebuild
 - **Week 1: Copy Audit Foundation** - Violation detection engine, audit results UI
 - **Week 2: Dynamic Flow** - Pre-populated questionnaire, preview with regeneration

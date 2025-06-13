@@ -24,19 +24,21 @@ function extractBrandNameInline(brandDetailsText: string) {
     // Simple extraction logic - look for common patterns
     const text = brandDetailsText.trim()
     
-    // Look for patterns like "Nike is a..." or "Apple creates..."
+    // Look for patterns like "Nike is a..." or "Apple creates..." - updated to handle ® symbols
     const patterns = [
-      /^([A-Z][a-zA-Z0-9\s&-]{1,30})\s+(?:is|are|was|were|creates?|makes?|provides?|offers?|specializes?)/i,
-      /^([A-Z][a-zA-Z0-9\s&-]{1,30})\s+(?:helps?|serves?|works?|focuses?)/i,
-      /(?:company|brand|business|startup|organization)\s+(?:called|named)\s+([A-Z][a-zA-Z0-9\s&-]{1,30})/i,
-      /^([A-Z][a-zA-Z0-9\s&-]{1,30})\s*[,.]?\s*(?:a|an|the)/i
+      /^([A-Z][a-zA-Z0-9\s&®™©-]{1,30}?)\s+(?:is|are|was|were|creates?|makes?|provides?|offers?|specializes?)/i,
+      /^([A-Z][a-zA-Z0-9\s&®™©-]{1,30}?)\s+(?:helps?|serves?|works?|focuses?)/i,
+      /(?:company|brand|business|startup|organization)\s+(?:called|named)\s+([A-Z][a-zA-Z0-9\s&®™©-]{1,30})/i,
+      /^([A-Z][a-zA-Z0-9\s&®™©-]{1,30}?)\s*[,.]?\s*(?:a|an|the)/i
     ]
     
     // Try each pattern
     for (const pattern of patterns) {
       const match = text.match(pattern)
       if (match && match[1]) {
-        const brandName = match[1].trim()
+        let brandName = match[1].trim()
+        // Clean up trailing punctuation and symbols
+        brandName = brandName.replace(/[®™©]*$/, '').trim()
         // Validate it's not too generic
         const genericWords = ['company', 'business', 'brand', 'startup', 'organization', 'team', 'we', 'our', 'this', 'that']
         if (!genericWords.includes(brandName.toLowerCase()) && brandName.length > 1) {
@@ -48,10 +50,11 @@ function extractBrandNameInline(brandDetailsText: string) {
     // Fallback: look for first capitalized word that's not too common
     const words = text.split(/\s+/)
     for (const word of words) {
-      if (/^[A-Z][a-zA-Z0-9&-]{1,20}$/.test(word)) {
+      if (/^[A-Z][a-zA-Z0-9&®™©-]{1,20}$/.test(word)) {
+        const cleanWord = word.replace(/[®™©]*$/, '').trim()
         const commonWords = ['The', 'This', 'That', 'Our', 'We', 'Company', 'Business', 'Brand', 'Team']
-        if (!commonWords.includes(word)) {
-          return { success: true, brandName: word }
+        if (!commonWords.includes(cleanWord)) {
+          return { success: true, brandName: cleanWord }
         }
       }
     }

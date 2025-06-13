@@ -313,19 +313,59 @@ export async function processTemplate(templateType: string, brandDetails: any, p
 
     // Generate brand voice traits for both core and complete plans
     try {
-      const brandVoiceResult = await generateBrandVoiceTraits(validatedDetails);
-      if (brandVoiceResult.success && brandVoiceResult.content) {
-        // Split traits if possible
-        const traits = brandVoiceResult.content.split(/(?=### )/g).map(t => t.trim()).filter(Boolean);
-        template = template.replace(/{{voice_trait_1}}/g, traits[0] || '');
-        template = template.replace(/{{voice_trait_2}}/g, traits[1] || '');
-        template = template.replace(/{{voice_trait_3}}/g, traits[2] || '');
+      // Check if traits are provided in brandDetails
+      if (brandDetails.traits && Array.isArray(brandDetails.traits) && brandDetails.traits.length === 3) {
+        console.log("Using selected traits:", brandDetails.traits)
+        
+        // Import TRAITS definition
+        const { TRAITS } = await import('./traits')
+        
+        // Generate content for each selected trait
+        const traitContents = brandDetails.traits.map((traitName: string) => {
+          const trait = TRAITS[traitName as keyof typeof TRAITS]
+          if (!trait) {
+            console.warn(`Unknown trait: ${traitName}`)
+            return ''
+          }
+          
+          // Format trait content in markdown
+          return `### ${traitName}
+
+${trait.definition}
+
+#### What It Means
+${trait.do.map(item => `→ ${item}`).join('\n')}
+
+#### What It Doesn't Mean
+${trait.dont.map(item => `✗ ${item}`).join('\n')}
+
+**Example:**
+- Before: ${trait.example.before}
+- After: ${trait.example.after}`
+        })
+        
+        // Replace trait placeholders
+        template = template.replace(/{{voice_trait_1}}/g, traitContents[0] || '')
+        template = template.replace(/{{voice_trait_2}}/g, traitContents[1] || '')
+        template = template.replace(/{{voice_trait_3}}/g, traitContents[2] || '')
         // Remove any leftover placeholders
-        template = template.replace(/{{voice_trait_\d}}/g, '');
+        template = template.replace(/{{voice_trait_\d}}/g, '')
       } else {
-        template = template.replace(/{{voice_trait_1}}/g, '_Could not generate brand voice trait 1._');
-        template = template.replace(/{{voice_trait_2}}/g, '_Could not generate brand voice trait 2._');
-        template = template.replace(/{{voice_trait_3}}/g, '_Could not generate brand voice trait 3._');
+        // Fallback to AI generation if no traits selected
+        const brandVoiceResult = await generateBrandVoiceTraits(validatedDetails);
+        if (brandVoiceResult.success && brandVoiceResult.content) {
+          // Split traits if possible
+          const traits = brandVoiceResult.content.split(/(?=### )/g).map(t => t.trim()).filter(Boolean);
+          template = template.replace(/{{voice_trait_1}}/g, traits[0] || '');
+          template = template.replace(/{{voice_trait_2}}/g, traits[1] || '');
+          template = template.replace(/{{voice_trait_3}}/g, traits[2] || '');
+          // Remove any leftover placeholders
+          template = template.replace(/{{voice_trait_\d}}/g, '');
+        } else {
+          template = template.replace(/{{voice_trait_1}}/g, '_Could not generate brand voice trait 1._');
+          template = template.replace(/{{voice_trait_2}}/g, '_Could not generate brand voice trait 2._');
+          template = template.replace(/{{voice_trait_3}}/g, '_Could not generate brand voice trait 3._');
+        }
       }
     } catch (error) {
       console.error("Error generating brand voice traits:", error)
@@ -541,14 +581,56 @@ export async function renderStyleGuideTemplate({
         description: brandDetails.description?.trim() || brandDetails.brandDetailsText || '',
         audience: brandDetails.audience?.trim() || '',
         tone: brandDetails.tone || '',
+        traits: brandDetails.traits || []
       };
-      // Brand voice traits
-      const brandVoiceResult = await generateBrandVoiceTraits(validatedDetails);
-      if (brandVoiceResult.success && brandVoiceResult.content) {
-        result = result.replace(/{{brand_voice_traits}}/g, formatMarkdownContent(brandVoiceResult.content));
+      
+      // Check if traits are provided
+      if (brandDetails.traits && Array.isArray(brandDetails.traits) && brandDetails.traits.length === 3) {
+        console.log("Using selected traits in renderStyleGuideTemplate:", brandDetails.traits)
+        
+        // Import TRAITS definition
+        const { TRAITS } = await import('./traits')
+        
+        // Generate content for each selected trait
+        const traitContents = brandDetails.traits.map((traitName: string) => {
+          const trait = TRAITS[traitName as keyof typeof TRAITS]
+          if (!trait) {
+            console.warn(`Unknown trait: ${traitName}`)
+            return ''
+          }
+          
+          // Format trait content in markdown
+          return `### ${traitName}
+
+${trait.definition}
+
+#### What It Means
+${trait.do.map(item => `→ ${item}`).join('\n')}
+
+#### What It Doesn't Mean
+${trait.dont.map(item => `✗ ${item}`).join('\n')}
+
+**Example:**
+- Before: ${trait.example.before}
+- After: ${trait.example.after}`
+        })
+        
+        // Replace trait placeholders
+        const allTraitsContent = traitContents.join('\n\n')
+        result = result.replace(/{{brand_voice_traits}}/g, allTraitsContent)
+        result = result.replace(/{{voice_trait_1}}/g, traitContents[0] || '')
+        result = result.replace(/{{voice_trait_2}}/g, traitContents[1] || '')
+        result = result.replace(/{{voice_trait_3}}/g, traitContents[2] || '')
       } else {
-        result = result.replace(/{{brand_voice_traits}}/g, "_Could not generate brand voice traits for this brand._");
+        // Fallback to AI generation
+        const brandVoiceResult = await generateBrandVoiceTraits(validatedDetails);
+        if (brandVoiceResult.success && brandVoiceResult.content) {
+          result = result.replace(/{{brand_voice_traits}}/g, formatMarkdownContent(brandVoiceResult.content));
+        } else {
+          result = result.replace(/{{brand_voice_traits}}/g, "_Could not generate brand voice traits for this brand._");
+        }
       }
+      
       if (templateType === "complete") {
         // Complete rules
         const completeRulesResult = await generateCompleteStyleGuide(validatedDetails);

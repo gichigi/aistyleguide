@@ -24,6 +24,13 @@ function validateBrandDetails(details: any) {
     errors.push("Invalid tone selected")
   }
   
+  // Traits validation - must have exactly 3 traits
+  if (!details.traits || !Array.isArray(details.traits)) {
+    errors.push("Voice traits are required")
+  } else if (details.traits.length !== 3) {
+    errors.push("Exactly 3 voice traits must be selected")
+  }
+  
   return errors
 }
 
@@ -96,6 +103,10 @@ export async function POST(request: Request) {
       hasAudience: !!brandDetails.audience,
       hasBrandDetailsText: !!brandDetails.brandDetailsText,
       tone: brandDetails.tone,
+      traits: brandDetails.traits,
+      englishVariant: brandDetails.englishVariant,
+      formalityLevel: brandDetails.formalityLevel,
+      readingLevel: brandDetails.readingLevel,
       keys: Object.keys(brandDetails)
     })
 

@@ -122,10 +122,51 @@ export async function generateWithOpenAI(
   }
 }
 
-// Function to generate brand voice traits
+// Function to format selected brand voice traits using static definitions
 export async function generateBrandVoiceTraits(brandDetails: any): Promise<GenerationResult> {
-  const prompt = `You are a brand strategist. Based on the following brand information, generate exactly 3 unique, complementary brand voice traits for this brand.\n\nBrand Info:\n• Brand Name: ${brandDetails.name}\n• Audience: ${brandDetails.audience}\n• Tone: ${brandDetails.tone}\n• What they do: ${brandDetails.summary || brandDetails.description}\n\nFor each trait, provide:\n1. A short, bold title as a numbered Markdown header (use \`### 1. TraitName\`, \`### 2. TraitName\`, etc.), with a blank line before and after.\n2. A **ONE SENTENCE** description of the trait and why it's important for this brand.\n3. "What It Means": 3 specific, actionable examples, each starting with → (unicode arrow, not emoji).  \n   - Place these under a bolded subheading: \`***What It Means***\`  \n   - Add a blank line before and after this section.\n4. "What It Doesn't Mean": 3 clarifications to avoid misinterpretation, each starting with ✗ (unicode cross, not emoji).  \n   - Place these under a bolded subheading: \`***What It Doesn't Mean***\`  \n   - Add a blank line before and after this section.\n\nFormatting rules:\n- Always use a blank line between each trait and each section.\n- Use numbered Markdown headers for trait names (### 1. TraitName, ### 2. TraitName, etc.).\n- Do not use bullet points.\n- Do not use meta-text, headings, or quote marks around trait titles.\n\nExample format:\n\n### 1. Simplicity\n\nA one-sentence description of the trait and why it's important.\n\n***What It Means***\n\n→ Use plain English and avoid jargon or unnecessary complexity.  \n→ Short, punchy sentences that get straight to the point.  \n→ Prioritize clarity so anyone can understand our message without a dictionary.\n\n***What It Doesn't Mean***\n\n✗ Dumbing down ideas or skipping important details.  \n✗ Ignoring nuance when discussing more advanced topics.  \n✗ Simplistic design or lack of depth in our overall communications.\n\n### 2. Boldness\n\nA one-sentence description of the trait and why it's important.\n\n***What It Means***\n\n→ Take clear stances on important topics.  \n→ Use confident, assertive language.  \n→ Encourage creative risk-taking in messaging.\n\n***What It Doesn't Mean***\n\n✗ Being aggressive or dismissive of other views.  \n✗ Making unsupported claims.  \n✗ Ignoring feedback or new ideas.\n\n### 3. Empathy\n\nA one-sentence description of the trait and why it's important.\n\n***What It Means***\n\n→ Show understanding of the user's needs and feelings.  \n→ Use language that acknowledges challenges and celebrates wins.  \n→ Make content feel personal and supportive.\n\n***What It Doesn't Mean***\n\n✗ Overpromising solutions to every problem.  \n✗ Using patronizing or insincere language.  \n✗ Ignoring the diversity of user experiences.\n\n---\nNow, generate 3 traits in this format.`;
-  return generateWithOpenAI(prompt, "You are a brand strategist.", "markdown", 2000, "gpt-4o");
+  const { TRAITS } = await import('./traits');
+  const selectedTraits = brandDetails.traits || [];
+  
+  if (selectedTraits.length === 0) {
+    return {
+      success: false,
+      error: "No voice traits selected"
+    };
+  }
+
+  try {
+    let formattedTraits = '';
+    
+    selectedTraits.forEach((traitName: string, index: number) => {
+      const trait = TRAITS[traitName as keyof typeof TRAITS];
+      if (!trait) return;
+      
+      formattedTraits += `### ${index + 1}. ${traitName}\n\n`;
+      formattedTraits += `${trait.definition}\n\n`;
+      formattedTraits += `***What It Means***\n\n`;
+      trait.do.forEach(item => {
+        formattedTraits += `→ ${item}\n`;
+      });
+      formattedTraits += `\n***What It Doesn't Mean***\n\n`;
+      trait.dont.forEach(item => {
+        formattedTraits += `✗ ${item}\n`;
+      });
+      
+      if (index < selectedTraits.length - 1) {
+        formattedTraits += `\n---\n\n`;
+      }
+    });
+
+    return {
+      success: true,
+      content: formattedTraits
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to format voice traits"
+    };
+  }
 }
 
 /* Function to generate style guide rules
@@ -168,12 +209,24 @@ Use British English spelling
 
 // Function to generate the entire core style guide in one go
 export async function generateFullCoreStyleGuide(brandDetails: any): Promise<GenerationResult> {
+  const formalityLabels = ["Very Casual", "Casual", "Neutral", "Formal", "Very Formal"];
+  const formalityLevel = brandDetails.formalityLevel ?? 2;
+  const formalityText = formalityLabels[formalityLevel] || "Neutral";
+  const readingLevelText = brandDetails.readingLevel === "6-8" ? "Grade 6-8 (General Public)" : 
+                           brandDetails.readingLevel === "10-12" ? "Grade 10-12 (Professional)" : 
+                           "Grade 13+ (Technical/Academic)";
+  
+  const englishVariant = brandDetails.englishVariant === "british" ? "British English" : "American English";
+  
   const prompt = `You are a writing style guide expert. Based on the brand info below, create a set of 25 specific writing style rules for this brand.
 
 Brand Info:
   • Brand Name: ${brandDetails.name}
   • Audience: ${brandDetails.audience}
   • Tone: ${brandDetails.tone}
+  • Formality Level: ${formalityText}
+  • Reading Level: ${readingLevelText}
+  • English Variant: ${englishVariant}
   • What they do: ${brandDetails.summary || brandDetails.description}
 
 Instructions:
@@ -224,12 +277,24 @@ Generate exactly 25 rules, each about a different aspect of writing style.`;
 
 // Function to generate the entire complete style guide in one go
 export async function generateCompleteStyleGuide(brandDetails: any): Promise<GenerationResult> {
+  const formalityLabels = ["Very Casual", "Casual", "Neutral", "Formal", "Very Formal"];
+  const formalityLevel = brandDetails.formalityLevel ?? 2;
+  const formalityText = formalityLabels[formalityLevel] || "Neutral";
+  const readingLevelText = brandDetails.readingLevel === "6-8" ? "Grade 6-8 (General Public)" : 
+                           brandDetails.readingLevel === "10-12" ? "Grade 10-12 (Professional)" : 
+                           "Grade 13+ (Technical/Academic)";
+  
+  const englishVariant = brandDetails.englishVariant === "british" ? "British English" : "American English";
+  
   const prompt = `You are a writing style guide expert. Based on the brand info below, create a comprehensive set of writing style rules for this brand, covering all the detailed topics listed.
 
 Brand Info:
   • Brand Name: ${brandDetails.name}
   • Audience: ${brandDetails.audience}
   • Tone: ${brandDetails.tone}
+  • Formality Level: ${formalityText}
+  • Reading Level: ${readingLevelText}
+  • English Variant: ${englishVariant}
   • What they do: ${brandDetails.summary || brandDetails.description}
 
 Instructions:
