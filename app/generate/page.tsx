@@ -15,7 +15,7 @@ const DEFAULT_BRAND_DETAILS = {
   name: "Style Guide AI",
   description: "A web app that generates brand voice and content style guides",
   audience: "marketing teams",
-  tone: "professional",
+  // tone field removed
 }
 
 // Fallback content for when generation fails

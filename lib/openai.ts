@@ -175,9 +175,8 @@ export async function generateStyleGuideRules(brandDetails: any, section: string
   
 Brand Description: ${brandDetails.description}
 Target Audience: ${brandDetails.audience}
-Tone: ${brandDetails.tone}
 
-Consider how ${brandDetails.audience} will interact with the content. Rules should help content creators maintain a ${brandDetails.tone} tone while effectively communicating with this audience.
+Consider how ${brandDetails.audience} will interact with the content.
 
 Provide 1 specific rule in this EXACT format:
 
@@ -209,21 +208,24 @@ Use British English spelling
 
 // Function to generate the entire core style guide in one go
 export async function generateFullCoreStyleGuide(brandDetails: any): Promise<GenerationResult> {
-  const formalityLabels = ["Very Casual", "Casual", "Neutral", "Formal", "Very Formal"];
-  const formalityLevel = brandDetails.formalityLevel ?? 2;
-  const formalityText = formalityLabels[formalityLevel] || "Neutral";
+  const formalityText = brandDetails.formalityLevel || "Neutral";
   const readingLevelText = brandDetails.readingLevel === "6-8" ? "Grade 6-8 (General Public)" : 
                            brandDetails.readingLevel === "10-12" ? "Grade 10-12 (Professional)" : 
                            "Grade 13+ (Technical/Academic)";
   
   const englishVariant = brandDetails.englishVariant === "british" ? "British English" : "American English";
   
+  // Format selected voice traits
+  const voiceTraits = brandDetails.traits && Array.isArray(brandDetails.traits) && brandDetails.traits.length > 0 
+    ? brandDetails.traits.join(", ") 
+    : "Not specified";
+  
   const prompt = `You are a writing style guide expert. Based on the brand info below, create a set of 25 specific writing style rules for this brand.
 
 Brand Info:
   • Brand Name: ${brandDetails.name}
   • Audience: ${brandDetails.audience}
-  • Tone: ${brandDetails.tone}
+  • Voice Traits: ${voiceTraits}
   • Formality Level: ${formalityText}
   • Reading Level: ${readingLevelText}
   • English Variant: ${englishVariant}
@@ -277,21 +279,24 @@ Generate exactly 25 rules, each about a different aspect of writing style.`;
 
 // Function to generate the entire complete style guide in one go
 export async function generateCompleteStyleGuide(brandDetails: any): Promise<GenerationResult> {
-  const formalityLabels = ["Very Casual", "Casual", "Neutral", "Formal", "Very Formal"];
-  const formalityLevel = brandDetails.formalityLevel ?? 2;
-  const formalityText = formalityLabels[formalityLevel] || "Neutral";
+  const formalityText = brandDetails.formalityLevel || "Neutral";
   const readingLevelText = brandDetails.readingLevel === "6-8" ? "Grade 6-8 (General Public)" : 
                            brandDetails.readingLevel === "10-12" ? "Grade 10-12 (Professional)" : 
                            "Grade 13+ (Technical/Academic)";
   
   const englishVariant = brandDetails.englishVariant === "british" ? "British English" : "American English";
   
+  // Format selected voice traits
+  const voiceTraits = brandDetails.traits && Array.isArray(brandDetails.traits) && brandDetails.traits.length > 0 
+    ? brandDetails.traits.join(", ") 
+    : "Not specified";
+  
   const prompt = `You are a writing style guide expert. Based on the brand info below, create a comprehensive set of writing style rules for this brand, covering all the detailed topics listed.
 
 Brand Info:
   • Brand Name: ${brandDetails.name}
   • Audience: ${brandDetails.audience}
-  • Tone: ${brandDetails.tone}
+  • Voice Traits: ${voiceTraits}
   • Formality Level: ${formalityText}
   • Reading Level: ${readingLevelText}
   • English Variant: ${englishVariant}
@@ -428,7 +433,7 @@ Always capitalize "Apple" and use it consistently to reinforce brand identity.
 
 // Function to generate a concise brand summary from a single textarea
 export async function generateBrandSummary(brandDetails: any): Promise<GenerationResult> {
-  const prompt = `Write a single paragraph (30–40 words) that starts with the brand name and summarizes the brand using all key info, keywords, and terms from the input below. Use the specified tone.\n\nBrand Info:\n${brandDetails.brandDetailsText}\nTone: ${brandDetails.tone}`;
+  const prompt = `Write a single paragraph (30–40 words) that starts with the brand name and summarizes the brand using all key info, keywords, and terms from the input below.\n\nBrand Info:\n${brandDetails.brandDetailsText}`;
   return generateWithOpenAI(prompt, "You are a brand strategist.", "markdown");
 }
 
@@ -436,4 +441,46 @@ export async function generateBrandSummary(brandDetails: any): Promise<Generatio
 export async function extractBrandName(brandDetails: any): Promise<GenerationResult> {
   const prompt = `Extract only the brand name from the text below. Return just the brand name, nothing else.\n\nBrand Info:\n${brandDetails.brandDetailsText}`;
   return generateWithOpenAI(prompt, "You are a brand analyst. Extract only the brand name from the given text.", "markdown");
+}
+
+// Function to generate expanded brand description from brief input
+export async function generateBrandDescription(briefDescription: string): Promise<GenerationResult> {
+  const prompt = `Based on the brief brand description below, generate a comprehensive brand profile.
+
+Return a JSON object with two fields:
+1. "brandName": The exact name of the company/brand (just the name, nothing else)
+2. "description": A detailed paragraph (40-60 words) that follows this structure:
+   - Start with the brand name followed by what they are/do
+   - Include their main products/services
+   - Specify their target audience
+   - Mention what makes them unique or their key value proposition
+
+Your description should be:
+- Professional, clear and easy to read 
+- Factual, not promotional
+- Written in third person
+- Focused on their current offerings
+- Use short sentences and simple punctuation
+
+Examples: 
+{
+  "brandName": "Nike",
+  "description": "Nike is a leading sports brand that designs, manufactures, and markets athletic footwear, apparel, equipment, and accessories worldwide. Nike targets athletes and sports enthusiasts of all levels, from professional competitors to casual fitness enthusiasts. The company is known for its innovative product design, performance technology, and inspirational marketing campaigns."
+}
+
+{
+  "brandName": "Spotify", 
+  "description": "Spotify is a digital music streaming platform that provides instant access to millions of songs, podcasts, and audio content. Spotify serves music lovers, podcast listeners, and content creators across all demographics globally. The platform is recognized for its personalized playlists, music discovery algorithms, and both free and premium subscription models."
+}
+
+Brief Description:
+${briefDescription}
+`;
+
+  return generateWithOpenAI(
+    prompt,
+    "You are an expert brand analyst with experience writing clear, comprehensive brand profiles. Use simple language and professional tone. Always return valid JSON with the exact structure requested.",
+    "json",
+    600 // Moderate token limit for detailed but concise descriptions
+  );
 }

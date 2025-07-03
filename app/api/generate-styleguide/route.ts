@@ -18,11 +18,7 @@ function validateBrandDetails(details: any) {
   // Audience is optional since it's always set to "general audience"
   // No validation needed
   
-  // Tone validation
-  const validTones = ["friendly", "professional", "casual", "formal", "technical"]
-  if (!details.tone || !validTones.includes(details.tone)) {
-    errors.push("Invalid tone selected")
-  }
+
   
   // Traits validation - must have exactly 3 traits
   if (!details.traits || !Array.isArray(details.traits)) {
@@ -102,7 +98,7 @@ export async function POST(request: Request) {
       hasDescription: !!brandDetails.description,
       hasAudience: !!brandDetails.audience,
       hasBrandDetailsText: !!brandDetails.brandDetailsText,
-      tone: brandDetails.tone,
+
       traits: brandDetails.traits,
       englishVariant: brandDetails.englishVariant,
       formalityLevel: brandDetails.formalityLevel,
@@ -123,11 +119,7 @@ export async function POST(request: Request) {
       )
     }
 
-    // Ensure tone is never empty
-    if (!brandDetails.tone || brandDetails.tone.trim() === "") {
-      brandDetails.tone = "professional"
-      console.log("Using default tone: professional")
-    }
+
 
     // Determine which template to use based on the plan
     const plan = requestBody?.plan || "core"

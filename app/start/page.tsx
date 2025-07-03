@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Globe, Loader2, AlertTriangle, ArrowRight, CheckCircle } from "lucide-react"
+import { validateInput, sanitizeInput } from "@/lib/input-utils"
 
 export default function StartPage() {
   const router = useRouter()
@@ -15,19 +16,18 @@ export default function StartPage() {
   const [isSuccess, setIsSuccess] = useState(false)
   const [manualDetails, setManualDetails] = useState("")
   const [showCharCount, setShowCharCount] = useState(false)
-  const [tone, setTone] = useState("friendly")
+
   const [showManual, setShowManual] = useState(false)
 
-  // URL validation function (copied from homepage)
-  const isValidUrl = (urlString: string): boolean => {
-    try {
-      if (!urlString.trim()) return true
-      const urlToCheck = urlString.match(/^https?:\/\//) ? urlString : `https://${urlString}`
-      new URL(urlToCheck)
-      return urlToCheck.includes(".") && urlToCheck.match(/^https?:\/\/[^.]+\..+/) !== null
-    } catch (e) {
+  // Input validation using our new utility functions
+  const handleInputValidation = (input: string) => {
+    const validation = validateInput(input)
+    if (!validation.isValid && validation.error) {
+      setError(validation.error)
       return false
     }
+    setError("")
+    return validation
   }
 
   const handleExtraction = async (e: React.FormEvent) => {
@@ -35,30 +35,42 @@ export default function StartPage() {
     setError("")
     setIsSuccess(false)
     setIsExtracting(false)
-    if (!url.trim()) {
+    
+    // Validate input using our new utility
+    const validation = handleInputValidation(url)
+    if (!validation) return
+
+    // Handle empty input - navigate to manual entry
+    if (validation.inputType === 'empty') {
       router.push("/brand-details")
       return
     }
-    if (!isValidUrl(url)) {
-      setError("Please enter a valid URL (e.g., example.com)")
-      return
-    }
+    
     setIsExtracting(true)
     try {
-      let formattedUrl = url.trim()
-      if (!formattedUrl.startsWith("http://") && !formattedUrl.startsWith("https://")) {
-        formattedUrl = "https://" + formattedUrl
+      let response
+      
+      if (validation.inputType === 'url') {
+        // Handle URL extraction
+        response = await fetch("/api/extract-website", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: validation.cleanInput }),
+        })
+      } else {
+        // Handle description generation using same endpoint
+        response = await fetch("/api/extract-website", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ description: validation.cleanInput }),
+        })
       }
-      const response = await fetch("/api/extract-website", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: formattedUrl }),
-      })
       const data = await response.json()
       if (data.success) {
         localStorage.setItem("brandDetails", JSON.stringify({
+          name: data.brandName || "",
           brandDetailsText: data.brandDetailsText,
-          tone: "friendly" // Default tone
+          // Default details
         }))
         setIsSuccess(true)
         setIsExtracting(false)
@@ -80,7 +92,7 @@ export default function StartPage() {
   const handleManual = (e: React.FormEvent) => {
     e.preventDefault()
     if (!manualDetails.trim()) return
-    localStorage.setItem("brandDetails", JSON.stringify({ brandDetailsText: manualDetails, tone }))
+          localStorage.setItem("brandDetails", JSON.stringify({ brandDetailsText: manualDetails }))
     router.push("/brand-details")
   }
 
@@ -97,11 +109,12 @@ export default function StartPage() {
               </div>
               <Input
                 type="text"
-                placeholder="e.g. nike.com"
+                placeholder="Describe your brand or enter website URL"
                 className={`pl-12 py-8 text-lg font-sans font-medium bg-white border-2 border-gray-200 rounded-xl shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200 focus:shadow-lg transition-all duration-200 placeholder:text-gray-400 placeholder:font-medium placeholder:text-base ${error ? "border-red-500 focus-visible:ring-red-500" : ""} ${isSuccess ? "border-green-500 focus-visible:ring-green-500 bg-green-50" : ""}`}
                 value={url}
                 onChange={e => {
-                  setUrl(e.target.value)
+                  const sanitizedValue = sanitizeInput(e.target.value, url)
+                  setUrl(sanitizedValue)
                   if (error) setError("")
                 }}
                 autoCapitalize="none"
@@ -126,7 +139,7 @@ export default function StartPage() {
               {isExtracting ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Checking your site...
+                  Processing...
                 </>
               ) : isSuccess ? (
                 <>
@@ -135,7 +148,7 @@ export default function StartPage() {
                 </>
               ) : (
                 <>
-                  Analyze my website <ArrowRight className="ml-2 h-5 w-5" />
+                  Get Started <ArrowRight className="ml-2 h-5 w-5" />
                 </>
               )}
             </Button>

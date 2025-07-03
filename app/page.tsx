@@ -7,7 +7,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   FileText,
@@ -29,6 +29,7 @@ import {
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import dynamic from "next/dynamic"
+import { validateInput, sanitizeInput } from "@/lib/input-utils"
 import BrandBanner from "@/components/BrandBanner"
 import Logo from "@/components/Logo"
 import Header from "@/components/Header"
@@ -63,23 +64,15 @@ export default function LandingPage() {
     loading: () => <div className="w-full py-6 bg-muted"></div>,
   })
 
-  // URL validation function
-  const isValidUrl = (urlString: string): boolean => {
-    try {
-      // If URL is empty, it's valid (user can enter details manually)
-      if (!urlString.trim()) return true
-
-      // Add https:// if missing
-      const urlToCheck = urlString.match(/^https?:\/\//) ? urlString : `https://${urlString}`
-
-      // Try to create a URL object
-      new URL(urlToCheck)
-
-      // Additional validation: must have a domain with at least one dot
-      return urlToCheck.includes(".") && urlToCheck.match(/^https?:\/\/[^.]+\..+/) !== null
-    } catch (e) {
+  // Input validation using our new utility functions
+  const handleInputValidation = (input: string) => {
+    const validation = validateInput(input)
+    if (!validation.isValid && validation.error) {
+      setError(validation.error)
       return false
     }
+    setError("")
+    return validation
   }
 
   const handleExtraction = async (e: React.FormEvent) => {
@@ -90,15 +83,13 @@ export default function LandingPage() {
     setIsSuccess(false)
     setIsExtracting(false)
 
-    if (!url.trim()) {
-      // If no URL, just navigate to brand details
-      router.push("/brand-details")
-      return
-    }
+    // Validate input using our new utility
+    const validation = handleInputValidation(url)
+    if (!validation) return
 
-    // Validate URL
-    if (!isValidUrl(url)) {
-      setError("Please enter a valid URL (e.g., example.com)")
+    // Handle empty input - navigate to manual entry
+    if (validation.inputType === 'empty') {
+      router.push("/brand-details")
       return
     }
 
@@ -106,20 +97,27 @@ export default function LandingPage() {
     setIsExtracting(true)
 
     try {
-      // Format the URL if needed (add https:// if missing)
-      let formattedUrl = url.trim()
-      if (!formattedUrl.startsWith("http://") && !formattedUrl.startsWith("https://")) {
-        formattedUrl = "https://" + formattedUrl
+      let response
+      
+      if (validation.inputType === 'url') {
+        // Handle URL extraction
+        response = await fetch("/api/extract-website", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ url: validation.cleanInput }),
+        })
+      } else {
+        // Handle description generation using same endpoint
+        response = await fetch("/api/extract-website", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ description: validation.cleanInput }),
+        })
       }
-
-      // Call our API endpoint to extract website info
-      const response = await fetch("/api/extract-website", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ url: formattedUrl }),
-      })
 
       const data = await response.json()
 
@@ -193,19 +191,20 @@ export default function LandingPage() {
 
               <form onSubmit={handleExtraction} className="w-full max-w-2xl">
                 {/* Minimal input + button layout, no color */}
-                <div className="relative w-full max-w-2xl mx-auto mt-4 mb-6 p-1 rounded-full bg-white border border-gray-200 shadow-sm">
-                  <div className="flex items-center w-full bg-white rounded-full overflow-hidden">
+                <div className="relative w-full max-w-2xl mx-auto mt-4 mb-6 p-1 rounded-xl bg-white border border-gray-200 shadow-sm">
+                  <div className="flex items-center w-full bg-white rounded-xl overflow-hidden">
                     <div className="relative flex-1">
                       <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                         <Globe className="h-6 w-6 text-gray-400 transition-colors duration-200" />
                       </div>
-                      <Input
+                      <input
                         type="text"
-                        placeholder="e.g. nike.com"
-                        className={`pl-12 pr-4 sm:pr-40 py-6 text-lg font-sans font-medium bg-transparent border-none focus:ring-0 focus:outline-none placeholder:text-gray-400 placeholder:font-medium placeholder:text-base w-full transition-all duration-200 ${error ? "ring-2 ring-red-500" : ""} ${isSuccess ? "ring-2 ring-green-500 bg-green-50" : ""}`}
+                        placeholder="Describe brand or enter URL"
+                        className={`pl-12 pr-4 sm:pr-40 py-3 text-base font-sans font-medium bg-transparent border-none focus:ring-0 focus:outline-none placeholder:text-gray-400 placeholder:font-medium placeholder:text-sm w-full transition-all duration-200 ${error ? "ring-2 ring-red-500" : ""} ${isSuccess ? "ring-2 ring-green-500 bg-green-50" : ""}`}
                         value={url}
                         onChange={(e) => {
-                          setUrl(e.target.value)
+                          const sanitizedValue = sanitizeInput(e.target.value, url)
+                          setUrl(sanitizedValue)
                           if (error) setError("")
                         }}
                         autoCapitalize="none"
@@ -220,14 +219,13 @@ export default function LandingPage() {
                     <Button
                       type="submit"
                       size="lg"
-                      className={`h-10 sm:h-12 px-6 sm:px-8 rounded-full bg-gray-100 text-gray-800 font-medium text-base sm:text-lg shadow-none hover:bg-gray-200 focus:bg-gray-200 transition-all duration-200 z-10 ${isSuccess ? "bg-green-500 hover:bg-green-600 text-white" : ""}`}
+                      className={`h-12 px-4 sm:px-6 rounded-lg bg-black text-white font-semibold text-sm sm:text-base shadow-none hover:bg-gray-800 focus:bg-gray-800 focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 transition-all duration-200 z-10 ${isSuccess ? "bg-green-500 hover:bg-green-600 text-white focus:ring-green-400" : ""}`}
                       disabled={isExtracting || isSuccess}
-                      style={{ borderTopLeftRadius: 9999, borderBottomLeftRadius: 9999 }}
                     >
                       {isExtracting ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                          Checking
+                          Processing
                         </>
                       ) : isSuccess ? (
                         <>
@@ -236,7 +234,7 @@ export default function LandingPage() {
                         </>
                       ) : (
                         <>
-                          <span className="text-xs sm:text-sm md:text-base">Analyze</span> <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+                          <span className="text-xs sm:text-sm md:text-base">Get Started</span> <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
                         </>
                       )}
                     </Button>

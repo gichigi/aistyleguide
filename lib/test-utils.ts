@@ -34,7 +34,7 @@ export async function testTemplateProcessing() {
       name: "Test Brand",
       description: "A company that tests software",
       audience: "Developers and QA engineers",
-      tone: "Technical but friendly",
+      // tone field removed
     }
 
     const result = await processTemplate("style_guide", brandDetails, "core")
@@ -54,7 +54,7 @@ export async function testStyleGuideAPI(brandDetails: any = null) {
     name: "Test Brand",
     description: "A test brand for debugging",
     audience: "developers",
-    tone: "professional",
+    // tone field removed
   }
 
   try {

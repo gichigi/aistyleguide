@@ -36,7 +36,7 @@ export default function ApiTestPage() {
         description: "A test brand for API testing",
         audience: "developers",
         channels: "website, email",
-        tone: "professional",
+        // tone field removed
       },
       null,
       2,

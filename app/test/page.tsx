@@ -27,7 +27,7 @@ const DEFAULT_BRAND = {
   name: "Test Brand",
   description: "A test brand for style guide generation.",
   audience: "marketers, writers, and designers",
-  tone: "friendly",
+  // tone field removed
 }
 
 export default function TestPage() {
@@ -185,8 +185,7 @@ export default function TestPage() {
                 <div className={`text-xs text-right ${audienceCharCount > maxAudienceChars ? 'text-red-500' : 'text-gray-400'}`}>{audienceCharCount}/{maxAudienceChars}</div>
               </div>
               <div className="space-y-2">
-                <label className="block font-medium">Tone</label>
-                <Input value={brand.tone} onChange={e => handleBrandChange("tone", e.target.value)} />
+                        {/* Tone field removed */}
               </div>
               <div className="flex gap-4">
                 <div className="flex-1">

@@ -23,7 +23,7 @@ async function runTests() {
         name: "Test Brand",
         description: "A test brand for debugging",
         audience: "developers",
-        tone: "professional"
+        // tone field removed
       }
     },
     {
@@ -32,7 +32,7 @@ async function runTests() {
         name: "Second Brand",
         description: "Another test brand",
         audience: "marketing professionals aged 25-45 who are interested in branding, content creation, and digital marketing",
-        tone: "friendly"
+        // tone field removed
       }
     }
   ]

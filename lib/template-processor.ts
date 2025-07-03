@@ -243,11 +243,7 @@ function validateBrandDetails(details: any) {
     errors.push("Target audience must be 500 characters or less")
   }
   
-  // Tone validation
-  const validTones = ["friendly", "professional", "casual", "formal", "technical"]
-  if (!details.tone || !validTones.includes(details.tone)) {
-    errors.push("Invalid tone selected")
-  }
+
   
   return errors
 }
@@ -408,7 +404,7 @@ ${trait.dont.map(item => `✗ ${item}`).join('\n')}
     // Generate examples if needed for complete template
     if (plan === "complete") {
       try {
-        const examplePrompt = `Create example content for the ${validatedDetails.name} brand with a ${validatedDetails.tone} tone.
+        const examplePrompt = `Create example content for the ${validatedDetails.name} brand.
         The brand description is: ${validatedDetails.description}
         Target audience: ${validatedDetails.audience}
         
@@ -580,7 +576,6 @@ export async function renderStyleGuideTemplate({
         name: brandName,
         description: brandDetails.description?.trim() || brandDetails.brandDetailsText || '',
         audience: brandDetails.audience?.trim() || '',
-        tone: brandDetails.tone || '',
         traits: brandDetails.traits || []
       };
       

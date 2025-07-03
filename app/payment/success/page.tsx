@@ -160,13 +160,13 @@ function SuccessContent() {
         
         <h1 className="text-xl font-semibold text-gray-900 mb-3">
           {generationStatus === 'generating' && "Payment Successful!"}
-          {generationStatus === 'complete' && "🎉 Your Style Guide is Ready!"}
+          {generationStatus === 'complete' && "Style Guide Ready!"}
           {generationStatus === 'error' && "Generation Failed"}
         </h1>
         
         <p className="text-gray-600 text-sm mb-4">
           {generationStatus === 'generating' && "We're generating your personalized style guide now."}
-          {generationStatus === 'complete' && "Your guide has been generated successfully!"}
+          {generationStatus === 'complete' && "Your style guide is ready to view and download."}
           {generationStatus === 'error' && "We couldn't make your guide. Try again or contact support."}
         </p>
         
@@ -182,20 +182,13 @@ function SuccessContent() {
         )}
 
         {generationStatus === 'complete' && (
-          <div className="space-y-4">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <p className="text-green-800 font-medium">Generation Complete</p>
-              <p className="text-green-700 text-sm">Your style guide is ready to view and download.</p>
-            </div>
-            
-            <Button 
-              onClick={() => router.push("/full-access?generated=true")}
-              className="w-full"
-              size="lg"
-            >
-              View My Style Guide
-            </Button>
-          </div>
+          <Button 
+            onClick={() => router.push("/full-access?generated=true")}
+            className="w-full"
+            size="lg"
+          >
+            View My Style Guide
+          </Button>
         )}
 
         {generationStatus === 'error' && (

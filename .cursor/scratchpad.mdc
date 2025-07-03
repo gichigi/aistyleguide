@@ -17,29 +17,21 @@ Web app that generates brand style guides from website URLs using AI to extract 
 6. **Email Capture** → Collects email for thank you & abandoned cart recovery
 7. **Full Access** → Complete style guide with download options
 
-## ✅ Major Completed Tasks
+## ✅ Recently Completed
 
-### Core Functionality
-- ✅ **Complete user journey** - Landing page → website analysis → brand form → preview/paywall → payment → full access with downloads
-- ✅ **AI-powered generation** - OpenAI integration for brand extraction and style guide creation with template processing system
+### Latest (Jan 2025)
+- ✅ **Enhanced Brand Input** - Homepage accepts URLs + text descriptions, AI expansion
+- ✅ **Voice Traits Integration** - Selected traits now influence AI-generated style rules
+- ✅ **Email Automation** - Thank you emails, abandoned cart recovery with discount codes
+- ✅ **Comparison Table** - Professional "Why choose AIStyleGuide" landing page section
 
-### Technical Improvements
-- ✅ **Production-ready codebase** - Type safety, security hardening, performance optimizations, mobile responsiveness
-- ✅ **Professional UI/UX** - Consistent navigation, loading states, responsive design, polished user experience
-
-### Landing Page Comparison Table (Jan 2025)
-- ✅ **Professional comparison section** - "Why choose AIStyleGuide" with visual design system, brand integration, and mobile optimization
-- ✅ **Clear value proposition** - 8 key features comparing AIStyleGuide vs ChatGPT vs Templates with responsive card/table layout
-
-### Email Automation System (Jan 2025)
-- ✅ **Resend email service** - Professional thank you emails, abandoned cart recovery with 20% discount codes
-- ✅ **Stripe integration** - Email capture during checkout, webhook handling for success/expiration events
-
-### Previous Improvements (2024)
-- ✅ **Core systems stabilization** - Fixed data flow, OpenAI integration, template validation, conversion optimization
-- ✅ **User experience polish** - Pricing transparency, social proof, UI cleanup, better error handling
+### Foundation (2024)
+- ✅ **Core Journey** - Complete user flow from landing → analysis → preview → payment → delivery
+- ✅ **Production Ready** - Type safety, security, performance, mobile responsiveness
 
 ## 🚧 Active Tasks
+
+
 
 ### **🎯 NEW: Copywriter-First Rebuild (Separate Branch)**
 *Transform from "quick generator" to "professional copywriter tool"*
@@ -65,6 +57,67 @@ Web app that generates brand style guides from website URLs using AI to extract 
 - 🔄 **Automated testing** - Add tests for API routes and template processing
 - 🔄 **Analytics integration** - Track user behavior and conversion metrics
 - 🔄 **Performance monitoring** - Add logging and monitoring for production issues
+
+## 📝 Next Big Tasks
+
+
+
+**2. Custom Voice Traits**
+- Allow users to add their own voice traits beyond predefined list
+- Custom traits won't have descriptions (user defines their own meaning)
+- Mix of predefined traits (with descriptions) + custom traits (user-defined)
+- Still require exactly 3 traits total
+- Custom traits get passed to AI with user context
+
+**Implementation Plan - Custom Voice Traits:**
+
+*Files to Update:*
+- `components/VoiceTraitSelector.tsx` - Add custom trait input functionality
+- `lib/traits.ts` - Update trait handling to support custom traits
+- `app/brand-details/page.tsx` - Update selectedTraits state management
+- `lib/openai.ts` - Update prompts to handle custom traits without descriptions
+- `lib/template-processor.ts` - Update trait processing for mixed types
+
+*Technical Steps:*
+1. **Trait Data Structure** - Update trait object structure
+   ```typescript
+   interface Trait {
+     id: string
+     name: string
+     description?: string // Optional for custom traits
+     isCustom: boolean
+   }
+   ```
+2. **UI Components** - Update VoiceTraitSelector
+   - Show predefined traits with descriptions (current behavior)
+   - Add "Add Custom Trait" button/input field
+   - Custom traits display without description cards
+   - **Deselection support** - Allow users to deselect traits on desktop and mobile (same click/tap approach as current traits)
+   - Visual distinction between predefined vs custom
+   - Validation: no duplicate names, reasonable character limits
+3. **State Management** - Update selectedTraits handling
+   - Support mix of predefined and custom trait objects
+   - **Handle deselection** - Remove traits from selectedTraits array when clicked again
+   - Maintain 3-trait limit across both types
+   - Save custom traits to localStorage for persistence
+4. **AI Integration** - Update OpenAI prompts
+   - Predefined traits: use name + description in prompts
+   - Custom traits: use name only with note "user-defined trait"
+   - Ensure AI understands custom traits are brand-specific
+
+*Edge Cases to Handle:*
+- Custom trait names that match predefined trait names
+- Very long custom trait names (limit to 20 chars)
+- Special characters in custom trait names (sanitize input)
+- User removes custom trait then adds different one
+- localStorage persistence across browser sessions
+- Custom traits selected but then user switches to different browser
+
+*UI/UX Considerations:*
+- Clear visual difference between predefined and custom traits
+- Help text explaining custom traits don't have AI-generated descriptions
+- Smooth add/remove animations for custom traits
+- Mobile-friendly custom trait input experience
 
 ### Email Setup Required
 - **Need**: Resend API key from dashboard

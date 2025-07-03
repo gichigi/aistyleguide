@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { generateWithOpenAI } from "@/lib/openai"
+import { generateWithOpenAI, generateBrandDescription } from "@/lib/openai"
 import Logger from "@/lib/logger"
 import { validateUrl } from "@/lib/url-validation"
 import * as cheerio from "cheerio"
@@ -109,6 +109,73 @@ export async function POST(request: Request) {
     const body = await request.json()
     Logger.debug("Request body", { body })
 
+    // Handle both URL and description inputs
+    if (!body.url && !body.description) {
+      Logger.error("Missing URL or description in request")
+      return NextResponse.json(
+        {
+          success: false,
+          message: "URL or description is required",
+          error: "Missing required field: url or description",
+        },
+        { status: 400 }
+      )
+    }
+
+    // If description is provided, generate expanded brand details
+    if (body.description) {
+      Logger.info("Processing description input")
+      
+      const cleanDescription = body.description.trim()
+      if (cleanDescription.length < 10) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Description too short",
+            error: "Please provide at least 10 characters",
+          },
+          { status: 400 }
+        )
+      }
+
+      // Test OpenAI connection
+      const testResult = await testOpenAIConnection()
+      if (!testResult.success) {
+        throw new Error(testResult.error || "API key validation failed")
+      }
+
+      // Generate expanded brand description
+      const result = await generateBrandDescription(cleanDescription)
+      
+      if (!result.success || !result.content) {
+        throw new Error(result.error || "Failed to generate brand description")
+      }
+
+      // Parse the JSON response
+      let expandedData
+      try {
+        expandedData = JSON.parse(result.content)
+      } catch (parseError) {
+        Logger.error("Failed to parse JSON response", parseError instanceof Error ? parseError : new Error("Parse error"))
+        expandedData = {
+          brandName: "",
+          description: result.content.trim()
+        }
+      }
+
+      const brandName = expandedData.brandName || ""
+      const brandDetailsText = expandedData.description || result.content.trim()
+      
+      Logger.info("Successfully generated brand description")
+      return NextResponse.json({
+        success: true,
+        message: "Successfully generated brand description",
+        brandName,
+        brandDetailsText,
+      })
+    }
+
+    // Original URL processing logic
     if (!body.url) {
       Logger.error("Missing URL in request")
       return NextResponse.json(
@@ -246,13 +313,15 @@ export async function POST(request: Request) {
     // Generate prompt for website extraction with improved guidance
     const prompt = `Analyze the following website content and extract the brand's core identity.
 
-Write a single, cohesive paragraph (30-50 words) that follows this structure:
-1. Start with the brand name followed by what they are/do
-2. Include their main products/services
-3. Specify their target audience
-4. Mention what makes them unique (if identifiable)
+Return a JSON object with two fields:
+1. "brandName": The exact name of the company/brand (just the name, nothing else)
+2. "description": A single, cohesive paragraph (30-50 words) that follows this structure:
+   - Start with the brand name followed by what they are/do
+   - Include their main products/services
+   - Specify their target audience
+   - Mention what makes them unique (if identifiable)
 
-Your paragraph should be:
+Your description should be:
 - Professional, clear and easy to read 
 - Factual, not promotional
 - Written in third person
@@ -260,9 +329,15 @@ Your paragraph should be:
 - Use short sentences and simple punctuation
 
 Examples: 
-'Nike is a leading sports brand, selling a wide range of workout products, services and experiences worldwide. Nike targets athletes and sports enthusiasts globally, focusing on those who want high-quality sportswear and equipment.'
+{
+  "brandName": "Nike",
+  "description": "Nike is a leading sports brand, selling a wide range of workout products, services and experiences worldwide. Nike targets athletes and sports enthusiasts globally, focusing on those who want high-quality sportswear and equipment."
+}
 
-'OpenAI is a technology company specializing in artificial intelligence research and development. OpenAI offers cutting-edge AI products and services to businesses and developers worldwide. Their target audience includes organizations looking to leverage advanced AI solutions.'
+{
+  "brandName": "OpenAI", 
+  "description": "OpenAI is a technology company specializing in artificial intelligence research and development. OpenAI offers cutting-edge AI products and services to businesses and developers worldwide. Their target audience includes organizations looking to leverage advanced AI solutions."
+}
 
 Website Content:
 ${summary}
@@ -270,8 +345,8 @@ ${summary}
 
     const result = await generateWithOpenAI(
       prompt,
-      "You are an expert brand analyst with experience writing clear, readable brand summaries. Use simple language and short sentences. Avoid complex words, marketing jargon, and run-on sentences. Make your description easily scannable and accessible to all readers.",
-      "json", // Use json format for faster processing
+      "You are an expert brand analyst with experience writing clear, readable brand summaries. Use simple language and short sentences. Avoid complex words, marketing jargon, and run-on sentences. Make your description easily scannable and accessible to all readers. Always return valid JSON.",
+      "json", // Use json format to ensure proper JSON response
       500 // Reduce max tokens since we only need a short paragraph
     )
 
@@ -279,14 +354,29 @@ ${summary}
       throw new Error(result.error || "Failed to extract brand information")
     }
 
-    // Process the paragraph response
-    const brandDetailsText = result.content.trim()
-    Logger.debug("Generated brand details text", { brandDetailsText })
+    // Parse the JSON response
+    let extractedData
+    try {
+      extractedData = JSON.parse(result.content)
+    } catch (parseError) {
+      Logger.error("Failed to parse JSON response", parseError instanceof Error ? parseError : new Error("Parse error"))
+      // Fallback: treat content as description only
+      extractedData = {
+        brandName: "",
+        description: result.content.trim()
+      }
+    }
+
+    const brandName = extractedData.brandName || ""
+    const brandDetailsText = extractedData.description || result.content.trim()
+    
+    Logger.debug("Generated brand details", { brandName, brandDetailsText })
 
     Logger.info("Successfully extracted brand information")
     return NextResponse.json({
       success: true,
       message: "Successfully extracted brand information",
+      brandName,
       brandDetailsText,
     })
   } catch (error) {

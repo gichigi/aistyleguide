@@ -202,12 +202,12 @@ export async function POST(request: Request) {
     clearTemplateCache()
 
     // Validate input
-    if (!brandDetails?.brandDetailsText || !brandDetails?.tone) {
+    if (!brandDetails?.brandDetailsText) {
       Logger.warn('Invalid request - missing required fields')
       return NextResponse.json(
         { 
           success: false,
-          error: 'Missing required brand details (brandDetailsText, tone)'
+          error: 'Missing required brand details (brandDetailsText)'
         },
         { status: 400 }
       )

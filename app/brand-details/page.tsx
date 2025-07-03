@@ -21,20 +21,14 @@ import VoiceTraitSelector from "@/components/VoiceTraitSelector"
 
 // Default brand details
 const defaultBrandDetails = {
+  name: "",
   brandDetailsText: "",
   englishVariant: "american" as "american" | "british",
-  formalityLevel: 2, // Default to neutral (0=Very Casual, 1=Casual, 2=Neutral, 3=Formal, 4=Very Formal)
+  formalityLevel: "Neutral", // Default to neutral
   readingLevel: "6-8" as "6-8" | "10-12" | "13+", // Default to general public (6-8=General Public, 10-12=Professional, 13+=Technical/Academic)
 }
 
-// Formality level labels
-const formalityLabels = [
-  "Very Casual",
-  "Casual", 
-  "Neutral",
-  "Formal",
-  "Very Formal"
-]
+
 
 // Inline brand name extraction function
 function extractBrandNameInline(brandDetailsText: string) {
@@ -97,7 +91,6 @@ export default function BrandDetailsPage() {
   const [guideType, setGuideType] = useState(urlGuideType || "core")
   const [selectedTraits, setSelectedTraits] = useState<string[]>([])
   const [paymentComplete, setPaymentComplete] = useState(false)
-  const [formalityLevel, setFormalityLevel] = useState(2)
   const [fadeIn, setFadeIn] = useState(false)
   const [showCharCount, setShowCharCount] = useState(false)
 
@@ -156,17 +149,24 @@ export default function BrandDetailsPage() {
     if (savedDetails) {
       try {
         const parsedDetails = JSON.parse(savedDetails)
+        
+        // Convert old numeric formalityLevel to string if needed
+        let formalityLevelValue = parsedDetails.formalityLevel
+        if (typeof formalityLevelValue === 'number') {
+          const formalityLabels = ["Very Casual", "Casual", "Neutral", "Formal", "Very Formal"]
+          formalityLevelValue = formalityLabels[formalityLevelValue] || "Neutral"
+        }
+        
         // Ensure all required fields have values by merging with defaults
         const updatedDetails = {
           ...defaultBrandDetails,
           ...parsedDetails,
           englishVariant: parsedDetails.englishVariant || "american",
-          formalityLevel: parsedDetails.formalityLevel ?? 2,
+          formalityLevel: formalityLevelValue || "Neutral",
           readingLevel: parsedDetails.readingLevel || "6-8",
         }
 
         setBrandDetails(updatedDetails)
-        setFormalityLevel(updatedDetails.formalityLevel)
 
         // Update localStorage with the validated details
         localStorage.setItem("brandDetails", JSON.stringify(updatedDetails))
@@ -192,6 +192,7 @@ export default function BrandDetailsPage() {
     if (name === "name") {
       // Brand name: max 50 chars, no special chars
       validatedValue = value.replace(/[^a-zA-Z0-9\s-]/g, "").slice(0, 50)
+      validateNameField(validatedValue)
     } else if (name === "description") {
       // Description: max 500 chars
       validatedValue = value.slice(0, 500)
@@ -221,8 +222,9 @@ export default function BrandDetailsPage() {
     )
   }
 
-  // Only validate the main text field (brandDetailsText)
+  // Validate both name and description fields
   const [mainError, setMainError] = useState("");
+  const [nameError, setNameError] = useState("");
 
   const validateMainField = (value: string) => {
       if (!value.trim()) {
@@ -236,11 +238,25 @@ export default function BrandDetailsPage() {
     return true;
   }
 
+  const validateNameField = (value: string) => {
+    if (!value.trim()) {
+      setNameError("Please enter a brand name.");
+      return false;
+    } else if (value.length > 50) {
+      setNameError("Brand name is too long.");
+      return false;
+    }
+    setNameError("");
+    return true;
+  }
+
   // Update isFormValid function
   const isFormValid = () => {
-    // Need brand description and exactly 3 traits
+    // Need brand name, brand description and exactly 3 traits
     return (
-      !!brandDetails.brandDetailsText.trim() && selectedTraits.length === 3
+      !!brandDetails.name?.trim() && 
+      !!brandDetails.brandDetailsText.trim() && 
+      selectedTraits.length === 3
     )
   }
 
@@ -254,12 +270,8 @@ export default function BrandDetailsPage() {
       // Show processing state for 5 seconds
       await new Promise(resolve => setTimeout(resolve, 5000))
       
-      // Extract brand name using inline function
-      const nameResult = extractBrandNameInline(brandDetails.brandDetailsText)
-      let brandName = ""
-      if (nameResult.success && nameResult.brandName) {
-        brandName = nameResult.brandName
-      }
+      // Use the required brand name field
+      const brandName = brandDetails.name?.trim() || ""
 
       // Map the simplified form data to the expected template processor format
       const detailsWithName = { 
@@ -350,8 +362,22 @@ export default function BrandDetailsPage() {
               <CardDescription>Tell us about the brand.</CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid gap-4">
+              <form onSubmit={handleSubmit} className="space-y-8">
+                <div className="grid gap-6">
+                  <div className="grid gap-2">
+                    <Label htmlFor="name">Brand Name</Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      placeholder="e.g. Nike"
+                      value={brandDetails.name || ""}
+                      onChange={handleChange}
+                      className="text-base p-4 font-medium placeholder:text-gray-400 placeholder:font-medium"
+                    />
+                    {nameError && (
+                      <div className="text-xs text-red-600 mt-1">{nameError}</div>
+                    )}
+                  </div>
                   <div className="grid gap-2">
                     <Label htmlFor="brandDetailsText">Description</Label>
                     <Textarea
@@ -379,7 +405,7 @@ export default function BrandDetailsPage() {
                       <div className="text-xs text-red-600 mt-1">{mainError}</div>
                     )}
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-6">
                     <div className="grid gap-2">
                       <Label htmlFor="englishVariant">Language</Label>
                       <Select
@@ -399,25 +425,23 @@ export default function BrandDetailsPage() {
                       <Label htmlFor="formalityLevel">Formality</Label>
                       <Select
                         onValueChange={(val) => {
-                          const level = parseInt(val)
-                          setFormalityLevel(level)
                           setBrandDetails(prev => {
-                            const updated = { ...prev, formalityLevel: level }
+                            const updated = { ...prev, formalityLevel: val }
                             localStorage.setItem("brandDetails", JSON.stringify(updated))
                             return updated
                           })
                         }}
-                        value={brandDetails.formalityLevel?.toString() || "2"}
+                        value={brandDetails.formalityLevel || "Neutral"}
                       >
                         <SelectTrigger id="formalityLevel" className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="0">Very Casual</SelectItem>
-                          <SelectItem value="1">Casual</SelectItem>
-                          <SelectItem value="2">Neutral</SelectItem>
-                          <SelectItem value="3">Formal</SelectItem>
-                          <SelectItem value="4">Very Formal</SelectItem>
+                          <SelectItem value="Very Casual">Very Casual</SelectItem>
+                          <SelectItem value="Casual">Casual</SelectItem>
+                          <SelectItem value="Neutral">Neutral</SelectItem>
+                          <SelectItem value="Formal">Formal</SelectItem>
+                          <SelectItem value="Very Formal">Very Formal</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -433,8 +457,12 @@ export default function BrandDetailsPage() {
                         }}
                         value={brandDetails.readingLevel || "6-8"}
                       >
-                        <SelectTrigger id="readingLevel" className="w-full">
-                          <SelectValue />
+                        <SelectTrigger id="readingLevel" className="w-full [&>span]:text-left [&>span]:justify-start">
+                          <SelectValue placeholder="Select reading level">
+                            {brandDetails.readingLevel === "6-8" && "Grade 6-8"}
+                            {brandDetails.readingLevel === "10-12" && "Grade 10-12"}
+                            {brandDetails.readingLevel === "13+" && "Grade 13+"}
+                          </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="6-8">Grade 6-8 (General Public)</SelectItem>
@@ -446,14 +474,19 @@ export default function BrandDetailsPage() {
                   </div>
                 </div>
                 {/* Voice Trait Selector */}
-                <div className="mb-6">
-                  <h2 className="text-xl font-bold mb-4">Brand voice traits</h2>
-                  <VoiceTraitSelector onChange={setSelectedTraits} />
+                <div className="mt-8">
+                  <Label className="text-base font-medium">Brand voice traits</Label>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Pick 3 traits that define the brand personality.
+                  </p>
+                  <div className="mt-4">
+                    <VoiceTraitSelector onChange={setSelectedTraits} />
+                  </div>
                 </div>
-                <div className="flex justify-end">
+                <div className="flex justify-end mt-8">
                   <Button 
                     type="submit" 
-                    disabled={loading || !!mainError || !isFormValid()} 
+                    disabled={loading || !!mainError || !!nameError || !isFormValid()} 
                     className="w-full sm:w-auto"
                   >
                     {processingStep === 'processing' ? (
