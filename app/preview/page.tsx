@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ArrowLeft, CreditCard, Loader2, CheckCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { track } from "@vercel/analytics"
 import {
   Dialog,
   DialogContent,
@@ -320,7 +321,15 @@ export default function PreviewPage() {
                 </div>
 
                 <Button
-                  onClick={() => handlePayment('core')}
+                  onClick={() => {
+                    // Track payment button click
+                    track('Payment Started', { 
+                      guideType: 'core',
+                      price: 99,
+                      location: 'payment-dialog'
+                    });
+                    handlePayment('core');
+                  }}
                   disabled={isProcessingPayment}
                   className="w-full text-base sm:text-lg py-4 sm:py-6"
                 >
@@ -378,7 +387,15 @@ export default function PreviewPage() {
                 </div>
 
                 <Button
-                  onClick={() => handlePayment('complete')}
+                  onClick={() => {
+                    // Track payment button click
+                    track('Payment Started', { 
+                      guideType: 'complete',
+                      price: 149,
+                      location: 'payment-dialog'
+                    });
+                    handlePayment('complete');
+                  }}
                   disabled={isProcessingPayment}
                   className="w-full text-base sm:text-lg py-4 sm:py-6"
                 >
@@ -448,7 +465,14 @@ export default function PreviewPage() {
 
                   
                   <Button
-                    onClick={() => setPaymentDialogOpen(true)}
+                    onClick={() => {
+                      // Track paywall button click
+                      track('Paywall Clicked', { 
+                        location: 'preview-page',
+                        action: 'unlock-style-guide'
+                      });
+                      setPaymentDialogOpen(true);
+                    }}
                         className="w-full sm:w-auto text-base sm:text-lg py-3 sm:py-4 px-6 sm:px-8 bg-gray-900 hover:bg-gray-800 text-white shadow-sm hover:shadow-md transition-all duration-200"
                   >
                         <CreditCard className="h-4 w-4 mr-2" /> 

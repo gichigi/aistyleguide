@@ -5,6 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { track } from "@vercel/analytics"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -1069,7 +1070,15 @@ export default function LandingPage() {
                         <span>Multiple export formats</span>
                       </li>
                     </ul>
-                    <Button size="lg" className="mt-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-full px-8 py-3 shadow-md" onClick={() => router.push("/brand-details")}>Get Core Guide</Button>
+                    <Button size="lg" className="mt-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-full px-8 py-3 shadow-md" onClick={() => {
+                      // Track pricing card click
+                      track('Pricing Card Clicked', { 
+                        guideType: 'core',
+                        price: 99,
+                        location: 'homepage-pricing'
+                      });
+                      router.push("/brand-details");
+                    }}>Get Core Guide</Button>
                     
                     {/* Add guarantee */}
                     <div className="flex items-center justify-center gap-2 text-xs text-green-600 mt-3">
@@ -1099,7 +1108,15 @@ export default function LandingPage() {
                       <li className="flex items-center gap-2"><Check className="h-4 w-4 text-indigo-600" />Multiple download formats</li>
                       <li className="flex items-center gap-2"><Check className="h-4 w-4 text-indigo-600" />Best for agencies & larger teams</li>
                     </ul>
-                    <Button size="lg" className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-full px-8 py-3 shadow-md" onClick={() => router.push("/brand-details?guideType=complete")}>Get Complete Guide</Button>
+                    <Button size="lg" className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-full px-8 py-3 shadow-md" onClick={() => {
+                      // Track pricing card click
+                      track('Pricing Card Clicked', { 
+                        guideType: 'complete',
+                        price: 149,
+                        location: 'homepage-pricing'
+                      });
+                      router.push("/brand-details?guideType=complete");
+                    }}>Get Complete Guide</Button>
                     
                     {/* Add guarantee */}
                     <div className="flex items-center justify-center gap-2 text-xs text-green-600 mt-3">
@@ -1148,9 +1165,15 @@ export default function LandingPage() {
                         <span className="text-white">Priority support</span>
                       </li>
                     </ul>
-                    <Button size="lg" className="mt-2 bg-white hover:bg-gray-200 text-black font-bold rounded-full px-8 py-3 shadow-md" variant="outline" asChild>
-                      <Link href="mailto:enterprise@styleguideai.com">Contact Sales</Link>
-                    </Button>
+                    <Button size="lg" className="mt-2 bg-white hover:bg-gray-200 text-black font-bold rounded-full px-8 py-3 shadow-md" variant="outline" onClick={() => {
+                      // Track enterprise contact click
+                      track('Pricing Card Clicked', { 
+                        guideType: 'enterprise',
+                        price: 'custom',
+                        location: 'homepage-pricing'
+                      });
+                      window.location.href = 'mailto:enterprise@styleguideai.com';
+                    }}>Contact Sales</Button>
                   </div>
                 </CardContent>
               </Card>

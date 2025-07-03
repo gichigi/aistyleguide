@@ -45,6 +45,7 @@ Web app that generates brand style guides from website URLs using AI to extract 
 - 🔄 **Payment Flow Polish** - Add real-time generation status tracking, better success page UX, proper error handling
 - 🔄 **Product Quality Assurance** - Ensure all 25 style rules display correctly, validate download functionality  
 - 🔄 **Mobile Conversion Optimization** - Shorten fade-out effect, optimize mobile paywall dialog
+- ✅ **Vercel Analytics Tracking** - Added tracking events to paywall buttons on /preview page and homepage pricing cards to measure conversion funnel and guide type preferences
 
 ### Medium Priority (P1)  
 - 🔄 **Preview loading UX** - Remove loading interstitial, show processing state on button instead
