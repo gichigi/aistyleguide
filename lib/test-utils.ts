@@ -1,5 +1,5 @@
 import { generateWithOpenAI } from "./openai"
-import { processTemplate } from "./template-processor"
+import { renderStyleGuideTemplate } from "./template-processor"
 
 // Test function to verify OpenAI integration
 export async function testOpenAIIntegration() {
@@ -37,7 +37,11 @@ export async function testTemplateProcessing() {
       // tone field removed
     }
 
-    const result = await processTemplate("style_guide", brandDetails, "core")
+    const result = await renderStyleGuideTemplate({
+      brandDetails,
+      useAIContent: true,
+      templateType: "core"
+    })
 
     console.log("Template processing test successful!")
     console.log("First 500 characters of result:", result.substring(0, 500) + "...")

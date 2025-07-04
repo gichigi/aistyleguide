@@ -18,6 +18,7 @@ import {
   FileCode,
   Brain,
   Globe,
+  Sparkles,
   Loader2,
   AlertTriangle,
   Users,
@@ -48,9 +49,10 @@ const SHOW_NIKE_DEMO_CTA = false;
 export default function LandingPage() {
   const router = useRouter()
   const { toast } = useToast()
-  const [isExtracting, setIsExtracting] = useState(false)
   const [url, setUrl] = useState("")
   const [error, setError] = useState("")
+  const [errorType, setErrorType] = useState<string | null>(null) // Track error type for styling
+  const [isExtracting, setIsExtracting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
 
   // Lazy load non-critical sections
@@ -63,6 +65,127 @@ export default function LandingPage() {
     ssr: false,
     loading: () => <div className="w-full py-6 bg-muted"></div>,
   })
+
+  // Classify error types for better UX
+  const classifyError = (error: any, response?: Response): { type: string; message: string } => {
+    const errorMessage = error?.message || error || "Unknown error"
+    
+    console.error(`[HOMEPAGE] Error classification:`, {
+      errorMessage,
+      errorName: error?.name,
+      responseStatus: response?.status,
+      responseStatusText: response?.statusText,
+      timestamp: new Date().toISOString()
+    })
+
+    // Network-specific errors
+    if (error?.name === 'AbortError' || errorMessage.includes('timeout')) {
+      return {
+        type: 'TIMEOUT',
+        message: "Website took too long to respond. Try again or enter details manually."
+      }
+    }
+    
+    if (errorMessage.includes('fetch') || errorMessage.includes('network') || errorMessage.includes('Failed to fetch')) {
+      return {
+        type: 'NETWORK',
+        message: "Can't reach this website. Check the URL or try again later."
+      }
+    }
+    
+    if (errorMessage.includes('SSL') || errorMessage.includes('certificate') || errorMessage.includes('CERT')) {
+      return {
+        type: 'SSL',
+        message: "This website has security issues. Try entering details manually."
+      }
+    }
+
+    // API-specific errors based on response
+    if (response?.status === 429) {
+      return {
+        type: 'RATE_LIMIT',
+        message: "Our AI is busy right now. Please try again in a few minutes."
+      }
+    }
+
+    if (response?.status === 402 || errorMessage.includes('quota') || errorMessage.includes('billing')) {
+      return {
+        type: 'QUOTA_EXCEEDED',
+        message: "Our AI service is temporarily unavailable. Please try again later."
+      }
+    }
+
+    if (errorMessage.includes('content policy') || errorMessage.includes('safety') || errorMessage.includes('inappropriate')) {
+      return {
+        type: 'CONTENT_POLICY',
+        message: "We couldn't analyze this content. Please enter your brand details manually."
+      }
+    }
+
+    // Website content issues
+    if (errorMessage.includes('javascript') || errorMessage.includes('dynamic content')) {
+      return {
+        type: 'JAVASCRIPT_SITE',
+        message: "This site loads content dynamically. Please enter your brand details manually."
+      }
+    }
+
+    if (errorMessage.includes('login') || errorMessage.includes('authentication') || errorMessage.includes('password')) {
+      return {
+        type: 'LOGIN_REQUIRED',
+        message: "This page requires login. Please enter your brand details manually."
+      }
+    }
+
+    if (errorMessage.includes('no content') || errorMessage.includes('empty') || errorMessage.includes('insufficient content')) {
+      return {
+        type: 'NO_CONTENT',
+        message: "We couldn't find enough content on this site. Please enter more details manually."
+      }
+    }
+
+    // Input processing errors
+    if (errorMessage.includes('Invalid URL') || errorMessage.includes('malformed')) {
+      return {
+        type: 'MALFORMED_URL',
+        message: "Please check the URL format (e.g., yoursite.com or https://yoursite.com)"
+      }
+    }
+
+    if (errorMessage.includes('Description too short') || errorMessage.includes('at least 5 words')) {
+      return {
+        type: 'DESCRIPTION_TOO_SHORT',
+        message: "Please enter at least 5 words to describe your brand"
+      }
+    }
+
+    if (errorMessage.includes('Description is too long') || errorMessage.includes('under 200 characters')) {
+      return {
+        type: 'DESCRIPTION_TOO_LONG',
+        message: "Description is too long. Please keep it under 200 characters"
+      }
+    }
+
+    if (errorMessage.includes('unsupported') || errorMessage.includes('blocked')) {
+      return {
+        type: 'UNSUPPORTED_DOMAIN',
+        message: "We can't access this type of website. Please enter details manually."
+      }
+    }
+
+    if (errorMessage.includes('test domain') || errorMessage.includes('example domain')) {
+      return {
+        type: 'TEST_DOMAIN',
+        message: "This appears to be a test or example domain. Please enter a real website URL."
+      }
+    }
+
+    // Default error
+    return {
+      type: 'UNKNOWN',
+      message: "There was a problem analyzing this website. Please try again or enter details manually."
+    }
+  }
 
   // Input validation using our new utility functions
   const handleInputValidation = (input: string) => {
@@ -78,92 +201,132 @@ export default function LandingPage() {
   const handleExtraction = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
-
-    // Reset states at the start
+    setErrorType(null)
     setIsSuccess(false)
-    setIsExtracting(false)
+    
+    console.log(`[HOMEPAGE] Starting extraction process`)
+    const extractionStart = performance.now()
 
-    // Validate input using our new utility
+    // Validate input using our utility
     const validation = handleInputValidation(url)
     if (!validation) return
 
+    console.log(`[HOMEPAGE] Input validation passed:`, {
+      inputType: validation.inputType,
+      cleanInput: validation.cleanInput.substring(0, 100) + '...',
+      originalLength: url.length,
+      cleanLength: validation.cleanInput.length
+    })
+
     // Handle empty input - navigate to manual entry
     if (validation.inputType === 'empty') {
+      console.log(`[USER_JOURNEY] Empty input - redirecting to manual entry`)
       router.push("/brand-details")
       return
     }
-
-    // Show loading state
+    
     setIsExtracting(true)
+    console.log(`[HOMEPAGE] Starting ${validation.inputType} extraction for: ${validation.cleanInput.substring(0, 50)}...`)
 
     try {
       let response
+      const apiStartTime = performance.now()
       
       if (validation.inputType === 'url') {
-        // Handle URL extraction
+        console.log(`[HOMEPAGE] Calling extract-website API (URL mode)`)
         response = await fetch("/api/extract-website", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ url: validation.cleanInput }),
         })
       } else {
-        // Handle description generation using same endpoint
+        console.log(`[HOMEPAGE] Calling extract-website API (description mode)`)
         response = await fetch("/api/extract-website", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ description: validation.cleanInput }),
         })
       }
 
+      const apiTime = performance.now() - apiStartTime
+      console.log(`[PERFORMANCE] API call completed in ${apiTime.toFixed(2)}ms`)
+
       const data = await response.json()
+      console.log(`[HOMEPAGE] API response received:`, {
+        success: data.success,
+        hasName: !!data.brandName,
+        hasDescription: !!data.brandDetailsText,
+        status: response.status,
+        responseTime: apiTime
+      })
 
       if (data.success) {
-        // Store the extracted brand details in localStorage with correct format
-        localStorage.setItem("brandDetails", JSON.stringify({
+        // Save to localStorage with both name and description
+        const brandDetails = {
+          name: data.brandName || "",
           brandDetailsText: data.brandDetailsText,
           tone: "friendly" // Default tone
-        }))
+        }
+        
+        localStorage.setItem("brandDetails", JSON.stringify(brandDetails))
+        console.log(`[USER_JOURNEY] Brand details saved to localStorage:`, {
+          hasName: !!brandDetails.name,
+          descriptionLength: brandDetails.brandDetailsText?.length || 0
+        })
 
         // Show success state briefly before redirecting
         setIsSuccess(true)
         setIsExtracting(false)
+
+        const totalTime = performance.now() - extractionStart
+        console.log(`[PERFORMANCE] Total extraction completed in ${totalTime.toFixed(2)}ms`)
+        console.log(`[USER_JOURNEY] Extraction successful - redirecting to brand-details`)
 
         // Navigate to brand details page after a short delay for transition
         setTimeout(() => {
           router.push("/brand-details?fromExtraction=true")
         }, 800)
       } else {
-        // Show error toast but still navigate
-        toast({
-          title: "Website analysis issue",
-          description: data.message,
-          variant: "destructive",
+        // Classify and show specific error
+        const { type, message } = classifyError(data, response)
+        setError(message)
+        setErrorType(type)
+
+        console.error(`[HOMEPAGE] API returned error:`, {
+          errorType: type,
+          message: data.message,
+          originalError: data.error,
+          status: response.status
         })
 
         // Reset states
         setIsExtracting(false)
         setIsSuccess(false)
 
-        // Navigate to brand details page
-        router.push("/brand-details")
+        console.log(`[USER_JOURNEY] Error occurred - staying on homepage for retry`)
+        // Don't redirect - let user fix the error and try again
       }
     } catch (error) {
-      console.error("Error extracting website info:", error)
-      setError("There was a problem analyzing this website. Please try again or enter details manually.")
-
-      toast({
-        title: "Error",
-        description: "There was a problem analyzing this website. Please try again or enter details manually.",
-        variant: "destructive",
+      const totalTime = performance.now() - extractionStart
+      const { type, message } = classifyError(error)
+      
+      console.error(`[HOMEPAGE] Extraction failed after ${totalTime.toFixed(2)}ms:`, {
+        errorType: type,
+        originalError: error,
+        inputType: validation?.inputType,
+        url: validation?.cleanInput?.substring(0, 100),
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server',
+        timestamp: new Date().toISOString()
       })
+
+      setError(message)
+      setErrorType(type)
 
       // Reset states
       setIsExtracting(false)
       setIsSuccess(false)
+
+      console.log(`[USER_JOURNEY] Exception occurred - staying on homepage for retry`)
     }
   }
 
@@ -195,17 +358,20 @@ export default function LandingPage() {
                   <div className="flex items-center w-full bg-white rounded-xl overflow-hidden">
                     <div className="relative flex-1">
                       <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <Globe className="h-6 w-6 text-gray-400 transition-colors duration-200" />
+                        <Sparkles className="h-6 w-6 text-gray-400 transition-colors duration-200" />
                       </div>
                       <input
                         type="text"
-                        placeholder="Describe brand or enter URL"
-                        className={`pl-12 pr-4 sm:pr-40 py-3 text-base font-sans font-medium bg-transparent border-none focus:ring-0 focus:outline-none placeholder:text-gray-400 placeholder:font-medium placeholder:text-sm w-full transition-all duration-200 ${error ? "ring-2 ring-red-500" : ""} ${isSuccess ? "ring-2 ring-green-500 bg-green-50" : ""}`}
+                        placeholder="Enter the URL or add a short description"
+                        className={`pl-12 pr-4 py-3 text-base font-sans font-medium bg-transparent border-none focus:ring-0 focus:outline-none placeholder:text-gray-400 placeholder:font-medium placeholder:text-sm w-full transition-all duration-200 ${error ? "ring-2 ring-red-500" : ""} ${isSuccess ? "ring-2 ring-green-500 bg-green-50" : ""}`}
                         value={url}
                         onChange={(e) => {
                           const sanitizedValue = sanitizeInput(e.target.value, url)
                           setUrl(sanitizedValue)
-                          if (error) setError("")
+                          if (error) {
+                            setError("")
+                            setErrorType(null)
+                          }
                         }}
                         autoCapitalize="none"
                         autoCorrect="off"
@@ -213,6 +379,7 @@ export default function LandingPage() {
                         inputMode="url"
                         disabled={isExtracting || isSuccess}
                         aria-label="Website URL"
+                        aria-describedby={error ? "input-error" : undefined}
                         style={{ boxShadow: 'none' }}
                       />
                     </div>
@@ -239,8 +406,24 @@ export default function LandingPage() {
                       )}
                     </Button>
                   </div>
+                  
+                  {/* Inline error display */}
+                  {error && (
+                    <div 
+                      id="input-error" 
+                      className="absolute left-1 -bottom-6 text-red-600 text-sm font-medium flex items-center gap-1"
+                      role="alert"
+                      aria-live="polite"
+                    >
+                      <svg className="h-4 w-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      <span>{error}</span>
+                    </div>
+                  )}
+                  
                   {/* Manual entry link at bottom right outside the container */}
-                  <div className="absolute right-6 -bottom-7">
+                  <div className={`absolute right-6 ${error ? '-bottom-7' : '-bottom-7'}`}>
                     <Link href="/brand-details" className="text-gray-400 underline font-medium text-sm whitespace-nowrap" style={{ textTransform: 'lowercase' }}>
                       or add brand details manually
                     </Link>

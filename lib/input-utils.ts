@@ -123,13 +123,13 @@ export function validateInput(input: string): InputValidationResult {
 
   // Validate description text
   if (detection.inputType === 'description') {
-    // Check minimum length
-    if (detection.cleanInput.length < 10) {
+    // Check minimum length (approximately 5 words)
+    if (detection.cleanInput.length < 25) {
       return {
         isValid: false,
         cleanInput: detection.cleanInput,
         inputType: 'description',
-        error: "Please enter at least 10 characters to describe your brand"
+        error: "Please enter at least 5 words to describe your brand"
       }
     }
 

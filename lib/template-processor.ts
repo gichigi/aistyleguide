@@ -256,205 +256,7 @@ async function markdownToHtml(markdown: string): Promise<string> {
   })
 }
 
-// Main function to process a template with brand details
-export async function processTemplate(templateType: string, brandDetails: any, plan: string): Promise<string> {
-  try {
-    console.log("Processing template:", templateType, "with plan:", plan)
-    console.log("Brand details:", brandDetails)
 
-    // Validate brand details
-    const validationErrors = validateBrandDetails(brandDetails)
-    if (validationErrors.length > 0) {
-      throw new Error(`Invalid brand details: ${validationErrors.join(", ")}`)
-    }
-
-    // Validate and set defaults for brand details - only essential fields
-    const validatedDetails = {
-      name: brandDetails.name.trim(),
-      description: brandDetails.description.trim(),
-      audience: brandDetails.audience.trim(),
-      tone: brandDetails.tone,
-    }
-
-    // Check for required fields
-    if (!validatedDetails.name || !validatedDetails.description) {
-      throw new Error("Brand name and description are required")
-    }
-
-    console.log("Validated details:", validatedDetails)
-
-    // Determine which template to use
-    let templateName: string
-    if (plan === "complete") {
-      templateName = "complete_template"
-    } else {
-      templateName = "core_template"
-    }
-
-    console.log("Using template:", templateName)
-
-    // Load the template
-    let template = await loadTemplate(templateName)
-    console.log("Template loaded, length:", template.length)
-
-    // Replace basic placeholders
-    template = template.replace(/{{DD MONTH YYYY}}/g, formatDate())
-    template = template.replace(/{{brand_name}}/g, validatedDetails.name)
-    template = template.replace(
-      /{{brand_contact_email}}/g,
-      `support@${validatedDetails.name.toLowerCase().replace(/\s+/g, "")}.com`,
-    )
-
-    console.log("Basic placeholders replaced")
-
-    // Generate brand voice traits for both core and complete plans
-    try {
-      // Check if traits are provided in brandDetails
-      if (brandDetails.traits && Array.isArray(brandDetails.traits) && brandDetails.traits.length === 3) {
-        console.log("Using selected traits:", brandDetails.traits)
-        
-        // Import TRAITS definition
-        const { TRAITS } = await import('./traits')
-        
-        // Generate content for each selected trait
-        const traitContents = brandDetails.traits.map((traitName: string) => {
-          const trait = TRAITS[traitName as keyof typeof TRAITS]
-          if (!trait) {
-            console.warn(`Unknown trait: ${traitName}`)
-            return ''
-          }
-          
-          // Format trait content in markdown
-          return `### ${traitName}
-
-${trait.definition}
-
-#### What It Means
-${trait.do.map(item => `→ ${item}`).join('\n')}
-
-#### What It Doesn't Mean
-${trait.dont.map(item => `✗ ${item}`).join('\n')}
-
-**Example:**
-- Before: ${trait.example.before}
-- After: ${trait.example.after}`
-        })
-        
-        // Replace trait placeholders
-        template = template.replace(/{{voice_trait_1}}/g, traitContents[0] || '')
-        template = template.replace(/{{voice_trait_2}}/g, traitContents[1] || '')
-        template = template.replace(/{{voice_trait_3}}/g, traitContents[2] || '')
-        // Remove any leftover placeholders
-        template = template.replace(/{{voice_trait_\d}}/g, '')
-      } else {
-        // Fallback to AI generation if no traits selected
-        const brandVoiceResult = await generateBrandVoiceTraits(validatedDetails);
-        if (brandVoiceResult.success && brandVoiceResult.content) {
-          // Split traits if possible
-          const traits = brandVoiceResult.content.split(/(?=### )/g).map(t => t.trim()).filter(Boolean);
-          template = template.replace(/{{voice_trait_1}}/g, traits[0] || '');
-          template = template.replace(/{{voice_trait_2}}/g, traits[1] || '');
-          template = template.replace(/{{voice_trait_3}}/g, traits[2] || '');
-          // Remove any leftover placeholders
-          template = template.replace(/{{voice_trait_\d}}/g, '');
-        } else {
-          template = template.replace(/{{voice_trait_1}}/g, '_Could not generate brand voice trait 1._');
-          template = template.replace(/{{voice_trait_2}}/g, '_Could not generate brand voice trait 2._');
-          template = template.replace(/{{voice_trait_3}}/g, '_Could not generate brand voice trait 3._');
-        }
-      }
-    } catch (error) {
-      console.error("Error generating brand voice traits:", error)
-      template = template.replace(/{{voice_trait_1}}/g, '_Could not generate brand voice trait 1._');
-      template = template.replace(/{{voice_trait_2}}/g, '_Could not generate brand voice trait 2._');
-      template = template.replace(/{{voice_trait_3}}/g, '_Could not generate brand voice trait 3._');
-    }
-
-    console.log("Voice trait placeholders replaced")
-
-    // Generate all rules at once for the complete plan
-    if (plan === "complete") {
-      try {
-        const completeRulesResult = await generateCompleteStyleGuide(validatedDetails);
-        if (completeRulesResult.success && completeRulesResult.content) {
-          // Replace {{complete_rules}} with the generated rules
-          template = template.replace(/{{complete_rules}}/g, formatMarkdownContent(completeRulesResult.content));
-        } else {
-          template = template.replace(/{{complete_rules}}/g, '_Could not generate complete rules for this brand._');
-        }
-      } catch (error) {
-        console.error("Error generating complete style guide rules:", error);
-        template = template.replace(/{{complete_rules}}/g, '_Could not generate complete rules for this brand._');
-      }
-    } else {
-      // Generate all 25 rules at once and insert into template (core)
-      try {
-        const coreRulesResult = await generateFullCoreStyleGuide(validatedDetails);
-        if (coreRulesResult.success && coreRulesResult.content) {
-          template = template.replace(/{{core_rules}}/g, formatMarkdownContent(coreRulesResult.content));
-        } else {
-          template = template.replace(/{{core_rules}}/g, "_Could not generate core rules for this brand._");
-        }
-      } catch (error) {
-        console.error("Error generating full core style guide rules:", error);
-        template = template.replace(/{{core_rules}}/g, "_Could not generate core rules for this brand._");
-      }
-    }
-
-    // Generate examples if needed for complete template
-    if (plan === "complete") {
-      try {
-        const examplePrompt = `Create example content for the ${validatedDetails.name} brand.
-        The brand description is: ${validatedDetails.description}
-        Target audience: ${validatedDetails.audience}
-        
-        Generate in markdown format:
-        1. A blog post example (2-3 paragraphs)
-        2. A LinkedIn post example (1 paragraph)
-        3. An email newsletter example (2-3 paragraphs)
-        
-        Each example should demonstrate the brand voice traits and follow the style guide rules.`
-
-        const exampleResult = await generateWithOpenAI(
-          examplePrompt,
-          "You are an expert copywriter who understands brand voice and content strategy.",
-          "markdown"
-        )
-        if (!exampleResult.success) {
-          throw new Error(`Failed to generate examples: ${exampleResult.error}`)
-        }
-
-        if (!exampleResult.content) {
-          throw new Error("Example content is missing")
-        }
-
-        const content = exampleResult.content
-        if (!validateMarkdownContent(content)) {
-          throw new Error("Generated examples do not match required markdown format")
-        }
-
-        // Replace example placeholders
-        const formattedContent = formatMarkdownContent(content)
-        if (!formattedContent) {
-          throw new Error("Failed to format example content")
-        }
-        template = template.replace(/{{example_content}}/g, formattedContent)
-      } catch (error) {
-        console.error("Error generating examples:", error)
-        throw new Error(`Example generation failed: ${error instanceof Error ? error.message : String(error)}`)
-      }
-    }
-
-    console.log("All placeholders replaced, template ready")
-
-    // Final formatting pass to ensure consistent markdown
-    const formattedMarkdown = formatMarkdownContent(template)
-    return await markdownToHtml(formattedMarkdown)
-  } catch (error) {
-    console.error("Error processing template:", error)
-    throw error
-  }
-}
 
 // Helper function to format the current date
 function formatDate(): string {
@@ -583,32 +385,64 @@ export async function renderStyleGuideTemplate({
       if (brandDetails.traits && Array.isArray(brandDetails.traits) && brandDetails.traits.length === 3) {
         console.log("Using selected traits in renderStyleGuideTemplate:", brandDetails.traits)
         
-        // Import TRAITS definition
+        // Import trait utilities
         const { TRAITS } = await import('./traits')
         
         // Generate content for each selected trait
-        const traitContents = brandDetails.traits.map((traitName: string) => {
-          const trait = TRAITS[traitName as keyof typeof TRAITS]
-          if (!trait) {
-            console.warn(`Unknown trait: ${traitName}`)
-            return ''
-          }
+        const traitContents = await Promise.all(brandDetails.traits.map(async (traitName: string) => {
+          const predefinedTrait = TRAITS[traitName as keyof typeof TRAITS]
           
-          // Format trait content in markdown
-          return `### ${traitName}
+          if (predefinedTrait) {
+            // Predefined trait with full description
+            return `### ${traitName}
 
-${trait.definition}
+${predefinedTrait.definition}
 
 #### What It Means
-${trait.do.map(item => `→ ${item}`).join('\n')}
+${predefinedTrait.do.map(item => `→ ${item}`).join('\n')}
 
 #### What It Doesn't Mean
-${trait.dont.map(item => `✗ ${item}`).join('\n')}
+${predefinedTrait.dont.map(item => `✗ ${item}`).join('\n')}
 
 **Example:**
-- Before: ${trait.example.before}
-- After: ${trait.example.after}`
-        })
+- Before: ${predefinedTrait.example.before}
+- After: ${predefinedTrait.example.after}`
+          } else {
+            // Custom trait - generate AI description in same format
+            const { generateCustomTraitDescription } = await import('./openai')
+            const brandContext = {
+              name: validatedDetails.name,
+              description: validatedDetails.description,
+              audience: validatedDetails.audience
+            }
+            
+            const description = await generateCustomTraitDescription(traitName, brandContext)
+            if (description.success && description.content) {
+              return `### ${traitName}
+
+${description.content}`
+            } else {
+              // Fallback template with manual edit instructions
+              return `### ${traitName}
+
+*AI could not generate a description for this custom trait. You can manually add the description after downloading your style guide.*
+
+#### What It Means
+→ [Add specific guidelines for "${traitName}"]
+→ [Add more guidelines]
+→ [Add more guidelines]
+
+#### What It Doesn't Mean
+✗ [Add what "${traitName}" doesn't mean]
+✗ [Add more restrictions]
+✗ [Add more restrictions]
+
+**Example:**
+- Before: [Add example without "${traitName}"]
+- After: [Add example with "${traitName}" applied]`
+            }
+          }
+        }))
         
         // Replace trait placeholders
         const allTraitsContent = traitContents.join('\n\n')

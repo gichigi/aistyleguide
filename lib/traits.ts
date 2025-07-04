@@ -19,6 +19,136 @@ interface VoiceTrait {
   example: { before: string; after: string }
 }
 
+// New interfaces for custom traits
+export interface CustomTrait {
+  id: string
+  name: string
+  isCustom: true
+}
+
+export interface PredefinedTrait {
+  name: TraitName
+  isCustom: false
+  definition: string
+  do: string[]
+  dont: string[]
+  example: { before: string; after: string }
+}
+
+export type MixedTrait = CustomTrait | PredefinedTrait
+
+// Utility functions for trait handling
+export function createCustomTrait(name: string): CustomTrait {
+  return {
+    id: `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    name: name.trim(),
+    isCustom: true
+  }
+}
+
+export function isPredefinedTrait(trait: MixedTrait): trait is PredefinedTrait {
+  return !trait.isCustom
+}
+
+export function isCustomTrait(trait: MixedTrait): trait is CustomTrait {
+  return trait.isCustom
+}
+
+export function getPredefinedTrait(name: TraitName): PredefinedTrait {
+  const traitData = TRAITS[name]
+  return {
+    name,
+    isCustom: false,
+    ...traitData
+  }
+}
+
+// Validation functions
+export function isValidCustomTraitName(name: string): boolean {
+  const trimmed = name.trim()
+  if (trimmed.length === 0 || trimmed.length > 20) return false
+  
+  // Check if name matches any predefined trait
+  const predefinedNames = Object.keys(TRAITS).map(n => n.toLowerCase())
+  if (predefinedNames.includes(trimmed.toLowerCase())) return false
+  
+  // Basic sanitization - only allow letters, numbers, spaces, hyphens
+  const validPattern = /^[a-zA-Z0-9\s\-]+$/
+  return validPattern.test(trimmed)
+}
+
+// localStorage functions for custom traits
+export function saveCustomTraits(customTraits: CustomTrait[]): void {
+  try {
+    localStorage.setItem('customTraits', JSON.stringify(customTraits))
+  } catch (error) {
+    console.error('Error saving custom traits to localStorage:', error)
+  }
+}
+
+export function loadCustomTraits(): CustomTrait[] {
+  try {
+    const saved = localStorage.getItem('customTraits')
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      if (Array.isArray(parsed)) {
+        return parsed.filter(trait => 
+          trait && 
+          typeof trait.id === 'string' && 
+          typeof trait.name === 'string' && 
+          trait.isCustom === true
+        )
+      }
+    }
+  } catch (error) {
+    console.error('Error loading custom traits from localStorage:', error)
+  }
+  return []
+}
+
+// Mixed trait localStorage functions
+export function saveMixedTraits(traits: MixedTrait[]): void {
+  try {
+    // Save only the essential data for reconstruction
+    const traitData = traits.map(trait => {
+      if (trait.isCustom) {
+        return { type: 'custom', id: trait.id, name: trait.name }
+      } else {
+        return { type: 'predefined', name: trait.name }
+      }
+    })
+    localStorage.setItem('selectedTraits', JSON.stringify(traitData))
+  } catch (error) {
+    console.error('Error saving mixed traits to localStorage:', error)
+  }
+}
+
+export function loadMixedTraits(): MixedTrait[] {
+  try {
+    const saved = localStorage.getItem('selectedTraits')
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      if (Array.isArray(parsed)) {
+        const customTraits = loadCustomTraits()
+        
+        return parsed.map(item => {
+          if (item.type === 'custom') {
+            // Find matching custom trait
+            const customTrait = customTraits.find(ct => ct.id === item.id)
+            return customTrait || createCustomTrait(item.name)
+          } else if (item.type === 'predefined' && Object.keys(TRAITS).includes(item.name as TraitName)) {
+            return getPredefinedTrait(item.name as TraitName)
+          }
+          return null
+        }).filter(Boolean) as MixedTrait[]
+      }
+    }
+  } catch (error) {
+    console.error('Error loading mixed traits from localStorage:', error)
+  }
+  return []
+}
+
 export const TRAITS: Record<TraitName, VoiceTrait> = {
   Authoritative: {
     definition: "Confident expertise that educates and guides without being condescending or pushy",

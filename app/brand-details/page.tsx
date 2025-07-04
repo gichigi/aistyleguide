@@ -79,6 +79,22 @@ function extractBrandNameInline(brandDetailsText: string) {
   }
 }
 
+// Format auto-populated descriptions with paragraph breaks between sentences
+function formatAutoPopulatedDescription(description: string): string {
+  if (!description || description.length < 20) {
+    return description
+  }
+  
+  // Split by sentence endings (., !, ?) but keep the punctuation
+  const sentences = description.split(/(?<=[.!?])\s+/)
+  
+  // Join with double line breaks to create paragraphs
+  return sentences
+    .map(sentence => sentence.trim())
+    .filter(sentence => sentence.length > 0)
+    .join('\n\n')
+}
+
 export default function BrandDetailsPage() {
   const router = useRouter()
   const { toast } = useToast()
@@ -157,10 +173,17 @@ export default function BrandDetailsPage() {
           formalityLevelValue = formalityLabels[formalityLevelValue] || "Neutral"
         }
         
+        // Format auto-populated descriptions with paragraph breaks (only for extracted content)
+        let formattedBrandDetailsText = parsedDetails.brandDetailsText
+        if (fromExtraction && formattedBrandDetailsText && formattedBrandDetailsText.length > 20) {
+          formattedBrandDetailsText = formatAutoPopulatedDescription(formattedBrandDetailsText)
+        }
+        
         // Ensure all required fields have values by merging with defaults
         const updatedDetails = {
           ...defaultBrandDetails,
           ...parsedDetails,
+          brandDetailsText: formattedBrandDetailsText || parsedDetails.brandDetailsText,
           englishVariant: parsedDetails.englishVariant || "american",
           formalityLevel: formalityLevelValue || "Neutral",
           readingLevel: parsedDetails.readingLevel || "6-8",
@@ -387,7 +410,23 @@ export default function BrandDetailsPage() {
                       value={brandDetails.brandDetailsText || ""}
                       onChange={e => {
                         const value = e.target.value.slice(0, 500) // Enforce max length
-                        setBrandDetails(prev => ({ ...prev, brandDetailsText: value }))
+                        setBrandDetails(prev => {
+                          const updatedDetails = { ...prev, brandDetailsText: value }
+                          
+                          // Auto-populate brand name if it's empty and we have enough text
+                          if (!prev.name?.trim() && value.trim().length > 10) {
+                            const extractionResult = extractBrandNameInline(value)
+                            if (extractionResult.success && extractionResult.brandName && extractionResult.brandName !== "Your Brand") {
+                              updatedDetails.name = extractionResult.brandName
+                              // Clear any previous name validation error
+                              setNameError("")
+                            }
+                          }
+                          
+                          // Save to localStorage
+                          localStorage.setItem("brandDetails", JSON.stringify(updatedDetails))
+                          return updatedDetails
+                        })
                         validateMainField(value)
                         // Auto-adjust height
                         e.target.style.height = "auto"

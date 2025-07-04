@@ -97,6 +97,47 @@ export async function generateWithOpenAI(
       }
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error"
+      
+      // Check for specific OpenAI errors that shouldn't be retried
+      if (error instanceof Error) {
+        // Rate limit errors (429)
+        if (errorMessage.includes('429') || errorMessage.includes('rate_limit')) {
+          Logger.error("OpenAI rate limit hit", error, { attempt })
+          return {
+            success: false,
+            error: "Our AI is busy right now. Please try again in a few minutes."
+          }
+        }
+        
+        // Quota/billing errors (402)
+        if (errorMessage.includes('402') || errorMessage.includes('quota') || errorMessage.includes('billing')) {
+          Logger.error("OpenAI quota exceeded", error, { attempt })
+          return {
+            success: false,
+            error: "Our AI service is temporarily unavailable. Please try again later."
+          }
+        }
+        
+        // Content policy violations
+        if (errorMessage.includes('content_policy') || errorMessage.includes('safety') || errorMessage.includes('inappropriate')) {
+          Logger.error("OpenAI content policy violation", error, { attempt })
+          return {
+            success: false,
+            error: "We couldn't analyze this content. Please enter your brand details manually."
+          }
+        }
+        
+        // Invalid API key
+        if (errorMessage.includes('401') || errorMessage.includes('invalid_api_key')) {
+          Logger.error("OpenAI API key invalid", error, { attempt })
+          return {
+            success: false,
+            error: "Our AI service is temporarily unavailable. Please try again later."
+          }
+        }
+      }
+
       if (attempt === maxAttempts) {
         Logger.error(
           "OpenAI generation failed",
@@ -110,7 +151,7 @@ export async function generateWithOpenAI(
       }
       Logger.warn("OpenAI generation attempt failed, retrying", {
         attempt,
-        error: error instanceof Error ? error.message : "Unknown error"
+        error: errorMessage
       })
     }
   }
@@ -482,5 +523,48 @@ ${briefDescription}
     "You are an expert brand analyst with experience writing clear, comprehensive brand profiles. Use simple language and professional tone. Always return valid JSON with the exact structure requested.",
     "json",
     600 // Moderate token limit for detailed but concise descriptions
+  );
+}
+
+// Function to generate custom trait description in same format as predefined traits
+export async function generateCustomTraitDescription(
+  traitName: string, 
+  brandContext: { name: string, description: string, audience: string }
+): Promise<GenerationResult> {
+  const prompt = `Generate a brand voice trait description for "${traitName}" in this EXACT format:
+
+[One sentence definition explaining what this trait means for brand voice]
+
+#### What It Means
+→ [Specific guideline 1]
+→ [Specific guideline 2] 
+→ [Specific guideline 3]
+
+#### What It Doesn't Mean
+✗ [What to avoid 1]
+✗ [What to avoid 2]
+✗ [What to avoid 3]
+
+**Example:**
+- Before: [Example without the trait applied]
+- After: [Example with the trait applied]
+
+Brand Context:
+- Name: ${brandContext.name}
+- Description: ${brandContext.description}
+- Target Audience: ${brandContext.audience}
+
+Important:
+- Make the definition clear and specific to "${traitName}"
+- Ensure guidelines are actionable and relevant to the brand
+- Make examples relate to the brand and target audience
+- Use the exact format structure shown above
+- Keep it professional and useful for content creators`;
+
+  return generateWithOpenAI(
+    prompt, 
+    "You are a brand voice expert who creates detailed, consistent trait descriptions for style guides.", 
+    "markdown", 
+    1000
   );
 }

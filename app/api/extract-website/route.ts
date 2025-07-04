@@ -127,12 +127,12 @@ export async function POST(request: Request) {
       Logger.info("Processing description input")
       
       const cleanDescription = body.description.trim()
-      if (cleanDescription.length < 10) {
+      if (cleanDescription.length < 25) {
         return NextResponse.json(
           {
             success: false,
             message: "Description too short",
-            error: "Please provide at least 10 characters",
+            error: "Please provide at least 5 words",
           },
           { status: 400 }
         )
@@ -193,15 +193,46 @@ export async function POST(request: Request) {
     if (!/^https?:\/\//i.test(cleanUrl)) {
       cleanUrl = "https://" + cleanUrl
     }
+
+    // Check for common example/test domains that should be rejected early
+    const hostname = new URL(cleanUrl).hostname.toLowerCase()
+    const testDomains = [
+      'example.com', 'example.org', 'example.net',
+      'test.com', 'test.org', 'test.net',
+      'localhost', '127.0.0.1',
+      'httpbin.org' // Popular testing service
+    ]
+    
+    if (testDomains.includes(hostname)) {
+      Logger.info("Test/example domain detected", { url: cleanUrl, hostname })
+      return NextResponse.json({
+        success: false,
+        message: "This appears to be a test or example domain. Please enter a real website URL.",
+        error: "test domain"
+      }, { status: 400 })
+    }
     // Validate again after cleaning
     const urlValidation = validateUrl(cleanUrl)
     if (!urlValidation.isValid) {
       Logger.error("Invalid URL provided after cleaning", new Error(urlValidation.error))
+      
+      // Check if it's a domain issue
+      if (urlValidation.error?.includes('domain') || urlValidation.error?.includes('hostname')) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "We can't access this type of website. Please enter details manually.",
+            error: "unsupported domain",
+          },
+          { status: 400 }
+        )
+      }
+      
       return NextResponse.json(
         {
           success: false,
-          message: "Invalid URL provided. Please check for typos or extra punctuation.",
-          error: urlValidation.error,
+                      message: "Please check the URL format (e.g., yoursite.com or https://yoursite.com)",
+          error: "malformed URL",
         },
         { status: 400 }
       )
@@ -213,19 +244,91 @@ export async function POST(request: Request) {
       throw new Error(testResult.error || "API key validation failed")
     }
 
-    // Fetch the website HTML
-    const siteResponse = await fetch(urlValidation.url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'DNT': '1',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
+    // Fetch the website HTML with better error handling
+    let siteResponse
+    let html
+    try {
+      siteResponse = await fetch(urlValidation.url, {
+        signal: AbortSignal.timeout(10000), // 10 second timeout
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'DNT': '1',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+        }
+      })
+
+      // Check for HTTP errors
+      if (!siteResponse.ok) {
+        if (siteResponse.status === 401 || siteResponse.status === 403) {
+          return NextResponse.json({
+            success: false,
+            message: "This page requires login. Please enter your brand details manually.",
+            error: "authentication required"
+          }, { status: 400 })
+        }
+        
+        if (siteResponse.status === 404) {
+                   return NextResponse.json({
+           success: false,
+           message: "Page not found. Please check the URL or try a different page.",
+           error: "page not found"
+         }, { status: 400 })
+        }
+
+        throw new Error(`HTTP ${siteResponse.status}: ${siteResponse.statusText}`)
       }
-    })
-    let html = await siteResponse.text()
+
+      html = await siteResponse.text()
+      
+      // Check for minimal content (possible JS app)
+      if (html.length < 500) {
+        return NextResponse.json({
+          success: false,
+          message: "This site loads content dynamically. Please enter your brand details manually.",
+          error: "javascript site"
+        }, { status: 400 })
+      }
+
+    } catch (fetchError) {
+      Logger.error("Fetch error", fetchError instanceof Error ? fetchError : new Error("Fetch error"))
+      
+      // Classify fetch errors for better UX
+      if (fetchError instanceof Error) {
+        if (fetchError.name === 'AbortError') {
+          return NextResponse.json({
+            success: false,
+            message: "Website took too long to respond. Try again or enter details manually.",
+            error: "timeout"
+          }, { status: 408 })
+        }
+        
+        if (fetchError.message.includes('SSL') || fetchError.message.includes('certificate') || fetchError.message.includes('CERT')) {
+          return NextResponse.json({
+            success: false,
+            message: "This website has security issues. Try entering details manually.",
+            error: "SSL certificate error"
+          }, { status: 400 })
+        }
+        
+        if (fetchError.message.includes('getaddrinfo') || fetchError.message.includes('DNS')) {
+          return NextResponse.json({
+            success: false,
+            message: "Can't reach this website. Check the URL or try again later.",
+            error: "DNS error"
+          }, { status: 400 })
+        }
+      }
+      
+      return NextResponse.json({
+        success: false,
+        message: "Can't reach this website. Check the URL or try again later.",
+        error: fetchError instanceof Error ? fetchError.message : "network error"
+      }, { status: 400 })
+    }
     
     // Debug: Log what we actually got
     Logger.debug("Fetched HTML preview", { 
@@ -309,6 +412,61 @@ export async function POST(request: Request) {
     let summary = [title, metaDesc, h1, h2, mainContent, subpageText].filter(Boolean).join('\n')
     // Reduce to 10k chars for faster processing
     summary = summary.slice(0, 10000)
+
+    // Check for insufficient content
+    const meaningfulContent = summary.replace(/\s+/g, ' ').trim()
+    
+    // Debug: Log content analysis
+    Logger.debug("Content analysis", { 
+      url: urlValidation.url,
+      totalLength: meaningfulContent.length,
+      contentPreview: meaningfulContent.slice(0, 200) + '...',
+      hasTitle: !!title,
+      hasDescription: !!metaDesc,
+      hasH1: !!h1,
+      mainContentLength: mainContent.length
+    })
+    
+    // Detect common placeholder/example sites
+    const lowerContent = meaningfulContent.toLowerCase()
+    const lowerTitle = title.toLowerCase()
+    const isPlaceholderSite = (
+      // Example domains
+      lowerTitle.includes('example') ||
+      lowerTitle.includes('placeholder') ||
+      lowerTitle.includes('test page') ||
+      lowerTitle.includes('demo') ||
+      // Common placeholder content
+      lowerContent.includes('this domain is for use in illustrative examples') ||
+      lowerContent.includes('this domain is established to be used for illustrative examples') ||
+      lowerContent.includes('lorem ipsum') ||
+      lowerContent.includes('sample website') ||
+      lowerContent.includes('coming soon') ||
+      lowerContent.includes('under construction') ||
+      lowerContent.includes('placeholder text') ||
+      // Test/development indicators
+      lowerContent.includes('test site') ||
+      lowerContent.includes('development site') ||
+      lowerContent.includes('staging site') ||
+      // Minimal/generic content patterns
+      (lowerContent.includes('example') && lowerContent.includes('domain') && meaningfulContent.length < 500)
+    )
+    
+    // More strict content requirements
+    if (meaningfulContent.length < 200 || isPlaceholderSite) {
+      Logger.info("Insufficient content detected", {
+        url: urlValidation.url,
+        contentLength: meaningfulContent.length,
+        isPlaceholder: isPlaceholderSite,
+        title
+      })
+      
+      return NextResponse.json({
+        success: false,
+        message: "We couldn't find enough content on this site. Please enter more details manually.",
+        error: "insufficient content"
+      }, { status: 400 })
+    }
 
     // Generate prompt for website extraction with improved guidance
     const prompt = `Analyze the following website content and extract the brand's core identity.
