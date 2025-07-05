@@ -56,14 +56,17 @@ export default function StartPage() {
       })
       const data = await response.json()
       if (data.success) {
-        localStorage.setItem("brandDetails", JSON.stringify({
-          brandDetailsText: data.brandDetailsText,
-          tone: "friendly" // Default tone
-        }))
+        // Don't save to localStorage - pass data via URL params
         setIsSuccess(true)
         setIsExtracting(false)
         setTimeout(() => {
-          router.push("/brand-details?fromExtraction=true")
+          // Pass extracted data via URL params
+          const params = new URLSearchParams({
+            fromExtraction: "true",
+            brandName: data.brandName || "",
+            description: data.brandDetailsText || ""
+          })
+          router.push(`/brand-details?${params.toString()}`)
         }, 800)
       } else {
         setIsExtracting(false)
@@ -80,8 +83,11 @@ export default function StartPage() {
   const handleManual = (e: React.FormEvent) => {
     e.preventDefault()
     if (!manualDetails.trim()) return
-    localStorage.setItem("brandDetails", JSON.stringify({ brandDetailsText: manualDetails, tone }))
-    router.push("/brand-details")
+    // Don't save to localStorage - pass data via URL params
+    const params = new URLSearchParams({
+      description: manualDetails
+    })
+    router.push(`/brand-details?${params.toString()}`)
   }
 
   return (

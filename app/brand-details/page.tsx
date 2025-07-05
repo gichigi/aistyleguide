@@ -16,58 +16,17 @@ import { useToast } from "@/hooks/use-toast"
 import { useSearchParams } from "next/navigation"
 import Logo from "@/components/Logo"
 import Header from "@/components/Header"
+import { getBrandName } from "@/lib/utils"
 
-// Default brand details
+// Default brand details - standardized structure
 const defaultBrandDetails = {
-  brandDetailsText: "",
+  brandName: "",
+  description: "",
   tone: "friendly",
 }
 
 // Inline brand name extraction function
-function extractBrandNameInline(brandDetailsText: string) {
-  try {
-    // Simple extraction logic - look for common patterns
-    const text = brandDetailsText.trim()
-    
-    // Look for patterns like "Nike is a..." or "Apple creates..."
-    const patterns = [
-      /^([A-Z][a-zA-Z0-9\s&-]{1,30})\s+(?:is|are|was|were|creates?|makes?|provides?|offers?|specializes?)/i,
-      /^([A-Z][a-zA-Z0-9\s&-]{1,30})\s+(?:helps?|serves?|works?|focuses?)/i,
-      /(?:company|brand|business|startup|organization)\s+(?:called|named)\s+([A-Z][a-zA-Z0-9\s&-]{1,30})/i,
-      /^([A-Z][a-zA-Z0-9\s&-]{1,30})\s*[,.]?\s*(?:a|an|the)/i
-    ]
-    
-    // Try each pattern
-    for (const pattern of patterns) {
-      const match = text.match(pattern)
-      if (match && match[1]) {
-        const brandName = match[1].trim()
-        // Validate it's not too generic
-        const genericWords = ['company', 'business', 'brand', 'startup', 'organization', 'team', 'we', 'our', 'this', 'that']
-        if (!genericWords.includes(brandName.toLowerCase()) && brandName.length > 1) {
-          return { success: true, brandName }
-        }
-      }
-    }
-    
-    // Fallback: look for first capitalized word that's not too common
-    const words = text.split(/\s+/)
-    for (const word of words) {
-      if (/^[A-Z][a-zA-Z0-9&-]{1,20}$/.test(word)) {
-        const commonWords = ['The', 'This', 'That', 'Our', 'We', 'Company', 'Business', 'Brand', 'Team']
-        if (!commonWords.includes(word)) {
-          return { success: true, brandName: word }
-        }
-      }
-    }
-    
-    // Final fallback
-    return { success: true, brandName: "Your Brand" }
-  } catch (error) {
-    console.error("Brand name extraction failed:", error)
-    return { success: true, brandName: "Your Brand" }
-  }
-}
+// Removed duplicate extraction logic - now using centralized getBrandName utility
 
 export default function BrandDetailsPage() {
   const router = useRouter()
@@ -122,7 +81,7 @@ export default function BrandDetailsPage() {
 
   // Auto-resize textarea when content changes or on load
   useEffect(() => {
-    const textarea = document.getElementById('brandDetailsText') as HTMLTextAreaElement
+    const textarea = document.getElementById('description') as HTMLTextAreaElement
     if (textarea) {
       // Wait a bit for rendering to complete
       setTimeout(() => {
@@ -130,38 +89,44 @@ export default function BrandDetailsPage() {
         textarea.style.height = textarea.scrollHeight + "px"
       }, 100)
     }
-  }, [brandDetails.brandDetailsText])
+  }, [brandDetails.description])
 
-  // Load saved brand details from localStorage
+  // Load brand details from URL params (from extraction or manual entry)
   useEffect(() => {
-    const savedDetails = localStorage.getItem("brandDetails")
-    if (savedDetails) {
-      try {
-        const parsedDetails = JSON.parse(savedDetails)
-        // Ensure all required fields have values by merging with defaults
-        const updatedDetails = {
-          ...defaultBrandDetails,
-          ...parsedDetails,
-          // Only default tone if missing
-          tone: parsedDetails.tone || "friendly"
+    const brandName = searchParams.get("brandName") || ""
+    const description = searchParams.get("description") || ""
+    
+    console.log("[Brand Details] Loading from URL params:", { brandName, description })
+    
+    if (brandName || description) {
+      // Pre-fill form with extracted/manual data
+      const newDetails = {
+        brandName,
+        description,
+        tone: "friendly"
+      }
+      console.log("[Brand Details] Setting form data:", newDetails)
+      setBrandDetails(newDetails)
+    } else {
+      // Load saved details from localStorage if no URL params
+      const savedDetails = localStorage.getItem("brandDetails")
+      if (savedDetails) {
+        try {
+          const parsedDetails = JSON.parse(savedDetails)
+          setBrandDetails({
+            ...defaultBrandDetails,
+            ...parsedDetails,
+            tone: parsedDetails.tone || "friendly"
+          })
+        } catch (e) {
+          console.error("Error parsing saved brand details:", e)
+          setBrandDetails(defaultBrandDetails)
         }
-
-        setBrandDetails(updatedDetails)
-
-        // Update localStorage with the validated details
-        localStorage.setItem("brandDetails", JSON.stringify(updatedDetails))
-      } catch (e) {
-        console.error("Error parsing saved brand details:", e)
-        // If there's an error parsing, ensure we save the default details
-        localStorage.setItem("brandDetails", JSON.stringify(defaultBrandDetails))
+      } else {
         setBrandDetails(defaultBrandDetails)
       }
-    } else {
-      // If no saved details, initialize localStorage with default values
-      localStorage.setItem("brandDetails", JSON.stringify(defaultBrandDetails))
-      setBrandDetails(defaultBrandDetails)
     }
-  }, [])
+  }, [searchParams])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -169,9 +134,9 @@ export default function BrandDetailsPage() {
     // Add validation for each field
     let validatedValue = value
     
-    if (name === "name") {
+    if (name === "brandName") {
       // Brand name: max 50 chars, no special chars
-      validatedValue = value.replace(/[^a-zA-Z0-9\s-]/g, "").slice(0, 50)
+      validatedValue = value.replace(/[^a-zA-Z0-9\s&-]/g, "").slice(0, 50)
     } else if (name === "description") {
       // Description: max 500 chars
       validatedValue = value.slice(0, 500)
@@ -180,12 +145,7 @@ export default function BrandDetailsPage() {
       validatedValue = value.slice(0, 500)
     }
     
-    setBrandDetails((prev) => {
-      const updatedDetails = { ...prev, [name]: validatedValue }
-      // Save to localStorage
-      localStorage.setItem("brandDetails", JSON.stringify(updatedDetails))
-      return updatedDetails
-    })
+    setBrandDetails((prev) => ({ ...prev, [name]: validatedValue }))
   }
 
   // Add character count display component
@@ -222,18 +182,13 @@ export default function BrandDetailsPage() {
       value = "friendly" // Ensure tone always has a value
     }
     
-    setBrandDetails((prev) => {
-      const updatedDetails = { ...prev, [name]: value }
-      // Save to localStorage
-      localStorage.setItem("brandDetails", JSON.stringify(updatedDetails))
-      return updatedDetails
-    })
+    setBrandDetails((prev) => ({ ...prev, [name]: value }))
   }
 
   // Update isFormValid function
   const isFormValid = () => {
-    // Only require brandDetailsText to be non-empty
-    return !!(brandDetails.brandDetailsText && brandDetails.brandDetailsText.trim().length > 0)
+    // Only require description to be non-empty
+    return !!(brandDetails.description && brandDetails.description.trim().length > 0)
   }
 
   // Update the handleSubmit function to use inline brand name extraction instead of external API
@@ -246,19 +201,15 @@ export default function BrandDetailsPage() {
       // Show processing state for 5 seconds
       await new Promise(resolve => setTimeout(resolve, 5000))
       
-      // Extract brand name using inline function
-      const nameResult = extractBrandNameInline(brandDetails.brandDetailsText)
-      let brandName = ""
-      if (nameResult.success && nameResult.brandName) {
-        brandName = nameResult.brandName
-      }
+      // Use centralized brand name utility
+      const brandName = getBrandName(brandDetails)
 
       // Map the simplified form data to the expected template processor format
       const detailsWithName = { 
         ...brandDetails, 
         name: brandName,
-        // Map brandDetailsText to description for template processor compatibility
-        description: brandDetails.brandDetailsText,
+        // Use description directly
+        description: brandDetails.description,
         // Set default audience since we no longer collect it separately
         audience: "general audience"
       }
@@ -332,15 +283,29 @@ export default function BrandDetailsPage() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid gap-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="brandDetailsText">Description</Label>
+                    <Label htmlFor="brandName">Brand name (optional)</Label>
+                    <Input
+                      id="brandName"
+                      name="brandName"
+                      placeholder="e.g., Apple, Nike, Your Company"
+                      value={brandDetails.brandName || ""}
+                      onChange={handleChange}
+                      className="text-base p-4 font-medium placeholder:text-gray-400 placeholder:font-medium"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Leave blank to auto-detect from description
+                    </p>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="description">Description</Label>
                     <Textarea
-                      id="brandDetailsText"
-                      name="brandDetailsText"
+                      id="description"
+                      name="description"
                       placeholder="Describe your brand in a few sentences. What do you do? Who do you serve?"
-                      value={brandDetails.brandDetailsText || ""}
+                      value={brandDetails.description || ""}
                       onChange={e => {
                         const value = e.target.value.slice(0, 500) // Enforce max length
-                        setBrandDetails(prev => ({ ...prev, brandDetailsText: value }))
+                        setBrandDetails(prev => ({ ...prev, description: value }))
                         validateMainField(value)
                         // Auto-adjust height
                         e.target.style.height = "auto"
@@ -352,7 +317,7 @@ export default function BrandDetailsPage() {
                       onBlur={e => setShowCharCount(!!e.target.value)}
                     />
                     {showCharCount && (
-                      <div className={`text-xs mt-1 ${brandDetails.brandDetailsText?.length > 450 ? 'text-yellow-600' : 'text-muted-foreground'}`}>{brandDetails.brandDetailsText?.length || 0}/500 characters</div>
+                      <div className={`text-xs mt-1 ${brandDetails.description?.length > 450 ? 'text-yellow-600' : 'text-muted-foreground'}`}>{brandDetails.description?.length || 0}/500 characters</div>
                     )}
                     {mainError && (
                       <div className="text-xs text-red-600 mt-1">{mainError}</div>
@@ -381,7 +346,7 @@ export default function BrandDetailsPage() {
                 <div className="flex justify-end">
                   <Button 
                     type="submit" 
-                    disabled={loading || !!mainError || !brandDetails.brandDetailsText.trim()} 
+                    disabled={loading || !!mainError || !brandDetails.description.trim()} 
                     className="w-full sm:w-auto"
                   >
                     {processingStep === 'processing' ? (

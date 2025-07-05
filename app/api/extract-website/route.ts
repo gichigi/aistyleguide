@@ -283,11 +283,16 @@ ${summary}
     const brandDetailsText = result.content.trim()
     Logger.debug("Generated brand details text", { brandDetailsText })
 
+    // Extract brand name from the description using simple pattern
+    const brandNameMatch = brandDetailsText.match(/^([^.]+?)\s+is\s+/i)
+    const brandName = brandNameMatch ? brandNameMatch[1].trim() : ""
+
     Logger.info("Successfully extracted brand information")
     return NextResponse.json({
       success: true,
       message: "Successfully extracted brand information",
       brandDetailsText,
+      brandName,
     })
   } catch (error) {
     Logger.error(

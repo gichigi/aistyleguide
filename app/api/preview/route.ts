@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
 import Logger from '@/lib/logger'
+import { getBrandName } from '@/lib/utils'
 
 // Cache for templates
 const templateCache: Record<string, string> = {}
@@ -18,51 +19,7 @@ function formatDate(): string {
   return formatted
 }
 
-// Inline brand name extraction function (same as in brand-details form)
-function extractBrandNameInline(brandDetailsText: string) {
-  try {
-    // Simple extraction logic - look for common patterns
-    const text = brandDetailsText.trim()
-    
-    // Look for patterns like "Nike is a..." or "Apple creates..."
-    const patterns = [
-      /^([A-Z][a-zA-Z0-9\s&-]{1,30})\s+(?:is|are|was|were|creates?|makes?|provides?|offers?|specializes?)/i,
-      /^([A-Z][a-zA-Z0-9\s&-]{1,30})\s+(?:helps?|serves?|works?|focuses?)/i,
-      /(?:company|brand|business|startup|organization)\s+(?:called|named)\s+([A-Z][a-zA-Z0-9\s&-]{1,30})/i,
-      /^([A-Z][a-zA-Z0-9\s&-]{1,30})\s*[,.]?\s*(?:a|an|the)/i
-    ]
-    
-    // Try each pattern
-    for (const pattern of patterns) {
-      const match = text.match(pattern)
-      if (match && match[1]) {
-        const brandName = match[1].trim()
-        // Validate it's not too generic
-        const genericWords = ['company', 'business', 'brand', 'startup', 'organization', 'team', 'we', 'our', 'this', 'that']
-        if (!genericWords.includes(brandName.toLowerCase()) && brandName.length > 1) {
-          return { success: true, brandName }
-        }
-      }
-    }
-    
-    // Fallback: look for first capitalized word that's not too common
-    const words = text.split(/\s+/)
-    for (const word of words) {
-      if (/^[A-Z][a-zA-Z0-9&-]{1,20}$/.test(word)) {
-        const commonWords = ['The', 'This', 'That', 'Our', 'We', 'Company', 'Business', 'Brand', 'Team']
-        if (!commonWords.includes(word)) {
-          return { success: true, brandName: word }
-        }
-      }
-    }
-    
-    // Final fallback
-    return { success: true, brandName: "Your Brand" }
-  } catch (error) {
-    console.error("Brand name extraction failed:", error)
-    return { success: true, brandName: "Your Brand" }
-  }
-}
+// Removed complex extraction logic - now using centralized getBrandName utility
 
 // Generic voice traits for static preview
 const GENERIC_VOICE_TRAIT_1 = `### 1. Clear & Concise
@@ -193,35 +150,32 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { brandDetails } = body
 
-    Logger.info('Static preview generation request received', { brand: brandDetails?.brandDetailsText })
+    Logger.info('Static preview generation request received', { brand: brandDetails?.description })
 
     // Clear template cache to force refresh
     clearTemplateCache()
 
     // Validate input
-    if (!brandDetails?.brandDetailsText || !brandDetails?.tone) {
+    if (!brandDetails?.description || !brandDetails?.tone) {
       Logger.warn('Invalid request - missing required fields')
       return NextResponse.json(
         { 
           success: false,
-          error: 'Missing required brand details (brandDetailsText, tone)'
+          error: 'Missing required brand details (description, tone)'
         },
         { status: 400 }
       )
     }
 
-    // Extract brand name using inline function (no AI call)
-    const nameResult = extractBrandNameInline(brandDetails.brandDetailsText)
-    let brandName = "Your Brand"
-    if (nameResult.success && nameResult.brandName) {
-      brandName = nameResult.brandName
-    }
+    // Use centralized brand name utility
+    const brandName = getBrandName(brandDetails)
+    console.log('🔧 DEBUG: Using brand name:', brandName)
 
     // Create processed brand details for template processing
     const processedBrandDetails = {
       ...brandDetails,
       name: brandName,
-      description: brandDetails.brandDetailsText,
+      description: brandDetails.description,
       audience: '',
     }
 

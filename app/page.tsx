@@ -125,19 +125,19 @@ export default function LandingPage() {
       const data = await response.json()
 
       if (data.success) {
-        // Store the extracted brand details in localStorage with correct format
-        localStorage.setItem("brandDetails", JSON.stringify({
-          brandDetailsText: data.brandDetailsText,
-          tone: "friendly" // Default tone
-        }))
-
         // Show success state briefly before redirecting
         setIsSuccess(true)
         setIsExtracting(false)
 
         // Navigate to brand details page after a short delay for transition
         setTimeout(() => {
-          router.push("/brand-details?fromExtraction=true")
+          // Pass extracted data via URL params (same as start page)
+          const params = new URLSearchParams({
+            fromExtraction: "true",
+            brandName: data.brandName || "",
+            description: data.brandDetailsText || ""
+          })
+          router.push(`/brand-details?${params.toString()}`)
         }, 800)
       } else {
         // Show error toast but still navigate

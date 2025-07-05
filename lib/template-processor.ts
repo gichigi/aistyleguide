@@ -9,7 +9,11 @@ export async function loadTemplate(templateName: string): Promise<string> {
     // Use absolute URL with origin for server-side calls
     const baseUrl = typeof window !== 'undefined' 
       ? window.location.origin 
-      : process.env.NEXT_PUBLIC_APP_URL || ''
+      : process.env.NEXT_PUBLIC_APP_URL
+    
+    if (!baseUrl) {
+      throw new Error('NEXT_PUBLIC_APP_URL environment variable is not set')
+    }
     
     console.log(`[loadTemplate] Base URL: "${baseUrl}"`)
     console.log(`[loadTemplate] Environment: ${typeof window !== 'undefined' ? 'client-side' : 'server-side'}`)

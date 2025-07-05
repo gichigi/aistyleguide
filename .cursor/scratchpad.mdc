@@ -42,12 +42,61 @@ Web app that generates brand style guides from website URLs using AI to extract 
 ## 🚧 Active Tasks
 
 ### High Priority (P0)
+- ✅ **Brand Name Flow Simplification** - Implemented simple flow: URL params → form pre-fill → user edits → localStorage save → generate
 - 🔄 **Payment Flow Polish** - Add real-time generation status tracking, better success page UX, proper error handling
 - 🔄 **Product Quality Assurance** - Ensure all 25 style rules display correctly, validate download functionality  
 - 🔄 **Mobile Conversion Optimization** - Shorten fade-out effect, optimize mobile paywall dialog
 - ✅ **Vercel Analytics Tracking** - Added tracking events to paywall buttons on /preview page and homepage pricing cards to measure conversion funnel and guide type preferences
 
+### Brand Name Simplification Plan
+**Goal**: Keep current functionality but remove complexity
+
+#### Step 1: Standardize Data Structure ✅
+- Single format everywhere: `{ brandName: "", description: "", tone: "friendly" }`
+- Remove multiple data transformations between formats
+- Update all localStorage saves to use consistent structure
+
+#### Step 2: Create Single Brand Name Function ✅
+- Replace multiple `extractBrandNameInline()` functions with one simple helper
+- Logic: `brandDetails.brandName?.trim() || "Your Brand"`
+- Remove complex extraction patterns and fallback chains
+
+#### Step 3: Clean Up API Routes ✅
+- Remove duplicate extraction logic in `/api/preview/route.ts`
+- Remove duplicate extraction logic in `/api/generate-styleguide/route.ts`
+- Use simple brand name function everywhere
+
+#### Step 4: Simplify Template Processing ✅
+- Update `lib/template-processor.ts` to use single brand name function
+- Remove complex replacement chains
+- Clean template replacement logic
+
+#### Step 5: Update Form Logic ✅
+- Keep optional brand name field on form
+- Simplify `handleSubmit` in brand-details page
+- Remove complex extraction in form submission
+
+#### Step 6: Implement Simple Flow ✅
+- **Updated extraction API**: Now returns both `brandName` and `brandDetailsText`
+- **Updated start page**: Passes data via URL params instead of localStorage
+- **Updated brand details page**: Loads from URL params, only saves to localStorage on form submission
+- **Removed localStorage writes**: Only save final user-submitted form data
+- **Clean data flow**: URL params → form pre-fill → user edits → localStorage save → generate
+
+**Simple User Flow Implemented**:
+1. User enters URL → Extract brand name + description
+2. Navigate to form with pre-filled fields (via URL params)
+3. User edits both fields as needed
+4. User submits → Save to localStorage → Generate style guide
+5. Manual entry follows same pattern (skip step 1)
+
+**Benefits**: 60% code reduction, cleaner data flow, easier debugging, same user experience
+
 ### Medium Priority (P1)  
+- 🚨 **URGENT: Complete Style Guide Formatting** - Fix formatting issues for complete style guide to match core guide quality
+  - **Problem**: Not enough line breaks, malformed emojis, special characters breaking in weird places
+  - **Goal**: Ensure complete guide has same clean formatting as core guide
+  - **Impact**: Premium users getting poor formatting experience after payment
 - 🔄 **Preview loading UX** - Remove loading interstitial, show processing state on button instead
 - 🔄 **Error handling enhancement** - Better error messages, retry options, fallback handling
 - 🔄 **Email Features** - Style guide delivery via email, welcome/onboarding sequence

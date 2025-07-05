@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import Header from "@/components/Header"
+import { getBrandName } from "@/lib/utils"
 
 // Default brand details to use as fallback
 const DEFAULT_BRAND_DETAILS = {
@@ -137,12 +138,18 @@ export default function GeneratePage() {
           router.push("/preview")
         } else {
           try {
-            console.log("Calling generate-styleguide API with brand details:", brandDetails)
+            // Map brandName to name for API compatibility
+            const mappedBrandDetails = {
+              ...brandDetails,
+              name: brandDetails.name || brandDetails.brandName || getBrandName(brandDetails)
+            }
+            
+            console.log("Calling generate-styleguide API with brand details:", mappedBrandDetails)
             const response = await fetch("/api/generate-styleguide", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                brandDetails: brandDetails,
+                brandDetails: mappedBrandDetails,
                 plan: localStorage.getItem("styleGuidePlan") || "core",
               }),
             })
