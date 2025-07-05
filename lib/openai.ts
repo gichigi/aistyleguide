@@ -73,6 +73,19 @@ export async function generateWithOpenAI(
 
       Logger.debug("Raw OpenAI response", { response: rawResponse })
 
+      // Log token usage information
+      if (response.usage) {
+        console.log("=".repeat(50))
+        console.log("🔢 TOKEN USAGE SUMMARY")
+        console.log("=".repeat(50))
+        console.log(`Model: ${response.model}`)
+        console.log(`Prompt tokens: ${response.usage.prompt_tokens}`)
+        console.log(`Completion tokens: ${response.usage.completion_tokens}`) 
+        console.log(`Total tokens: ${response.usage.total_tokens}`)
+        console.log(`Max tokens requested: ${max_tokens}`)
+        console.log("=".repeat(50))
+      }
+
       // Clean the response based on expected format
       const cleanedResponse = await cleanResponse(rawResponse, responseFormat)
       Logger.debug("Cleaned response", { response: cleanedResponse })
@@ -219,7 +232,7 @@ Use the Oxford comma in lists of three or more items.
 
 ---
 Generate exactly 25 rules, each about a different aspect of writing style.`;
-  return generateWithOpenAI(prompt, "You are a writing style guide expert.", "markdown", 3000, "gpt-4o");
+  return generateWithOpenAI(prompt, "You are a writing style guide expert.", "markdown", 6000, "gpt-4o");
 }
 
 // Function to generate the entire complete style guide in one go
@@ -358,7 +371,7 @@ Always capitalize "Apple" and use it consistently to reinforce brand identity.
 - Make each rule unique, clear, and actionable.
 - Focus on how to write, edit, and format text for this brand.
 `;
-  return generateWithOpenAI(prompt, "You are a writing style guide expert.", "markdown", 6000);
+  return generateWithOpenAI(prompt, "You are a writing style guide expert.", "markdown", 9000, "gpt-4o");
 }
 
 // Function to generate a concise brand summary from a single textarea
