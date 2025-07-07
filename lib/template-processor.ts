@@ -1,5 +1,4 @@
 import { generateBrandVoiceTraits, generateWithOpenAI, generateFullCoreStyleGuide, generateCompleteStyleGuide } from "./openai"
-import { marked } from 'marked'
 
 // Function to load a template file via API
 export async function loadTemplate(templateName: string): Promise<string> {
@@ -125,6 +124,8 @@ function formatMarkdownContent(content: string | undefined): string {
   formatted2 = formatted2
     // Normalize spacing after ✅ and ❌
     .replace(/(✅|❌)\s*([Rr]ight|[Ww]rong):\s*/g, '$1 $2: ')
+    // Ensure each example is on its own line
+    .replace(/(✅[^\n]+)\s+(❌)/g, '$1\n$2')
     // Add newline after each example if not present
     .replace(/(✅[^\n]+|❌[^\n]+)(?!\n)/g, '$1\n')
     // Ensure examples are grouped together with single line spacing
@@ -256,12 +257,10 @@ function validateBrandDetails(details: any) {
   return errors
 }
 
-// Function to convert markdown to HTML
-async function markdownToHtml(markdown: string): Promise<string> {
-  return marked(markdown, {
-    gfm: true,
-    breaks: true
-  })
+// Function to prepare markdown content for React component rendering
+async function prepareMarkdownContent(markdown: string): Promise<string> {
+  // Simply return the markdown content - react-markdown will handle the rendering
+  return markdown
 }
 
 // Main function to process a template with brand details
@@ -417,7 +416,7 @@ export async function processTemplate(templateType: string, brandDetails: any, p
 
     // Final formatting pass to ensure consistent markdown
     const formattedMarkdown = formatMarkdownContent(template)
-    return await markdownToHtml(formattedMarkdown)
+    return await prepareMarkdownContent(formattedMarkdown)
   } catch (error) {
     console.error("Error processing template:", error)
     throw error
@@ -480,7 +479,7 @@ export async function generateTemplatePreview(brandDetails: any): Promise<string
       .replace(/{{voice_trait_2}}/g, GENERIC_VOICE_TRAIT_2)
       .replace(/{{rule_line}}/g, brandDetails.ruleLine || '');
     
-    return await markdownToHtml(preview);
+    return await prepareMarkdownContent(preview);
   } catch (error) {
     console.error('Preview generation failed:', error);
     throw new Error(`Preview generation failed: ${error}`);
@@ -590,5 +589,5 @@ export async function renderStyleGuideTemplate({
     // Remove 'General Guidelines' section for preview only
     result = result.replace(/## General Guidelines[\s\S]*?(?=\n## |$)/, '');
   }
-  return await markdownToHtml(result);
+  return await prepareMarkdownContent(result);
 }

@@ -20,6 +20,7 @@ import styled from "styled-components"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Logo from "@/components/Logo"
 import { StyleGuideHeader } from "@/components/StyleGuideHeader"
+import { MarkdownRenderer } from "@/components/MarkdownRenderer"
 
 // Add fade-out effect before paywall
 const ContentWithFadeout = styled.div`
@@ -442,46 +443,45 @@ export default function PreviewPage() {
             />
             <div className="p-8 bg-white">
               <div className="max-w-2xl mx-auto space-y-12">
-                <div className="prose prose-slate dark:prose-invert max-w-none style-guide-content prose-sm sm:prose-base">
                 <ContentWithFadeout>
-                  <div dangerouslySetInnerHTML={{ __html: processPreviewContent(previewContent, brandDetails?.name) }} />
+                  <MarkdownRenderer 
+                    content={previewContent || ""} 
+                    className="prose-slate dark:prose-invert max-w-none style-guide-content prose-sm sm:prose-base" 
+                  />
                 </ContentWithFadeout>
 
                 {/* Add paywall banner */}
-                  <div className="my-6 mb-20 p-6 sm:p-8 bg-blue-50 border border-blue-100 rounded-lg shadow-sm text-center">
-                    <div className="max-w-md mx-auto">
-                      <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center mx-auto mb-4 shadow-sm">
-                        <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                      </div>
-                      <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
-                        Unlock Your Style Guide
-                  </h3>
-                      <p className="text-sm sm:text-base text-gray-600 mb-4 leading-relaxed">
-                        Get access to all writing rules, detailed examples, and professional formats to create a consistent brand voice.
-                  </p>
-                  
-
-                  
-                  <Button
-                    onClick={() => {
-                      // Track paywall button click
-                      track('Paywall Clicked', { 
-                        location: 'preview-page',
-                        action: 'unlock-style-guide'
-                      });
-                      setPaymentDialogOpen(true);
-                    }}
-                        className="w-full sm:w-auto text-base sm:text-lg py-3 sm:py-4 px-6 sm:px-8 bg-gray-900 hover:bg-gray-800 text-white shadow-sm hover:shadow-md transition-all duration-200"
-                  >
-                        <CreditCard className="h-4 w-4 mr-2" /> 
-                        Unlock Style Guide
-                  </Button>
-                      <p className="text-xs text-green-600 mt-4">
-                        ✓ Instant access ✓ 30-day guarantee ✓ No subscriptions
-                      </p>
+                <div className="my-6 mb-20 p-6 sm:p-8 bg-blue-50 border border-blue-100 rounded-lg shadow-sm text-center">
+                  <div className="max-w-md mx-auto">
+                    <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center mx-auto mb-4 shadow-sm">
+                      <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
                     </div>
+                    <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
+                      Unlock Your Style Guide
+                    </h3>
+                    <p className="text-sm sm:text-base text-gray-600 mb-4 leading-relaxed">
+                      Get access to all writing rules, detailed examples, and professional formats to create a consistent brand voice.
+                    </p>
+                    
+                    <Button
+                      onClick={() => {
+                        // Track paywall button click
+                        track('Paywall Clicked', { 
+                          location: 'preview-page',
+                          action: 'unlock-style-guide'
+                        });
+                        setPaymentDialogOpen(true);
+                      }}
+                      className="w-full sm:w-auto text-base sm:text-lg py-3 sm:py-4 px-6 sm:px-8 bg-gray-900 hover:bg-gray-800 text-white shadow-sm hover:shadow-md transition-all duration-200"
+                    >
+                      <CreditCard className="h-4 w-4 mr-2" /> 
+                      Unlock Style Guide
+                    </Button>
+                    <p className="text-xs text-green-600 mt-4">
+                      ✓ Instant access ✓ 30-day guarantee ✓ No subscriptions
+                    </p>
                   </div>
                 </div>
               </div>

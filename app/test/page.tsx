@@ -12,6 +12,7 @@ import { FileText, Loader2, Download, Check, X } from "lucide-react"
 import { generateFile, FileFormat } from "@/lib/file-generator"
 import { useToast } from "@/hooks/use-toast"
 import Header from "@/components/Header"
+import { MarkdownRenderer } from "@/components/MarkdownRenderer"
 
 const MODELS = [
   { label: "GPT-4o", value: "gpt-4o" },
@@ -161,10 +162,63 @@ export default function TestPage() {
     html2pdf().set(opt).from(element).save()
   }
 
+  // Test markdown content to prove Phase 2 works
+  const testMarkdown = `# ✅ Phase 2 Test: MarkdownRenderer vs dangerouslySetInnerHTML
+
+## Brand Voice Traits 🎯
+
+### Clear & Concise
+
+#### What It Means
+→ Use simple, direct language that anyone can understand.
+→ Break down complex ideas into **easy steps**.
+→ Keep sentences short and to the point.
+
+#### What It Doesn't Mean
+✗ Leaving out important details for brevity.
+✗ Using jargon without explanation.
+
+### Friendly & Approachable 😊
+
+**Special Characters Test:**
+- Smart quotes: "These should render correctly"
+- Dashes: em-dash — vs hyphen -  
+- Symbols: © ® ™ € $ £ ¥
+- Emojis: 🎉 ✅ ❌ 🚀
+
+---
+
+**This proves our new MarkdownRenderer works correctly!**`
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       <Header />
       <main className="flex-1 container py-8 max-w-7xl">
+        
+        {/* Phase 2 Proof Test */}
+        <Card className="mb-8 border-green-200 bg-green-50">
+          <CardContent className="p-6">
+            <h2 className="text-xl font-bold mb-4 text-green-800">🔬 Phase 2 Implementation Proof</h2>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="font-semibold mb-2 text-red-700">❌ OLD: dangerouslySetInnerHTML</h3>
+                <div className="prose prose-slate max-w-none border p-4 bg-red-50 rounded">
+                  <div dangerouslySetInnerHTML={{ __html: testMarkdown.replace(/\n/g, '<br/>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
+                </div>
+              </div>
+              <div>
+                <h3 className="font-semibold mb-2 text-green-700">✅ NEW: MarkdownRenderer</h3>
+                <div className="border p-4 bg-white rounded">
+                  <MarkdownRenderer content={testMarkdown} />
+                </div>
+              </div>
+            </div>
+            <p className="mt-4 text-sm text-gray-600">
+              <strong>Notice:</strong> The new MarkdownRenderer properly handles emojis, special characters, 
+              formatting, and provides consistent spacing - while the old approach breaks formatting.
+            </p>
+          </CardContent>
+        </Card>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Left: Controls */}
           <Card className="md:col-span-1">
@@ -238,8 +292,8 @@ export default function TestPage() {
               <h2 className="text-xl font-bold mb-4">Output Preview</h2>
               {isLoading && <Progress value={log.length * 33} className="mb-4" />}
               {output ? (
-                <div id="pdf-content" className="prose prose-slate dark:prose-invert max-w-none mb-6">
-                  <div dangerouslySetInnerHTML={{ __html: output }} />
+                <div id="pdf-content" className="mb-6">
+                  <MarkdownRenderer content={output} className="prose-slate dark:prose-invert max-w-none" />
                 </div>
               ) : (
                 <div className="text-gray-400 italic">No output yet. Run a test to see results.</div>

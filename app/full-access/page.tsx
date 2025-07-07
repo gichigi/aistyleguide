@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast"
 import { generateFile, FileFormat } from "@/lib/file-generator"
 import Header from "@/components/Header"
 import { StyleGuideHeader } from "@/components/StyleGuideHeader"
+import { MarkdownRenderer } from "@/components/MarkdownRenderer"
 
 function FullAccessContent() {
   const router = useRouter()
@@ -396,9 +397,10 @@ function FullAccessContent() {
               />
               <div className="p-8 bg-white">
                 <div className="max-w-2xl mx-auto space-y-12">
-                  <div className="prose prose-slate dark:prose-invert max-w-none style-guide-content prose-sm sm:prose-base">
-                    <div dangerouslySetInnerHTML={{ __html: processFullAccessContent(guideContent, brandDetails?.name) }} />
-                  </div>
+                  <MarkdownRenderer 
+                    content={guideContent} 
+                    className="prose-slate dark:prose-invert max-w-none style-guide-content prose-sm sm:prose-base" 
+                  />
                 </div>
               </div>
             </div>

@@ -8,6 +8,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { parseStyleGuideContent, getDefaultOpenSections, type StyleGuideSection } from "@/lib/content-parser"
+import { MarkdownRenderer } from "@/components/MarkdownRenderer"
 
 interface StyleGuideAccordionProps {
   content: string
@@ -31,8 +32,8 @@ export function StyleGuideAccordion({ content, defaultOpenSections }: StyleGuide
   if (sections.length === 0) {
     // Fallback to original content if parsing fails
     return (
-      <div className="prose prose-slate dark:prose-invert max-w-none style-guide-content">
-        <div dangerouslySetInnerHTML={{ __html: content }} />
+      <div className="w-full">
+        <MarkdownRenderer content={content} className="prose-slate dark:prose-invert max-w-none style-guide-content" />
       </div>
     )
   }
@@ -44,8 +45,11 @@ export function StyleGuideAccordion({ content, defaultOpenSections }: StyleGuide
   return (
     <div className="w-full">
       {alwaysOpenSections.map((section) => (
-        <div key={section.id} className="mb-6 prose prose-slate dark:prose-invert max-w-none style-guide-content prose-sm sm:prose-base">
-          <div dangerouslySetInnerHTML={{ __html: `<h2>${section.title}</h2>${section.content}` }} />
+        <div key={section.id} className="mb-6">
+          <MarkdownRenderer 
+            content={`## ${section.title}\n\n${section.content}`} 
+            className="prose-slate dark:prose-invert max-w-none style-guide-content prose-sm sm:prose-base" 
+          />
         </div>
       ))}
       {accordionSections.length > 0 && (
@@ -56,9 +60,9 @@ export function StyleGuideAccordion({ content, defaultOpenSections }: StyleGuide
                 {section.title}
               </AccordionTrigger>
               <AccordionContent>
-                <div
-                  className="prose prose-slate dark:prose-invert max-w-none style-guide-content prose-sm sm:prose-base"
-                  dangerouslySetInnerHTML={{ __html: section.content }}
+                <MarkdownRenderer 
+                  content={section.content} 
+                  className="prose-slate dark:prose-invert max-w-none style-guide-content prose-sm sm:prose-base" 
                 />
               </AccordionContent>
             </AccordionItem>

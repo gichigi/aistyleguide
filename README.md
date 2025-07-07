@@ -19,7 +19,7 @@ A powerful web application that generates professional style guides for brands u
 - Radix UI Components
 - OpenAI API
 - jsPDF for PDF generation
-- Markdown processing with Marked
+- Markdown processing with react-markdown + remark-gfm
 
 ## Getting Started
 

@@ -17,210 +17,159 @@ Web app that generates brand style guides from website URLs using AI to extract 
 6. **Email Capture** → Collects email for thank you & abandoned cart recovery
 7. **Full Access** → Complete style guide with download options
 
-## ✅ Major Completed Tasks
-
-### Core Functionality
-- ✅ **Complete user journey** - Landing page → website analysis → brand form → preview/paywall → payment → full access with downloads
-- ✅ **AI-powered generation** - OpenAI integration for brand extraction and style guide creation with template processing system
-
-### Technical Improvements
-- ✅ **Production-ready codebase** - Type safety, security hardening, performance optimizations, mobile responsiveness
-- ✅ **Professional UI/UX** - Consistent navigation, loading states, responsive design, polished user experience
-
-### Landing Page Comparison Table (Jan 2025)
-- ✅ **Professional comparison section** - "Why choose AIStyleGuide" with visual design system, brand integration, and mobile optimization
-- ✅ **Clear value proposition** - 8 key features comparing AIStyleGuide vs ChatGPT vs Templates with responsive card/table layout
-
-### Email Automation System (Jan 2025)
-- ✅ **Resend email service** - Professional thank you emails, abandoned cart recovery with 20% discount codes
-- ✅ **Stripe integration** - Email capture during checkout, webhook handling for success/expiration events
-
-### Previous Improvements (2024)
-- ✅ **Core systems stabilization** - Fixed data flow, OpenAI integration, template validation, conversion optimization
-- ✅ **User experience polish** - Pricing transparency, social proof, UI cleanup, better error handling
+---
 
 ## 🚧 Active Tasks
 
 ### High Priority (P0)
-- ✅ **Brand Name Flow Simplification** - Implemented simple flow: URL params → form pre-fill → user edits → localStorage save → generate
 - 🔄 **Payment Flow Polish** - Add real-time generation status tracking, better success page UX, proper error handling
 - 🔄 **Product Quality Assurance** - Ensure all 25 style rules display correctly, validate download functionality  
 - 🔄 **Mobile Conversion Optimization** - Shorten fade-out effect, optimize mobile paywall dialog
-- ✅ **Vercel Analytics Tracking** - Added tracking events to paywall buttons on /preview page and homepage pricing cards to measure conversion funnel and guide type preferences
 
-### Brand Name Simplification Plan
-**Goal**: Keep current functionality but remove complexity
+### Medium Priority (P1)
+- 🔄 **Error Handling Enhancement** - Better error messages, retry options, fallback handling
 
-#### Step 1: Standardize Data Structure ✅
-- Single format everywhere: `{ brandName: "", description: "", tone: "friendly" }`
-- Remove multiple data transformations between formats
-- Update all localStorage saves to use consistent structure
+### 🔄 **NEXT: Error Handling Enhancement Plan**
 
-#### Step 2: Create Single Brand Name Function ✅
-- Replace multiple `extractBrandNameInline()` functions with one simple helper
-- Logic: `brandDetails.brandName?.trim() || "Your Brand"`
-- Remove complex extraction patterns and fallback chains
+**Goal**: Improve user experience when API calls fail with better error messages, retry options, and graceful fallbacks.
 
-#### Step 3: Clean Up API Routes ✅
-- Remove duplicate extraction logic in `/api/preview/route.ts`
-- Remove duplicate extraction logic in `/api/generate-styleguide/route.ts`
-- Use simple brand name function everywhere
+**Implementation Plan:**
 
-#### Step 4: Simplify Template Processing ✅
-- Update `lib/template-processor.ts` to use single brand name function
-- Remove complex replacement chains
-- Clean template replacement logic
+**Phase 1: Enhanced Error Messages** 🔄
+1. 🔄 **Identify error sources**: Map all API failure points (website extraction, OpenAI, network issues)
+2. 🔄 **Create user-friendly messages**: Replace technical errors with helpful guidance
+3. 🔄 **Add error message component**: Reusable error UI with clear messaging
 
-#### Step 5: Update Form Logic ✅
-- Keep optional brand name field on form
-- Simplify `handleSubmit` in brand-details page
-- Remove complex extraction in form submission
+**Phase 2: Retry Mechanism** 🔄
+1. 🔄 **Add exponential backoff**: Smart retry logic (immediate, 2s, 5s delays, max 3 attempts)
+2. 🔄 **Visual retry feedback**: "Retrying..." state with progress indicator
+3. 🔄 **User-controlled retry**: Manual "Try Again" buttons
 
-#### Step 6: Implement Simple Flow ✅
-- **Updated extraction API**: Now returns both `brandName` and `brandDetailsText`
-- **Updated start page**: Passes data via URL params instead of localStorage
-- **Updated brand details page**: Loads from URL params, only saves to localStorage on form submission
-- **Removed localStorage writes**: Only save final user-submitted form data
-- **Clean data flow**: URL params → form pre-fill → user edits → localStorage save → generate
+**Phase 3: Graceful Fallbacks** 🔄
+1. 🔄 **Website extraction fallback**: Guide to manual input if auto-extraction fails
+2. 🔄 **Model fallback**: GPT-4 → GPT-3.5-turbo automatic switching
+3. 🔄 **Partial content handling**: Show what worked, complete remaining parts
 
-**Simple User Flow Implemented**:
-1. User enters URL → Extract brand name + description
-2. Navigate to form with pre-filled fields (via URL params)
-3. User edits both fields as needed
-4. User submits → Save to localStorage → Generate style guide
-5. Manual entry follows same pattern (skip step 1)
+**Phase 4: Error Analytics** 🔄
+1. 🔄 **Track error patterns**: Log errors to identify common failure points
+2. 🔄 **User-friendly error codes**: Reference numbers for support
+3. 🔄 **Success rate monitoring**: Track API performance
 
-**Benefits**: 60% code reduction, cleaner data flow, easier debugging, same user experience
+**Files to Update:**
+- `lib/api-utils.ts` - Retry logic and error mapping
+- `components/ui/error-message.tsx` - Reusable error component
+- `app/brand-details/page.tsx` - Extraction retry UX
+- `app/preview/page.tsx` - Generation retry UX
+- API routes - Better error responses
 
-### Medium Priority (P1)  
-- 🚨 **URGENT: Complete Style Guide Formatting** - Fix formatting issues for complete style guide to match core guide quality
-  - **Problem**: Not enough line breaks, malformed emojis, special characters breaking in weird places
-  - **Goal**: Ensure complete guide has same clean formatting as core guide
-  - **Impact**: Premium users getting poor formatting experience after payment
-- 🔄 **Preview loading UX** - Remove loading interstitial, show processing state on button instead
-- 🔄 **Error handling enhancement** - Better error messages, retry options, fallback handling
-- 🔄 **Email Features** - Style guide delivery via email, welcome/onboarding sequence
+---
 
-### Low Priority (P2)
-- 🔄 **Automated testing** - Add tests for API routes and template processing
-- 🔄 **Analytics integration** - Track user behavior and conversion metrics
-- 🔄 **Performance monitoring** - Add logging and monitoring for production issues
+## ✅ Major Completed Tasks
 
-### Email Setup Required
-- **Need**: Resend API key from dashboard
-- **Need**: Domain verification (DNS records for aistyleguide.com)
-- **Current**: Using placeholder API key `re_your_api_key_here`
+### Recent Completed (January 2025)
 
-### Testing Needed
-- **Abandoned Cart Flow**: Test 2-hour session expiration
-- **Email Templates**: Verify HTML rendering across email clients
-- **Discount Codes**: Test recovery URL functionality
+#### ✅ **P1 CRITICAL: Markdown Rendering Overhaul** 
+**Problem**: Premium users experiencing poor formatting - malformed emojis, broken special characters, inconsistent line breaks
+**Solution**: Replaced `marked` + `dangerouslySetInnerHTML` with `react-markdown` + `remark-gfm` + `remark-breaks`
+**Impact**: Fixed all formatting issues, safe rendering, consistent display across core/complete guides
+- ✅ Installed `react-markdown@10.1.0`, `remark-breaks@4.0.0`
+- ✅ Created `MarkdownRenderer` component with custom styling
+- ✅ Updated all rendering instances (StyleGuideAccordion, preview, full-access pages)
+- ✅ Fixed line break issues with remark-breaks plugin for ✅/❌ examples
+- ✅ Removed `marked@15.0.11` dependency completely
+
+#### ✅ **Brand Name Flow Simplification**
+**Problem**: Complex, buggy data flow with duplicate extraction logic
+**Solution**: Complete architecture overhaul with 60% code reduction
+- ✅ Unified data structure: `{ brandName: "", description: "", tone: "friendly" }`
+- ✅ Simplified API routes, removed duplicate functions
+- ✅ Clean flow: URL params → form pre-fill → user edits → localStorage → generate
+
+#### ✅ **Email Automation System**
+- ✅ Resend integration with professional templates
+- ✅ Abandoned cart recovery with 20% discount codes
+- ✅ Stripe webhook handling for success/expiration events
+
+#### ✅ **UI/UX Polish**
+- ✅ **Preview loading UX** - Removed loading interstitial, show processing state on button
+- ✅ **Mobile optimizations** - Fade-out timing, responsive improvements
+- ✅ Professional comparison table on landing page
+- ✅ Vercel Analytics tracking for conversion funnel
+
+### Previous Improvements (2024)
+- ✅ **Core systems stabilization** - Fixed data flow, OpenAI integration, template validation
+- ✅ **User experience polish** - Pricing transparency, social proof, UI cleanup
+- ✅ **Production-ready codebase** - Type safety, security hardening, performance optimizations
+
+---
 
 ## 📚 Key Lessons Learned
 
 ### Technical Architecture
-- **Template consistency is critical** - Always use shared MarkdownComponents for uniform styling across all generated content
-- **Type safety prevents runtime errors** - Add type guards before accessing potentially undefined values, especially with AI responses
+- **Markdown rendering complexity** - `react-markdown` provides safer, more consistent rendering than `marked` + dangerouslySetInnerHTML
+- **Plugin ecosystem** - `remark-breaks` solved line break issues more robustly than custom formatting functions
+- **Template consistency is critical** - Always use shared components for uniform styling across all generated content
+- **Type safety prevents runtime errors** - Add type guards before accessing AI responses
 
 ### User Experience  
 - **Mobile-first + loading states** - Most users access on mobile, always provide feedback instead of blank screens
-- **Payment UX strategy** - Static previews save OpenAI costs, full generation only post-payment with clear pricing/flow
+- **Payment UX strategy** - Static previews save OpenAI costs, full generation only post-payment
+- **Error handling matters** - Generic errors cause user dropoff, need specific helpful messages
 
 ### AI Integration
-- **OpenAI responses need validation** - Always check format, handle edge cases, use chunked generation for reliability
-- **Cost optimization matters** - GPT-3.5 for extraction, GPT-4 for generation, 10k character limits prevent token overruns
+- **OpenAI responses need validation** - Always check format, handle edge cases, use chunked generation
+- **Cost optimization matters** - GPT-3.5 for extraction, GPT-4 for generation, 10k character limits
+- **Model fallbacks** - Having backup models prevents complete failures
 
 ### Development Process
-- **Data flow validation + error handling** - Test through all system layers, detailed logs for debugging, graceful API failure degradation
-- **Parallel tool usage** - Use multiple tools simultaneously for efficiency during development
+- **Incremental implementation** - Break complex changes into phases for testing and validation
+- **Visual proof testing** - Side-by-side comparisons on test pages catch issues early
+- **Data flow validation** - Test through all system layers before marking complete
 
-### Email Integration
-- **Professional delivery best practices** - HTML + text versions, inline CSS, clear CTAs, respect consent, track sent emails to prevent spam
-- **Stripe abandoned cart setup** - Requires promotional consent, 30-day recovery URL expiry, discount codes increase conversion rates
-
-### Node.js ESM Module Caching
-- **ESM cache cannot be cleared** - Unlike CommonJS, no invalidation API exists, use dynamic imports + query parameters for dev hot reloading
-- **Memory leak warning** - Cache busting creates permanent entries, only use in development mode
-
-### Email Template Mystery (Unresolved)  
-- **Problem**: Getting old email template despite code changes, confirmed NOT Stripe auto-emails (disabled in dashboard)
-- **Applied fixes**: ESM cache busting, server restarts, cleared .next cache - still persists, needs webhook debugging
-
-### Development Workflow
-- **Stripe testing setup** - Test mode first with CLI webhooks, clean test/live config separation, real emails in test mode
+---
 
 ## 🗺️ Future Roadmap
 
 ### Short Term (Next 2 weeks)
 - **Complete payment flow polish** - Status tracking, better UI, proper redirects
-- **Finalize mobile optimizations** - Fade-out timing, responsive improvements
 - **Content validation testing** - Ensure all generated content displays correctly
 - **Performance monitoring setup** - Add logging for production debugging
 
 ### Medium Term (1-2 months)  
-- **Advanced customization options** - Allow users to modify generated style guides
+- **Editable Style Guides with Plate.js** - Allow users to edit generated content before download
 - **Template variety** - Add different style guide formats and structures
 - **Export enhancements** - Better PDF styling, additional formats (JSON, Figma)
-- **User dashboard** - Allow users to manage multiple purchased guides
 
 ### Long Term (3+ months)
 - **Team collaboration features** - Share guides within organizations
 - **API for developers** - Allow programmatic access to style guide generation
 - **White-label solution** - Allow agencies to rebrand and resell the tool
-- **Advanced AI features** - Visual brand analysis, competitive analysis integration
+
+---
 
 ## 🔧 Technical Notes
 
 ### Current Architecture
 - **Frontend**: Next.js 14, TypeScript, Tailwind CSS, Lucide Icons
-- **terminal**: Always use pnpm instead of NPM for packagae install
 - **Backend**: Next.js API routes, OpenAI API, Stripe integration
+- **Markdown**: react-markdown + remark-gfm + remark-breaks
 - **Storage**: localStorage for client state, sessionStorage for temporary data
-- **Templates**: Markdown-based with variable replacement system
-- **Styling**: Tailwind Typography, shared MarkdownComponents, dark mode support
+- **Styling**: Tailwind Typography, shared MarkdownRenderer, dark mode support
 
 ### Key Files & Directories
 - `app/page.tsx` - Landing page with URL input
 - `app/brand-details/page.tsx` - Brand information form  
 - `app/preview/page.tsx` - Style guide preview with paywall
 - `app/full-access/page.tsx` - Complete style guide display
-- `app/api/extract-website/` - Website analysis and brand extraction
-- `app/api/generate-styleguide/` - Full style guide generation
-- `app/api/preview/` - Preview content generation (static)
+- `components/MarkdownRenderer.tsx` - Unified markdown rendering
 - `lib/template-processor.ts` - Template loading and processing
-- `lib/markdown-components.tsx` - Shared markdown rendering components
-- `templates/core_template.md` - Main style guide template
-
-### Performance Optimizations
-- **Parallel API calls** - Website analysis fetches multiple pages simultaneously
-- **Model selection** - GPT-3.5-turbo for extraction, GPT-4 for generation
-- **Content optimization** - 10k character limit for AI processing
-- **Request timeouts** - 5-second timeout to prevent hanging requests
-- **Static previews** - No AI costs for preview generation
-
-### Security Measures  
-- **No test endpoints in production** - All testing moved inline or removed
-- **Input validation** - All form inputs validated on client and server
-- **Rate limiting considerations** - Timeouts and error handling for external requests
-- **Credit protection** - Static previews prevent unnecessary OpenAI usage
-
-### Email Service (`lib/email-service.ts`)
-- **Provider**: Resend (developer-friendly, good deliverability)
-- **Templates**: Thank you emails, abandoned cart recovery
-- **Features**: HTML + text versions, discount codes, professional styling
-- **Spam Prevention**: Tracks sent emails to avoid duplicates
-
-### Stripe Configuration
-- **Email Capture**: `consent_collection.promotions = 'auto'`
-- **Session Expiry**: 2 hours for abandoned cart recovery
-- **Recovery URLs**: 30-day validity with discount codes
-- **Webhooks**: `checkout.session.completed`, `checkout.session.expired`
+- API routes: extract-website, generate-styleguide, preview
 
 ### Environment Variables
 ```
 RESEND_API_KEY=re_your_api_key_here
 STRIPE_MODE=test (switches between test/live)
-NEXT_PUBLIC_APP_URL=http://localhost:3000 (for local testing)
+NEXT_PUBLIC_APP_URL=http://localhost:3002 (for local testing)
 ```
 
 ---

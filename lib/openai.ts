@@ -196,13 +196,14 @@ Instructions:
 - Each rule must:
   1. Start with a bold, single keyword (e.g., "Acronyms", "Capitalization", "Numbers").
   2. Give a **ONE SENTENCE** description of the rule and why it matters.
-  3. Include a ✅ Right example and a ❌ Wrong example.
+  3. Include a ✅ Right example and a ❌ Wrong example on separate lines.
   4. Be formatted in markdown.
 - List the 25 rules in alphabetical order by keyword.
 - Number each rule in the header: "### 1. Acronyms"
 - Do not repeat rules or examples.
 - Make each rule unique, clear, and actionable.
 - Focus on how to write, edit, and format text for this brand.
+- **IMPORTANT**: Put each ✅ Right and ❌ Wrong example on separate lines with line breaks between them.
 
 Example rules:
 ### 1. Acronyms
@@ -255,8 +256,9 @@ Instructions:
 - For each rule:
   1. Start with a bold, single keyword or phrase matching the topic (e.g., "Abbreviations", "Capitalisation", "Emojis", "Company name spelling").
   2. Give a **ONE SENTENCE** description of the rule and why it matters.
-  3. Include a ✅ Right example and a ❌ Wrong example.
+  3. Include a ✅ Right example and a ❌ Wrong example on separate lines.
   4. Be formatted in markdown.
+- **IMPORTANT**: Put each ✅ Right and ❌ Wrong example on separate lines with line breaks between them.
 - Organize the rules into the following sections and topics, in this order:
 
 1. Spelling conventions
