@@ -17,6 +17,8 @@ import { useSearchParams } from "next/navigation"
 import Logo from "@/components/Logo"
 import Header from "@/components/Header"
 import { getBrandName } from "@/lib/utils"
+import { createErrorDetails } from "@/lib/api-utils"
+import { ErrorMessage } from "@/components/ui/error-message"
 
 // Default brand details - standardized structure
 const defaultBrandDetails = {
@@ -162,7 +164,9 @@ export default function BrandDetailsPage() {
   }
 
   // Only validate the main text field (brandDetailsText)
-  const [mainError, setMainError] = useState("");
+  const [mainError, setMainError] = useState("")
+  const [apiError, setApiError] = useState<any>(null)
+  const [isRetrying, setIsRetrying] = useState(false)
 
   const validateMainField = (value: string) => {
       if (!value.trim()) {
@@ -191,16 +195,8 @@ export default function BrandDetailsPage() {
     return !!(brandDetails.description && brandDetails.description.trim().length > 0)
   }
 
-  // Update the handleSubmit function to use inline brand name extraction instead of external API
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setProcessingStep('processing')
-
-    try {
-      // Show processing state for 5 seconds
-      await new Promise(resolve => setTimeout(resolve, 5000))
-      
+  // Enhanced handleSubmit with retry logic
+  const generatePreview = async () => {
       // Use centralized brand name utility
       const brandName = getBrandName(brandDetails)
 
@@ -214,7 +210,7 @@ export default function BrandDetailsPage() {
         audience: "general audience"
       }
 
-      // Generate preview as before
+    // Generate preview with enhanced error handling
       const response = await fetch("/api/preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -223,12 +219,12 @@ export default function BrandDetailsPage() {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to generate")
+      throw new Error(errorData.error || errorData.details || "Failed to generate preview")
       }
 
       const data = await response.json()
       if (!data.success) {
-        throw new Error(data.error || "Failed to generate")
+      throw new Error(data.error || data.details || "Failed to generate preview")
       }
 
       // Save brand details and preview
@@ -236,6 +232,22 @@ export default function BrandDetailsPage() {
       localStorage.setItem("brandDetails", JSON.stringify(detailsWithName))
       localStorage.setItem("previewContent", data.preview)
       console.log("[Brand Details] Successfully saved brand details with extracted name")
+
+    return data
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setProcessingStep('processing')
+    setApiError(null) // Clear any previous errors
+
+    try {
+      // Show processing state for 3 seconds
+      await new Promise(resolve => setTimeout(resolve, 3000))
+      
+      // Generate preview
+      await generatePreview()
 
       setProcessingStep('complete')
       
@@ -248,11 +260,32 @@ export default function BrandDetailsPage() {
       setLoading(false)
       setProcessingStep('idle')
       console.error("Error:", error)
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
-        variant: "destructive",
-      })
+      
+      // Create enhanced error details
+      const errorDetails = createErrorDetails(error)
+      setApiError(errorDetails)
+      
+      // Don't show toast for API errors since we'll show the ErrorMessage component
+      console.log("Enhanced error details:", errorDetails)
+    }
+  }
+
+  // Retry function
+  const handleRetry = async () => {
+    setIsRetrying(true)
+    setApiError(null)
+    
+    try {
+      await generatePreview()
+      
+      // Success - redirect to preview
+      router.push("/preview")
+    } catch (error) {
+      console.error("Retry failed:", error)
+      const errorDetails = createErrorDetails(error)
+      setApiError(errorDetails)
+    } finally {
+      setIsRetrying(false)
     }
   }
 
@@ -317,7 +350,7 @@ export default function BrandDetailsPage() {
                       onBlur={e => setShowCharCount(!!e.target.value)}
                     />
                     {showCharCount && (
-                      <div className={`text-xs mt-1 ${brandDetails.description?.length > 450 ? 'text-yellow-600' : 'text-muted-foreground'}`}>{brandDetails.description?.length || 0}/500 characters</div>
+                      <div className={`text-xs mt-1 ${brandDetails.description?.length >= 500 ? 'text-red-600 font-medium' : brandDetails.description?.length > 450 ? 'text-yellow-600' : 'text-muted-foreground'}`}>{brandDetails.description?.length || 0}/500 characters</div>
                     )}
                     {mainError && (
                       <div className="text-xs text-red-600 mt-1">{mainError}</div>
@@ -343,10 +376,21 @@ export default function BrandDetailsPage() {
                     </Select>
                   </div>
                 </div>
+                
+                {/* Show enhanced error message */}
+                {apiError && (
+                  <ErrorMessage
+                    error={apiError}
+                    onRetry={apiError.canRetry ? handleRetry : undefined}
+                    onDismiss={() => setApiError(null)}
+                    isRetrying={isRetrying}
+                  />
+                )}
+                
                 <div className="flex justify-end">
                   <Button 
                     type="submit" 
-                    disabled={loading || !!mainError || !brandDetails.description.trim()} 
+                    disabled={loading || !!mainError || !brandDetails.description.trim() || brandDetails.description.length > 500} 
                     className="w-full sm:w-auto"
                   >
                     {processingStep === 'processing' ? (

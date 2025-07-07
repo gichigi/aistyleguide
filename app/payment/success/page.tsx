@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { callAPI, ErrorDetails } from "@/lib/api-utils"
+import { ErrorMessage } from "@/components/ui/error-message"
 
 // Declare gtag function for TypeScript
 declare global {
@@ -21,6 +23,109 @@ function SuccessContent() {
   const [generationStatus, setGenerationStatus] = useState<'generating' | 'complete' | 'error'>('generating')
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [guideType, setGuideType] = useState<string>('core')
+  const [apiError, setApiError] = useState<ErrorDetails | null>(null)
+  const [isRetrying, setIsRetrying] = useState<boolean>(false)
+
+  // Generate style guide function (extracted for retry functionality)
+  const generateStyleGuide = async () => {
+    try {
+      // Clear any previous errors
+      setApiError(null)
+      setGenerationStatus('generating')
+      
+      // Get brand details
+      const brandDetails = localStorage.getItem("brandDetails")
+      if (!brandDetails) {
+        console.error("[Payment Success] No brand details found in localStorage")
+        toast({
+          title: "Session expired",
+          description: "Please fill in your brand details again.",
+          variant: "destructive",
+        })
+        // Redirect to brand details page with payment complete flag
+        router.push("/brand-details?paymentComplete=true")
+        return
+      }
+
+      console.log("[Payment Success] Found brand details, generating style guide...")
+      
+      // Parse and log the brand details
+      const parsedBrandDetails = JSON.parse(brandDetails)
+      console.log("[Payment Success] Parsed brand details:", parsedBrandDetails)
+      console.log("[Payment Success] Sending to API with plan:", guideType)
+
+      // Generate style guide using enhanced API call
+      const data = await callAPI("/api/generate-styleguide", {
+        brandDetails: parsedBrandDetails,
+        plan: guideType
+      })
+
+      if (!data.success) {
+        throw new Error(data.error || "Failed to generate style guide")
+      }
+
+      // Save generated style guide
+      localStorage.setItem("generatedStyleGuide", data.styleGuide)
+      
+      // Update status
+      setGenerationStatus('complete')
+
+      // Show success message
+      toast({
+        title: "Style guide generated!",
+        description: "Your guide is ready to view.",
+      })
+
+    } catch (error) {
+      console.error("Generation error:", error)
+      
+      // Use enhanced error handling
+      if (error && typeof error === 'object' && 'message' in error && 'type' in error) {
+        // This is already an ErrorDetails object from callAPI
+        setApiError(error as ErrorDetails)
+      } else {
+        // Fallback for unexpected error format
+        setApiError({
+          message: "Something unexpected happened. Please try again or contact support if the issue persists.",
+          type: "UNKNOWN_ERROR",
+          canRetry: true,
+          supportEmailLink: `mailto:support@aistyleguide.com?subject=${encodeURIComponent("Style Guide Generation Issue")}&body=${encodeURIComponent(`Hi AIStyleGuide Support Team,
+
+I'm having trouble generating my style guide. Here are the details:
+
+Error: UNKNOWN_ERROR
+Time: ${new Date().toLocaleString()}
+
+Please help me resolve this issue.
+
+Thanks!`)}`
+        })
+      }
+      
+      setGenerationStatus('error')
+      
+      // Show basic toast for immediate feedback
+      toast({
+        title: "Generation failed",
+        description: "Please see the detailed error message below.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  // Retry function for manual retries
+  const handleRetry = async () => {
+    setIsRetrying(true)
+    setApiError(null)
+    
+    try {
+      await generateStyleGuide()
+    } catch (error) {
+      // Error is already handled in generateStyleGuide
+    } finally {
+      setIsRetrying(false)
+    }
+  }
 
   useEffect(() => {
     const sessionIdParam = searchParams.get("session_id")
@@ -55,77 +160,7 @@ function SuccessContent() {
     localStorage.setItem("styleGuidePlan", guideTypeParam)
 
     // Start generation process
-    const generateGuide = async () => {
-      try {
-        // Get brand details
-        const brandDetails = localStorage.getItem("brandDetails")
-        if (!brandDetails) {
-          console.error("[Payment Success] No brand details found in localStorage")
-          toast({
-            title: "Session expired",
-            description: "Please fill in your brand details again.",
-            variant: "destructive",
-          })
-          // Redirect to brand details page with payment complete flag
-          router.push("/brand-details?paymentComplete=true")
-          return
-        }
-
-        console.log("[Payment Success] Found brand details, generating style guide...")
-        
-        // Parse and log the brand details
-        const parsedBrandDetails = JSON.parse(brandDetails)
-        console.log("[Payment Success] Parsed brand details:", parsedBrandDetails)
-        console.log("[Payment Success] Sending to API with plan:", guideTypeParam)
-
-        // Generate style guide
-        const response = await fetch("/api/generate-styleguide", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            brandDetails: parsedBrandDetails,
-            plan: guideTypeParam
-          })
-        })
-
-        if (!response.ok) {
-          throw new Error("Failed to generate style guide")
-        }
-
-        const data = await response.json()
-        if (!data.success) {
-          throw new Error(data.error || "Failed to generate style guide")
-        }
-
-        // Save generated style guide
-        localStorage.setItem("generatedStyleGuide", data.styleGuide)
-        
-        // Update status
-        setGenerationStatus('complete')
-
-        // Show success message
-        toast({
-          title: "Style guide generated!",
-          description: "Your guide is ready to view.",
-        })
-
-        // Don't auto-redirect anymore, let user click button
-        // setTimeout(() => {
-        //   router.push("/full-access?generated=true")
-        // }, 1500)
-
-      } catch (error) {
-        console.error("Generation error:", error)
-        setGenerationStatus('error')
-        toast({
-          title: "Generation failed",
-          description: "Could not generate your style guide. Please try again.",
-          variant: "destructive",
-        })
-      }
-    }
-
-    generateGuide()
+    generateStyleGuide()
   }, [router, searchParams, toast])
 
   return (
@@ -167,7 +202,7 @@ function SuccessContent() {
         <p className="text-gray-600 text-sm mb-4">
           {generationStatus === 'generating' && "We're generating your personalized style guide now."}
           {generationStatus === 'complete' && "Your guide has been generated successfully!"}
-          {generationStatus === 'error' && "We couldn't make your guide. Try again or contact support."}
+          {generationStatus === 'error' && "We couldn't make your guide. See details below."}
         </p>
         
         {generationStatus === 'generating' && (
@@ -176,8 +211,6 @@ function SuccessContent() {
               <p className="font-medium mb-1">This can take a couple of minutes</p>
               <p>Please don't close this window</p>
             </div>
-            
-
           </div>
         )}
 
@@ -198,7 +231,7 @@ function SuccessContent() {
           </div>
         )}
 
-        {generationStatus === 'error' && (
+        {generationStatus === 'error' && apiError && (
           <div className="space-y-6">
             {/* Reassuring message */}
             <div className="space-y-2">
@@ -210,37 +243,18 @@ function SuccessContent() {
               </p>
             </div>
 
-            {/* Primary action - Try again */}
-            <div className="space-y-3">
-              <Button 
-                onClick={() => window.location.reload()}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
-                size="lg"
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                Try Again
-              </Button>
+            {/* Enhanced ErrorMessage component with smart retry */}
+            <ErrorMessage
+              error={apiError}
+              onRetry={handleRetry}
+              isRetrying={isRetrying}
+              showRetryButton={true}
+            />
               
-              <p className="text-xs text-center text-gray-500">
-                Most generation issues resolve with a simple retry
-              </p>
-            </div>
-
-            {/* Support contact */}
-            <div className="border-t pt-4">
-              <p className="text-sm text-gray-600 mb-2">
-                Still having trouble?{' '}
-                <a
-                  href={`mailto:support@aistyleguide.com?subject=Payment%20Successful%20-%20Style%20Guide%20Generation%20Failed&body=Hi%20AIStyleGuide%20Support%20Team,%0A%0AI%20completed%20my%20payment%20but%20the%20style%20guide%20failed%20to%20generate.%0A%0ASession%20Details:%0A- Session ID: ${sessionId || 'Not available'}%0A- Guide Type: ${guideType}%0A- Time: ${new Date().toLocaleString()}%0A%0APlease%20help%20me%20get%20my%20style%20guide.%0A%0AThanks!`}
-                  className="text-blue-600 hover:text-blue-800 underline font-medium"
-                >
-                  Contact support
-                </a>
-              </p>
-              <p className="text-xs text-gray-500">
-                We typically respond within 1-2 hours
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>Your payment is secure:</strong> You won't be charged again for retrying. 
+                We'll keep trying until your style guide is ready.
               </p>
             </div>
           </div>

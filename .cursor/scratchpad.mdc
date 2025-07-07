@@ -1,5 +1,5 @@
 ---
-description: 
+description: scratchpad, pad, plan
 globs: 
 alwaysApply: false
 ---
@@ -22,86 +22,29 @@ Web app that generates brand style guides from website URLs using AI to extract 
 ## 🚧 Active Tasks
 
 ### High Priority (P0)
-- 🔄 **Payment Flow Polish** - Add real-time generation status tracking, better success page UX, proper error handling
-- 🔄 **Product Quality Assurance** - Ensure all 25 style rules display correctly, validate download functionality  
-- 🔄 **Mobile Conversion Optimization** - Shorten fade-out effect, optimize mobile paywall dialog
 
-### Medium Priority (P1)
-- 🔄 **Error Handling Enhancement** - Better error messages, retry options, fallback handling
+### Medium Priority (P1)  
 
-### 🔄 **NEXT: Error Handling Enhancement Plan**
+### Low Priority (P2)
 
-**Goal**: Improve user experience when API calls fail with better error messages, retry options, and graceful fallbacks.
-
-**Implementation Plan:**
-
-**Phase 1: Enhanced Error Messages** 🔄
-1. 🔄 **Identify error sources**: Map all API failure points (website extraction, OpenAI, network issues)
-2. 🔄 **Create user-friendly messages**: Replace technical errors with helpful guidance
-3. 🔄 **Add error message component**: Reusable error UI with clear messaging
-
-**Phase 2: Retry Mechanism** 🔄
-1. 🔄 **Add exponential backoff**: Smart retry logic (immediate, 2s, 5s delays, max 3 attempts)
-2. 🔄 **Visual retry feedback**: "Retrying..." state with progress indicator
-3. 🔄 **User-controlled retry**: Manual "Try Again" buttons
-
-**Phase 3: Graceful Fallbacks** 🔄
-1. 🔄 **Website extraction fallback**: Guide to manual input if auto-extraction fails
-2. 🔄 **Model fallback**: GPT-4 → GPT-3.5-turbo automatic switching
-3. 🔄 **Partial content handling**: Show what worked, complete remaining parts
-
-**Phase 4: Error Analytics** 🔄
-1. 🔄 **Track error patterns**: Log errors to identify common failure points
-2. 🔄 **User-friendly error codes**: Reference numbers for support
-3. 🔄 **Success rate monitoring**: Track API performance
-
-**Files to Update:**
-- `lib/api-utils.ts` - Retry logic and error mapping
-- `components/ui/error-message.tsx` - Reusable error component
-- `app/brand-details/page.tsx` - Extraction retry UX
-- `app/preview/page.tsx` - Generation retry UX
-- API routes - Better error responses
+### Done/Completed
+- ✅ Basic template system with core and complete options
+- ✅ OpenAI integration for personalized content generation
+- ✅ File export system (PDF, HTML, Markdown, Notion)
+- ✅ Stripe payment integration with abandoned cart recovery
+- ✅ Brand details extraction from website URLs
+- ✅ Preview system for users to see sample content before purchasing
+- ✅ Analytics tracking for user behavior and conversion optimization
+- ✅ Mobile-responsive design for all pages
+- ✅ Error handling enhancement (Phase 1 complete)
+- ✅ **Payment Success Error Handling** - Enhanced error messages, smart retry, support email integration for post-payment flow
+- ✅ **Frontend Validation Enhancement** - 500-char limit blocks submission, prevents token errors upfront
+- ✅ **Double Heading Fix** - Removed H1 from templates, StyleGuideHeader is now the single heading source
+- ✅ **Major System Overhauls (2024-2025)** - Markdown rendering, brand flow simplification, email automation, UI/UX polish, core stabilization
 
 ---
 
-## ✅ Major Completed Tasks
 
-### Recent Completed (January 2025)
-
-#### ✅ **P1 CRITICAL: Markdown Rendering Overhaul** 
-**Problem**: Premium users experiencing poor formatting - malformed emojis, broken special characters, inconsistent line breaks
-**Solution**: Replaced `marked` + `dangerouslySetInnerHTML` with `react-markdown` + `remark-gfm` + `remark-breaks`
-**Impact**: Fixed all formatting issues, safe rendering, consistent display across core/complete guides
-- ✅ Installed `react-markdown@10.1.0`, `remark-breaks@4.0.0`
-- ✅ Created `MarkdownRenderer` component with custom styling
-- ✅ Updated all rendering instances (StyleGuideAccordion, preview, full-access pages)
-- ✅ Fixed line break issues with remark-breaks plugin for ✅/❌ examples
-- ✅ Removed `marked@15.0.11` dependency completely
-
-#### ✅ **Brand Name Flow Simplification**
-**Problem**: Complex, buggy data flow with duplicate extraction logic
-**Solution**: Complete architecture overhaul with 60% code reduction
-- ✅ Unified data structure: `{ brandName: "", description: "", tone: "friendly" }`
-- ✅ Simplified API routes, removed duplicate functions
-- ✅ Clean flow: URL params → form pre-fill → user edits → localStorage → generate
-
-#### ✅ **Email Automation System**
-- ✅ Resend integration with professional templates
-- ✅ Abandoned cart recovery with 20% discount codes
-- ✅ Stripe webhook handling for success/expiration events
-
-#### ✅ **UI/UX Polish**
-- ✅ **Preview loading UX** - Removed loading interstitial, show processing state on button
-- ✅ **Mobile optimizations** - Fade-out timing, responsive improvements
-- ✅ Professional comparison table on landing page
-- ✅ Vercel Analytics tracking for conversion funnel
-
-### Previous Improvements (2024)
-- ✅ **Core systems stabilization** - Fixed data flow, OpenAI integration, template validation
-- ✅ **User experience polish** - Pricing transparency, social proof, UI cleanup
-- ✅ **Production-ready codebase** - Type safety, security hardening, performance optimizations
-
----
 
 ## 📚 Key Lessons Learned
 
@@ -125,6 +68,22 @@ Web app that generates brand style guides from website URLs using AI to extract 
 - **Incremental implementation** - Break complex changes into phases for testing and validation
 - **Visual proof testing** - Side-by-side comparisons on test pages catch issues early
 - **Data flow validation** - Test through all system layers before marking complete
+- **T-shirt sizing works** - SMALL (30 min), MEDIUM (1-2 hours), LARGE (half day+) for realistic estimates
+- **Test CLI first, then UI** - Faster feedback loop for API issues, easier debugging
+- **Clean as you go** - Move completed tasks immediately to keep scratchpad focused
+
+### Error Handling & Validation
+- **Frontend validation > backend validation** - Better UX to block submission early vs show errors after
+- **Context-specific error types** - Payment success page only needs 9 of 16 total error types
+- **Smart retry > page reload** - 3x faster, preserves state, better analytics
+- **Pre-filled support emails** - Include error context and timestamps for better support experience
+- **Consistent error UX** - Same patterns across all pages build user confidence
+
+### Project Management
+- **1-line summaries > detailed histories** - Keep completed work concise and scannable
+- **Break large tasks into small testable pieces** - Each step should have clear completion criteria
+- **Visual feedback guides behavior** - Colors, disabled states help users understand what to do next
+- **Fix at source > downstream processing** - Remove duplicate content from templates rather than filtering it later
 
 ---
 
@@ -144,6 +103,18 @@ Web app that generates brand style guides from website URLs using AI to extract 
 - **Team collaboration features** - Share guides within organizations
 - **API for developers** - Allow programmatic access to style guide generation
 - **White-label solution** - Allow agencies to rebrand and resell the tool
+
+### Future Ideas (6+ months)
+- Advanced customization options (industry-specific templates, custom voice traits)
+- Integration with design tools (Figma, Sketch)
+- Multi-language support for international brands
+- Team collaboration features (comments, suggestions, approval workflows)
+- API for developers to integrate style guide generation into their tools
+- Advanced analytics (content performance tracking, style guide usage metrics)
+- Version control for style guides (track changes, rollback to previous versions)
+- Bulk processing for multiple brands or sub-brands
+- Custom branding for agencies (white-label solution)
+- Advanced export options (InDesign, PowerPoint, Confluence)
 
 ---
 

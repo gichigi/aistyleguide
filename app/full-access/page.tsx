@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from "react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { ArrowLeft, FileText, Loader2, Check, X, ChevronDown } from "lucide-react"
+import { ArrowLeft, FileText, Loader2, Check, X, ChevronDown, RefreshCw } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import {
   Dialog,
@@ -18,6 +18,8 @@ import { generateFile, FileFormat } from "@/lib/file-generator"
 import Header from "@/components/Header"
 import { StyleGuideHeader } from "@/components/StyleGuideHeader"
 import { MarkdownRenderer } from "@/components/MarkdownRenderer"
+import { ErrorMessage } from "@/components/ui/error-message"
+import { createErrorDetails, ErrorDetails } from "@/lib/api-utils"
 
 function FullAccessContent() {
   const router = useRouter()
@@ -33,6 +35,78 @@ function FullAccessContent() {
   const [fadeIn, setFadeIn] = useState(false)
   const [guideType, setGuideType] = useState<string>("core")
   const [isLoading, setIsLoading] = useState(true)
+  const [isRetrying, setIsRetrying] = useState(false)
+  const [apiError, setApiError] = useState<ErrorDetails | null>(null)
+
+  // Function to generate the style guide (can be called multiple times)
+  const generateStyleGuide = async () => {
+    try {
+      setApiError(null)
+      
+      const savedBrandDetails = localStorage.getItem("brandDetails")
+      const savedGuideType = localStorage.getItem("styleGuidePlan")
+      
+      if (!savedBrandDetails) {
+        throw new Error("No brand details found. Please fill them in again.")
+      }
+      
+      const parsedBrandDetails = JSON.parse(savedBrandDetails)
+      
+      console.log("[Full Access] Generating style guide with plan:", savedGuideType)
+      
+      const response = await fetch('/api/generate-styleguide', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          brandDetails: parsedBrandDetails,
+          plan: savedGuideType === 'complete' ? 'complete' : 'core',
+        }),
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: response.statusText }))
+        throw new Error(errorData.error || `Server returned ${response.status}`)
+      }
+      
+      const data = await response.json()
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to generate style guide')
+      }
+      
+      // Success - save and display the guide
+      setGeneratedStyleGuide(data.styleGuide)
+      localStorage.setItem("generatedStyleGuide", data.styleGuide)
+      
+      toast({
+        title: "Style guide generated!",
+        description: "Your guide is ready to view and download.",
+      })
+      
+    } catch (error) {
+      console.error("Error generating style guide:", error)
+      
+      // Create enhanced error details
+      const errorDetails = createErrorDetails(error)
+      setApiError(errorDetails)
+      
+      // Don't show toast for API errors since we'll show the ErrorMessage component
+      console.log("Enhanced error details:", errorDetails)
+    }
+  }
+
+  // Retry function for manual retries
+  const handleRetry = async () => {
+    setIsRetrying(true)
+    setApiError(null)
+    
+    try {
+      await generateStyleGuide()
+    } catch (error) {
+      // Error is already handled in generateStyleGuide
+    } finally {
+      setIsRetrying(false)
+    }
+  }
 
   useEffect(() => {
     // Check if already generated
@@ -67,39 +141,10 @@ function FullAccessContent() {
       setGeneratedStyleGuide(savedStyleGuide)
       setIsLoading(false)
     } else {
-      // Only generate if not already done
-      const loadFullAccessGuide = async () => {
-        if (!savedBrandDetails) return
-        try {
-          const parsedBrandDetails = JSON.parse(savedBrandDetails)
-          const response = await fetch('/api/generate-styleguide', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              brandDetails: parsedBrandDetails,
-              plan: savedGuideType === 'complete' ? 'complete' : 'core',
-            }),
-          })
-          const data = await response.json()
-          if (data.success) {
-            setGeneratedStyleGuide(data.styleGuide)
-            // Save to localStorage for future use
-            localStorage.setItem("generatedStyleGuide", data.styleGuide)
-          } else {
-            throw new Error(data.error || 'Failed to generate style guide')
-          }
-        } catch (error) {
-          console.error("Error generating full access guide:", error)
-          toast({
-            title: "Generation failed", 
-            description: "Could not generate your style guide. Please try again.",
-            variant: "destructive",
-          })
-          router.push("/brand-details?paymentComplete=true")
-        }
+      // Generate the style guide
+      generateStyleGuide().finally(() => {
         setIsLoading(false)
-      }
-      loadFullAccessGuide()
+      })
     }
     
     // Trigger fade-in animation
@@ -323,6 +368,52 @@ function FullAccessContent() {
     )
   }
 
+  // Show error state if generation failed
+  if (apiError && !generatedStyleGuide) {
+    return (
+      <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-900">
+        {/* Header */}
+        <Header 
+          containerClass="max-w-5xl mx-auto px-8 flex h-16 items-center justify-between"
+        />
+
+        <main className="flex-1 py-8">
+          <div className="max-w-2xl mx-auto px-8">
+            <div className="mb-6">
+              <Link
+                href="/brand-details"
+                className="inline-flex items-center gap-2 text-sm sm:text-base font-medium px-4 py-2 rounded-md border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+              >
+                <ArrowLeft className="h-5 w-5" /> Back to details
+              </Link>
+            </div>
+
+            <div className="bg-white rounded-lg border p-6">
+              <h1 className="text-xl font-semibold mb-4">Style Guide Generation Failed</h1>
+              <p className="text-gray-600 mb-6">
+                Don't worry - your payment was successful. We just need to regenerate your style guide.
+              </p>
+              
+              <ErrorMessage
+                error={apiError}
+                onRetry={handleRetry}
+                isRetrying={isRetrying}
+                showRetryButton={true}
+              />
+
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <strong>Your payment is secure:</strong> You won't be charged again for retrying. 
+                  We'll keep trying until your style guide is ready.
+                </p>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
   if (!guideContent) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center">
@@ -338,6 +429,23 @@ function FullAccessContent() {
       <Header 
         containerClass="max-w-5xl mx-auto px-8 flex h-16 items-center justify-between"
         rightContent={
+          <div className="flex items-center gap-3">
+            {/* Retry button in case user wants to regenerate */}
+            <Button
+              onClick={handleRetry}
+              disabled={isRetrying}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+            >
+              {isRetrying ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <RefreshCw className="h-3 w-3" />
+              )}
+              Regenerate
+            </Button>
+            
             <Button
               onClick={() => setShowDownloadOptions(true)}
               disabled={isDownloading}
@@ -350,8 +458,22 @@ function FullAccessContent() {
               )}
               Download
             </Button>
+          </div>
         }
       />
+
+      {/* Error message if there was an issue but we have existing content */}
+      {apiError && (
+        <div className="max-w-5xl mx-auto px-8 pt-4">
+          <ErrorMessage
+            error={apiError}
+            onRetry={handleRetry}
+            isRetrying={isRetrying}
+            onDismiss={() => setApiError(null)}
+            showRetryButton={true}
+      />
+        </div>
+      )}
 
       {/* Notion Instructions Dialog */}
       <Dialog open={showNotionInstructions} onOpenChange={setShowNotionInstructions}>
@@ -385,8 +507,6 @@ function FullAccessContent() {
             >
               <ArrowLeft className="h-5 w-5" /> Back to details
             </Link>
-            
-
           </div>
           
           <div className="bg-white rounded-2xl border shadow-lg overflow-hidden">

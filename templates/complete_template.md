@@ -1,9 +1,3 @@
-{{DD MONTH YYYY}}
-# {{brand_name}} Style Guide
-A complete guide to keep every message clear and consistent.
-
----
-
 ## How to Use This Document
 This document outlines the rules for brand voice, spelling, grammar, and formatting across all content channels. Anyone writing and publishing content for {{brand_name}} should follow these guidelines.
 
