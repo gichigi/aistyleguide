@@ -206,8 +206,16 @@ export default function LandingPage() {
                         className={`pl-12 pr-4 sm:pr-40 py-6 text-lg font-sans font-medium bg-transparent border-none focus:ring-0 focus:outline-none placeholder:text-gray-400 placeholder:font-medium placeholder:text-base w-full transition-all duration-200 ${error ? "ring-2 ring-red-500" : ""} ${isSuccess ? "ring-2 ring-green-500 bg-green-50" : ""}`}
                         value={url}
                         onChange={(e) => {
-                          setUrl(e.target.value)
+                          // Remove spaces from input
+                          const cleanedValue = e.target.value.replace(/\s/g, '')
+                          setUrl(cleanedValue)
                           if (error) setError("")
+                        }}
+                        onKeyDown={(e) => {
+                          // Prevent space key
+                          if (e.key === ' ') {
+                            e.preventDefault()
+                          }
                         }}
                         autoCapitalize="none"
                         autoCorrect="off"
@@ -242,6 +250,14 @@ export default function LandingPage() {
                       )}
                     </Button>
                   </div>
+                  {/* Validation message at bottom left */}
+                  {error && (
+                    <div className="absolute left-6 -bottom-7 flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-red-600" />
+                      <span className="text-xs text-red-600 font-medium">{error}</span>
+                    </div>
+                  )}
+                  
                   {/* Manual entry link at bottom right outside the container */}
                   <div className="absolute right-6 -bottom-7">
                     <Link href="/brand-details" className="text-gray-400 underline font-medium text-sm whitespace-nowrap" style={{ textTransform: 'lowercase' }}>
