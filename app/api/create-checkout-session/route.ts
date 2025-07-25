@@ -58,6 +58,9 @@ export async function POST(request: Request) {
       success_url: `${BASE_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}&guide_type=${guideType}`,
       cancel_url: `${BASE_URL}/payment/cancel`,
       
+      // Enable promotion codes for customer discounts
+      allow_promotion_codes: true,
+      
       // Abandoned cart recovery configuration
       expires_at: expiresAt,
       after_expiration: {
