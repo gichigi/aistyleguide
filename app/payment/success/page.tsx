@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { callAPI, ErrorDetails } from "@/lib/api-utils"
 import { ErrorMessage } from "@/components/ui/error-message"
+import { Progress } from "@/components/ui/progress"
 
 // Declare gtag function for TypeScript
 declare global {
@@ -25,6 +26,62 @@ function SuccessContent() {
   const [guideType, setGuideType] = useState<string>('core')
   const [apiError, setApiError] = useState<ErrorDetails | null>(null)
   const [isRetrying, setIsRetrying] = useState<boolean>(false)
+  const [currentStep, setCurrentStep] = useState<string>('Preparing your brand details')
+  const [progress, setProgress] = useState<number>(0)
+
+  // Progress steps for complete guide (two API calls)
+  const getProgressSteps = (plan: string) => {
+    if (plan === 'complete') {
+      return [
+        { message: 'Preparing your brand details', progress: 10 },
+        { message: 'Analyzing your brand voice and personality', progress: 30 },
+        { message: 'Defining communication style', progress: 50 },
+        { message: 'Creating comprehensive writing rules', progress: 70 },
+        { message: 'Generating practical examples', progress: 90 },
+        { message: 'Finalizing your style guide', progress: 100 }
+      ]
+    } else {
+      return [
+        { message: 'Preparing your brand details', progress: 20 },
+        { message: 'Analyzing your brand voice', progress: 50 },
+        { message: 'Creating core guidelines', progress: 80 },
+        { message: 'Finalizing your style guide', progress: 100 }
+      ]
+    }
+  }
+
+  // Update progress as generation happens
+  const updateProgress = (plan: string, stage: 'start' | 'voice' | 'rules' | 'complete') => {
+    const steps = getProgressSteps(plan)
+    switch (stage) {
+      case 'start':
+        setCurrentStep(steps[0].message)
+        setProgress(steps[0].progress)
+        break
+      case 'voice':
+        if (plan === 'complete') {
+          setCurrentStep(steps[2].message)
+          setProgress(steps[2].progress)
+        } else {
+          setCurrentStep(steps[1].message)
+          setProgress(steps[1].progress)
+        }
+        break
+      case 'rules':
+        if (plan === 'complete') {
+          setCurrentStep(steps[4].message)
+          setProgress(steps[4].progress)
+        } else {
+          setCurrentStep(steps[2].message)
+          setProgress(steps[2].progress)
+        }
+        break
+      case 'complete':
+        setCurrentStep(steps[steps.length - 1].message)
+        setProgress(100)
+        break
+    }
+  }
 
   // Generate style guide function (extracted for retry functionality)
   const generateStyleGuide = async () => {
@@ -32,6 +89,7 @@ function SuccessContent() {
       // Clear any previous errors
       setApiError(null)
       setGenerationStatus('generating')
+      updateProgress(guideType, 'start')
       
       // Get brand details
       const brandDetails = localStorage.getItem("brandDetails")
@@ -54,6 +112,9 @@ function SuccessContent() {
       console.log("[Payment Success] Parsed brand details:", parsedBrandDetails)
       console.log("[Payment Success] Sending to API with plan:", guideType)
 
+      // Update progress before API call
+      updateProgress(guideType, 'voice')
+
       // Generate style guide using enhanced API call
       const data = await callAPI("/api/generate-styleguide", {
         brandDetails: parsedBrandDetails,
@@ -63,6 +124,9 @@ function SuccessContent() {
       if (!data.success) {
         throw new Error(data.error || "Failed to generate style guide")
       }
+
+      // Update progress to complete
+      updateProgress(guideType, 'complete')
 
       // Save generated style guide
       localStorage.setItem("generatedStyleGuide", data.styleGuide)
@@ -194,22 +258,26 @@ Thanks!`)}`
         </div>
         
         <h1 className="text-xl font-semibold text-gray-900 mb-3">
-          {generationStatus === 'generating' && "Payment Successful!"}
-          {generationStatus === 'complete' && "🎉 Your Style Guide is Ready!"}
+          {generationStatus === 'generating' && "Payment Successful"}
+          {generationStatus === 'complete' && "Your Style Guide is Ready"}
           {generationStatus === 'error' && "Generation Failed"}
         </h1>
         
         <p className="text-gray-600 text-sm mb-4">
           {generationStatus === 'generating' && "We're generating your personalized style guide now."}
-          {generationStatus === 'complete' && "Your guide has been generated successfully!"}
+          {generationStatus === 'complete' && "Your guide has been generated successfully"}
           {generationStatus === 'error' && "We couldn't make your guide. See details below."}
         </p>
         
         {generationStatus === 'generating' && (
-          <div>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800 mb-4">
-              <p className="font-medium mb-1">This can take a couple of minutes</p>
-              <p>Please don't close this window</p>
+          <div className="space-y-4">
+            {/* Additional info based on guide type */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                              <p className="text-blue-800 text-sm">
+                  {guideType === 'complete' 
+                    ? <>This might take 2-3 minutes.<br />Please don't leave this page.</>
+                    : <>This might take 1-2 minutes.<br />Please don't leave this page.</>}
+                </p>
             </div>
           </div>
         )}

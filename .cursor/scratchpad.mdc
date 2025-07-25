@@ -1,8 +1,3 @@
----
-description: scratchpad, pad, plan
-globs: 
-alwaysApply: false
----
 # AI Style Guide Generator - Project Scratchpad
 
 ## 📋 Project Overview
@@ -25,22 +20,33 @@ Web app that generates brand style guides from website URLs using AI to extract 
 
 ### Medium Priority (P1)  
 
+**🐛 Generation Retry Bug: Creates Apple Style Guide**
+- **Problem**: When users get generation error and click retry, API generates Apple brand style guide instead of their brand
+- **Evidence**: API logs show correct brand details but generates "Apple Style Rules" in response
+- **Root Cause**: Unknown - needs investigation in retry flow and template processing
+- **Impact**: Users get wrong content after paying for custom style guide
+- **Files to investigate**: 
+  - `app/payment/success/page.tsx` - retry function
+  - `lib/template-processor.ts` - template rendering
+  - `app/api/generate-styleguide/route.ts` - API processing
+
 ### Low Priority (P2)
 
+**Investigate Complete Guide Generation Performance**
+- **Observation**: Complete guides make 2 sequential OpenAI calls (voice traits + style rules)
+- **Impact**: Takes 60-90 seconds total, contributing to timeout issues
+- **Consider**: Parallel generation or caching to reduce time
+- **Note**: May not be a bug - could be intentional design for complete guides
+
 ### Done/Completed
-- ✅ Basic template system with core and complete options
-- ✅ OpenAI integration for personalized content generation
-- ✅ File export system (PDF, HTML, Markdown, Notion)
-- ✅ Stripe payment integration with abandoned cart recovery
-- ✅ Brand details extraction from website URLs
-- ✅ Preview system for users to see sample content before purchasing
-- ✅ Analytics tracking for user behavior and conversion optimization
-- ✅ Mobile-responsive design for all pages
-- ✅ Error handling enhancement (Phase 1 complete)
-- ✅ **Payment Success Error Handling** - Enhanced error messages, smart retry, support email integration for post-payment flow
-- ✅ **Frontend Validation Enhancement** - 500-char limit blocks submission, prevents token errors upfront
-- ✅ **Double Heading Fix** - Removed H1 from templates, StyleGuideHeader is now the single heading source
-- ✅ **Major System Overhauls (2024-2025)** - Markdown rendering, brand flow simplification, email automation, UI/UX polish, core stabilization
+
+**✅ Fixed Payment Success Page UI (Jan 2025)**
+- Improved payment success page user experience and messaging
+- **Key Lessons**: UI should inform users about wait times and what they're getting
+
+**✅ Fixed Style Guide Generation Timeout (Jan 2025)**  
+- Increased timeout from 30 seconds to 5 minutes for style guide generation
+- **Key Lessons**: Frontend timeouts must account for backend AI processing times (60-90s for complete guides)
 
 ---
 
@@ -142,6 +148,11 @@ RESEND_API_KEY=re_your_api_key_here
 STRIPE_MODE=test (switches between test/live)
 NEXT_PUBLIC_APP_URL=http://localhost:3002 (for local testing)
 ```
+
+---
+
+*Last updated: January 2025*
+*Status: Active Development*
 
 ---
 

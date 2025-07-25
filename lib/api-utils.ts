@@ -212,7 +212,7 @@ export async function fetchWithRetry(
       const response = await fetch(url, {
         ...options,
         // Add timeout to prevent hanging requests
-        signal: AbortSignal.timeout(30000) // 30 second timeout
+        signal: AbortSignal.timeout(300000) // 5 minute timeout for style guide generation
       })
       
       // If response is ok, return it

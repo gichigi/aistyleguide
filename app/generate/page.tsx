@@ -296,15 +296,21 @@ export default function GeneratePage() {
                 <Progress value={progress} className="h-3" />
               </div>
 
-              <div className="flex items-center justify-center p-10">
-                <div className="flex flex-col items-center gap-6 text-center">
-                  <Loader2 className="h-20 w-20 animate-spin text-primary" />
-                  <div>
-                    <p className="text-xl font-medium mb-2">Please wait while we generate your style guide</p>
-                    <p className="text-base text-muted-foreground">This typically takes about 1-2 minutes</p>
+              {/* Clean loading animation without duplication */}
+              <div className="flex justify-center py-8">
+                <div className="relative">
+                  <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
                   </div>
+                  {/* Pulsing background effect */}
+                  <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping"></div>
                 </div>
               </div>
+              
+              {/* Single informative message */}
+              <p className="text-center text-muted-foreground">
+                This process usually takes a few minutes as we craft your personalized guide
+              </p>
             </CardContent>
           </Card>
         </div>
