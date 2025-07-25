@@ -50,8 +50,8 @@ function formatMarkdownContent(content: string | undefined): string {
     return ''
   }
 
-  // Step 0: Fix main title to 'Apple Style Rules' (H1)
-  let formatted = content.replace(/^#\s*.*Style Guide.*$/im, '# Apple Style Rules');
+  // Step 0: Remove any main title since template handles it
+  let formatted = content.replace(/^#\s*.*Style.*Rules?.*$/im, '');
 
   // Step 1: Clean up basic whitespace
   let formatted2 = formatted
@@ -71,11 +71,14 @@ function formatMarkdownContent(content: string | undefined): string {
   // Step 1.7: Prevent line breaks for dashes, slashes, and quotes within lines
   formatted2 = formatted2.replace(/([\w\d])\s*([\-\/"'])\s*([\w\d])/g, '$1$2$3');
 
+  // Step 1.8: Fix broken parentheses across line breaks
+  formatted2 = formatted2.replace(/\(\s*\n\s*/g, '(').replace(/\s*\n\s*\)/g, ')');
+
   // Step 2: Standardize trait headings to H3
   // Convert bold trait names to H3
   formatted2 = formatted2.replace(/^\*\*([^*\n]+)\*\*(?!\n#)/gm, '### $1')
   // Convert ## or #### trait names to H3
-  formatted2 = formatted2.replace(/^#{2,}\s*([^\n]+)$/gm, '### $1')
+  // formatted2 = formatted2.replace(/^#{2,}\s*([^\n]+)$/gm, '### $1')
   // Convert plain trait names at the start of a block to H3 (followed by What It Means/Doesn't Mean or a description)
   formatted2 = formatted2.replace(/^([A-Z][a-zA-Z ]{2,30})\n(?=(What It Means|What It Doesn\'t Mean|[A-Z][a-z]+))/gm, '### $1\n')
   
@@ -344,7 +347,7 @@ export async function processTemplate(templateType: string, brandDetails: any, p
       try {
         const completeRulesResult = await generateCompleteStyleGuide(validatedDetails);
         if (completeRulesResult.success && completeRulesResult.content) {
-          // Replace {{complete_rules}} with the generated rules
+          // Use same formatMarkdownContent() processing as core guides for consistent formatting
           template = template.replace(/{{complete_rules}}/g, formatMarkdownContent(completeRulesResult.content));
         } else {
           template = template.replace(/{{complete_rules}}/g, '_Could not generate complete rules for this brand._');

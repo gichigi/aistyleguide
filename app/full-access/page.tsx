@@ -37,6 +37,7 @@ function FullAccessContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [isRetrying, setIsRetrying] = useState(false)
   const [apiError, setApiError] = useState<ErrorDetails | null>(null)
+  const [contentUpdated, setContentUpdated] = useState(false)
 
   // Function to generate the style guide (can be called multiple times)
   const generateStyleGuide = async () => {
@@ -77,9 +78,13 @@ function FullAccessContent() {
       setGeneratedStyleGuide(data.styleGuide)
       localStorage.setItem("generatedStyleGuide", data.styleGuide)
       
+      // Show content updated indicator
+      setContentUpdated(true)
+      setTimeout(() => setContentUpdated(false), 3000)
+      
       toast({
-        title: "Style guide generated!",
-        description: "Your guide is ready to view and download.",
+        title: "Style guide updated!",
+        description: "Your guide has been regenerated.",
       })
       
     } catch (error) {
@@ -515,8 +520,16 @@ function FullAccessContent() {
                 brandName={brandDetails?.name || 'Your Brand'} 
                 guideType={guideType as 'core' | 'complete'} 
               />
-              <div className="p-8 bg-white">
-                <div className="max-w-2xl mx-auto space-y-12">
+              <div className="p-8 bg-white relative">
+                {/* Content updated indicator */}
+                {contentUpdated && (
+                  <div className="absolute top-4 right-4 bg-green-100 border border-green-200 text-green-800 px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 animate-in fade-in-0 slide-in-from-top-2">
+                    <Check className="h-4 w-4" />
+                    Style Guide Updated
+                  </div>
+                )}
+                
+                <div className={`max-w-2xl mx-auto space-y-12 transition-opacity duration-300 ${isRetrying ? 'opacity-50' : 'opacity-100'}`}>
                   <MarkdownRenderer 
                     content={guideContent} 
                     className="prose-slate dark:prose-invert max-w-none style-guide-content prose-sm sm:prose-base" 

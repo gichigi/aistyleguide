@@ -247,128 +247,198 @@ Brand Info:
   • What they do: ${brandDetails.summary || brandDetails.description}
 
 Instructions:
-- The main title should be H1 and say 'Apple Style Rules'.
-- Each main section (e.g. '1. Spelling Conventions') should be H2 (##).
-- Each rule name (e.g. 'Company Name Spelling') should be bold paragraph text, not a heading.
+- Each main section should be H2 (##) without numbers (e.g., "## Spelling Conventions").
+- Each rule name should be H3 heading (###) with sequential numbering from 1 onwards.
 - Do NOT break lines for dashes, slashes, or quotes—keep them in the same line as the text.
 - Each rule must be about writing style, grammar, punctuation, spelling, or formatting.
 - Do NOT include general brand, marketing, or content strategy rules.
-- For each rule:
-  1. Start with a bold, single keyword or phrase matching the topic (e.g., "Abbreviations", "Capitalisation", "Emojis", "Company name spelling").
+- Each rule must:
+  1. Start with an H3 heading with sequential number and keyword (e.g., "### 1. Company Name Spelling", "### 2. Proper Nouns").
   2. Give a **ONE SENTENCE** description of the rule and why it matters.
   3. Include a ✅ Right example and a ❌ Wrong example on separate lines.
   4. Be formatted in markdown.
+- Do not repeat rules or examples.
+- Make each rule unique, clear, and actionable.
+- Focus on how to write, edit, and format text for this brand.
 - **IMPORTANT**: Put each ✅ Right and ❌ Wrong example on separate lines with line breaks between them.
 - Organize the rules into the following sections and topics, in this order:
 
-1. Spelling conventions
-   - Company name spelling
-   - Proper nouns
-   - Hyphenation in heritage terms
-   - Numbers 1–9
-   - Complex vs. simple words
+## Spelling Conventions
+   - ### 1. Capitalisation of Months of the Year
+   - ### 2. Capitalisation of Seasons & Directions
+   - ### 3. Company Name Spelling
+   - ### 4. Complex vs. Simple Words
+   - ### 5. Hyphenation in Heritage Terms
+   - ### 6. Possessives
+   - ### 7. Proper Nouns
+   - ### 8. Spelling for Loanwords
+   - ### 9. Spelling of Internet Terms
+   - ### 10. UK vs. US English
 
-2. Grammar & mechanics
-   - Abbreviations
-   - Acronyms
-   - Active vs. passive voice
-   - Capitalisation
-   - Title case
-   - Sentence case
-   - Upper case
-   - Contractions
-   - Compound adjectives
-   - eg / ie / etc.
-   - Emojis
-   - Job titles
-   - Languages
+## Grammar & Mechanics
+   - ### 11. Abbreviations
+   - ### 12. Acronyms
+   - ### 13. Active vs. Passive Voice
+   - ### 14. Capitalisation
+   - ### 15. Compound Adjectives
+   - ### 16. Contractions
+   - ### 17. eg / ie / etc.
+   - ### 18. Emojis
+   - ### 19. Jargon Translation
+   - ### 20. Job Titles
+   - ### 21. Languages
+   - ### 22. Sentence Case
+   - ### 23. Title Case
+   - ### 24. Upper Case
 
-3. Punctuation
-   - Accents
-   - Apostrophes
-   - Ampersands
-   - Colons
-   - Commas
-   - Em dash
-   - En dash
-   - Ellipses
-   - Exclamation points
-   - Slashes ( / \\ )
-   - Hyphens
-   - Periods / full stops
-   - Parentheses / brackets
-   - Pipes
-   - Semicolons
-   - Special characters
-   - Question marks
-   - Quotation marks
+## Punctuation
+   - ### 25. Accents
+   - ### 26. Ampersands
+   - ### 27. Apostrophes
+   - ### 28. Asterisks
+   - ### 29. At Symbols
+   - ### 30. Colons
+   - ### 31. Commas
+   - ### 32. Ellipses
+   - ### 33. Ellipsis Spacing
+   - ### 34. Em Dash
+   - ### 35. En Dash
+   - ### 36. Exclamation Points
+   - ### 37. Hash Symbols
+   - ### 38. Hyphens
+   - ### 39. Multiple Punctuation
+   - ### 40. Parentheses
+   - ### 41. Periods
+   - ### 42. Pipes
+   - ### 43. Question Marks
+   - ### 44. Quotation Marks
+   - ### 45. Semicolons
+   - ### 46. Slashes
+   - ### 47. Special Characters
 
-4. Formatting & UI elements
-   - Alignment
-   - Alt text
-   - Bold / italics / underlines
-   - Bullet points
-   - Buttons
-   - Coloured text
-   - Checkboxes
-   - Email addresses
-   - File extensions
-   - Forms
-   - Links
-   - Numbered lists
-   - Radio buttons
-   - Spacing
-   - Strikethrough
+## Formatting
+   - ### 48. Alignment
+   - ### 49. Bold and Italics
+   - ### 50. Bullet Points
+   - ### 51. Coloured Text
+   - ### 52. Numbered Lists
+   - ### 53. Spacing
+   - ### 54. Strikethrough
 
-5. Numbers & data
-   - 1–9
-   - Big numbers
-   - Dates
-   - Decimals
-   - Fractions
-   - Measurements
-   - Millions & billions
-   - Money
-   - Percentages
-   - Ranges
-   - Telephone numbers
-   - Temperature
-   - Time & time zones
-   - Weights
-   - Whole numbers
+## Digital & Web
+   - ### 55. Alt Text
+   - ### 56. Button Capitalisation
+   - ### 57. Buttons
+   - ### 58. Call-to-Action Text
+   - ### 59. Character Limits for Inputs
+   - ### 60. Checkboxes
+   - ### 61. Email Addresses
+   - ### 62. Empty State Guidance
+   - ### 63. Error Message Tone
+   - ### 64. File Extensions
+   - ### 65. Forms
+   - ### 66. Image Captions
+   - ### 67. Loading State Messaging
+   - ### 68. Meta Descriptions
+   - ### 69. Radio Buttons
+   - ### 70. Social Media Hashtags
+   - ### 71. URL & Link Formatting
+   - ### 72. UTM & Tracking Rules
+   - ### 73. Video Transcripts
 
-6. People & Inclusive language
-   - Person‑first language
-   - Disability‑related terms
-   - Gender & sexuality terminology
-   - Heritage & nationality terminology
-   - Age references
-   - Neurodiversity references
-   - Socio‑economic references
+## Numbers & Data
+   - ### 74. Big Numbers
+   - ### 75. Dates
+   - ### 76. Decimals
+   - ### 77. Fractions
+   - ### 78. Measurements
+   - ### 79. Millions & Billions
+   - ### 80. Money
+   - ### 81. Numerals
+   - ### 82. Percentages
+   - ### 83. Ranges
+   - ### 84. Telephone Numbers
+   - ### 85. Temperature
+   - ### 86. Time & Time Zones
+   - ### 87. Weights
+   - ### 88. Whole Numbers
 
-7. Points of view
-   - First vs. third person
-   - Pronouns
+## People & Inclusive Language
+   - ### 89. Age References
+   - ### 90. Disability-related Terms
+   - ### 91. Gender & Sexuality Terminology
+   - ### 92. Heritage & Nationality Terminology
+   - ### 93. Mental Health Terminology
+   - ### 94. Neurodiversity References
+   - ### 95. Person-first Language
+   - ### 96. Socio-economic References
 
-8. Style consistency
-   - Serial comma
-   - Slang & jargon
-   - Titles, headings & subheadings
-   - Trademarks
-   - Consistency review
+## Points of View
+   - ### 97. First vs. Third Person
+   - ### 98. Pronouns
 
-Example format for each rule:
+## Style Consistency
+   - ### 99. AI-Generated Content Flags
+   - ### 100. Consistency Review
+   - ### 101. Disclaimers & Fine Print
+   - ### 102. Readability Grade Target
+   - ### 103. Sentence Length Limit
+   - ### 104. Serial Comma
+   - ### 105. Slang & Jargon
+   - ### 106. Source Attribution
+   - ### 107. Third-Party Brand References
+   - ### 108. Titles and Headings
+   - ### 109. Trademarks
 
-**Company Name Spelling**
-Always capitalize "Apple" and use it consistently to reinforce brand identity.
-✅ Right: Apple products are popular among designers.
-❌ Wrong: apple products are popular among designers.
+Example rules:
+
+### 3. Company Name Spelling
+Always capitalize "${brandDetails.name}" consistently to maintain brand identity and recognition.
+✅ Right: ${brandDetails.name} offers innovative solutions for businesses.
+❌ Wrong: ${brandDetails.name.toLowerCase()} offers innovative solutions for businesses.
+
+### 11. Abbreviations
+Spell out abbreviations on first use, then use the shortened form consistently.
+✅ Right: "The World Health Organization (WHO) recommends..."
+❌ Wrong: "WHO recommends..." (without introduction)
+
+### 71. URL & Link Formatting
+Format web addresses consistently and use descriptive link text for accessibility.
+✅ Right: "Read our [privacy policy](https://example.com/privacy) for details."
+❌ Wrong: "Click here: https://example.com/privacy"
+
+### 104. Serial Comma
+Use the Oxford comma in lists of three or more items for clarity.
+✅ Right: "We offer consulting, development, and support services."
+❌ Wrong: "We offer consulting, development and support services."
+
+### 81. Numerals 1–9
+Write out numbers one through nine; use numerals for 10 and above.
+✅ Right: "We have five products and 12 team members."
+❌ Wrong: "We have 5 products and twelve team members."
+
+### 27. Apostrophes
+Use apostrophes correctly for contractions and possessives to maintain professional writing standards.
+✅ Right: "The company's mission is to improve users' experiences."
+❌ Wrong: "The companys mission is to improve users experiences."
+
+### 49. Bold and Italics
+Use bold for emphasis and key terms; use italics for foreign words and publication titles.
+✅ Right: "Our **core values** include respect for all *stakeholders*."
+❌ Wrong: "Our *core values* include respect for all **stakeholders**."
+
+### 95. Person-first Language
+Put the person before their condition or characteristic to show respect and dignity.
+✅ Right: "We support employees with disabilities through accessible design."
+❌ Wrong: "We support disabled employees through accessible design."
 
 ---
-- Generate the rules in the order above.
-- Use markdown H2 (##) for each main section.
-- Use bold paragraph text for each rule name.
+- Generate the rules in the exact order above with sequential ordering.
+- Use markdown H2 (##) for each main section WITHOUT numbers (e.g., "## Spelling Conventions").
+- Use H3 (###) for each rule name WITH sequential numbers (e.g., "### 1. Company Name Spelling").
+- Start numbering from 1 and continue sequentially through all sections.
 - Do not skip any rule or section.
+- Generate exactly 98 rules total across all sections as listed above.
 - Do not repeat rules or examples.
 - Make each rule unique, clear, and actionable.
 - Focus on how to write, edit, and format text for this brand.

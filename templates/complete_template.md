@@ -29,6 +29,8 @@ _blogs, newsletters, articles_
 
 ---
 
+## Style Rules
+
 {{complete_rules}}
 
 ---

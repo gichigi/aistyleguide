@@ -1,5 +1,6 @@
 // Test script for Stripe webhook functionality
 const https = require('https');
+const http = require('http');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
@@ -36,14 +37,16 @@ function loadEnv() {
 const env = loadEnv();
 
 // Configuration - read from environment or prompt user to provide
-const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || env.STRIPE_WEBHOOK_SECRET || '';
+// Support both test and live webhook secrets
+const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || env.STRIPE_WEBHOOK_SECRET || 
+                      process.env.STRIPE_TEST_WEBHOOK_SECRET || env.STRIPE_TEST_WEBHOOK_SECRET || '';
 if (!WEBHOOK_SECRET) {
-  console.error('Error: STRIPE_WEBHOOK_SECRET is required. Please set it in your .env file or as an environment variable.');
+  console.error('Error: STRIPE_WEBHOOK_SECRET or STRIPE_TEST_WEBHOOK_SECRET is required. Please set it in your .env file or as an environment variable.');
   process.exit(1);
 }
 
-const WEBHOOK_URL = 'https://aistyleguide.com/api/webhook';
-const WWW_WEBHOOK_URL = 'https://www.aistyleguide.com/api/webhook';
+const WEBHOOK_URL = 'http://localhost:3002/api/webhook';
+const WWW_WEBHOOK_URL = 'https://www.aistyleguide.com/api/webhook'; // Keep production for comparison
 
 // Mock event payload
 const mockEvent = {
@@ -94,7 +97,11 @@ function testWebhook(url) {
     }
   };
   
-  const req = https.request(url, options, (res) => {
+  // Use http or https based on URL protocol
+  const isHttps = url.startsWith('https://');
+  const requestModule = isHttps ? https : http;
+  
+  const req = requestModule.request(url, options, (res) => {
     console.log(`Status code: ${res.statusCode}`);
     console.log(`Headers: ${JSON.stringify(res.headers)}`);
     

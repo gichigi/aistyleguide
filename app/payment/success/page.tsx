@@ -84,12 +84,13 @@ function SuccessContent() {
   }
 
   // Generate style guide function (extracted for retry functionality)
-  const generateStyleGuide = async () => {
+  const generateStyleGuide = async (overrideGuideType?: string) => {
+    const effectiveGuideType = overrideGuideType || guideType
     try {
       // Clear any previous errors
       setApiError(null)
       setGenerationStatus('generating')
-      updateProgress(guideType, 'start')
+      updateProgress(effectiveGuideType, 'start')
       
       // Get brand details
       const brandDetails = localStorage.getItem("brandDetails")
@@ -113,12 +114,12 @@ function SuccessContent() {
       console.log("[Payment Success] Sending to API with plan:", guideType)
 
       // Update progress before API call
-      updateProgress(guideType, 'voice')
+      updateProgress(effectiveGuideType, 'voice')
 
       // Generate style guide using enhanced API call
       const data = await callAPI("/api/generate-styleguide", {
         brandDetails: parsedBrandDetails,
-        plan: guideType
+        plan: effectiveGuideType
       })
 
       if (!data.success) {
@@ -126,7 +127,7 @@ function SuccessContent() {
       }
 
       // Update progress to complete
-      updateProgress(guideType, 'complete')
+      updateProgress(effectiveGuideType, 'complete')
 
       // Save generated style guide
       localStorage.setItem("generatedStyleGuide", data.styleGuide)
@@ -224,7 +225,7 @@ Thanks!`)}`
     localStorage.setItem("styleGuidePlan", guideTypeParam)
 
     // Start generation process
-    generateStyleGuide()
+    generateStyleGuide(guideTypeParam)
   }, [router, searchParams, toast])
 
   return (

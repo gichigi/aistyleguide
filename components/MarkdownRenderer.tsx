@@ -9,6 +9,13 @@ interface MarkdownRendererProps {
 }
 
 export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
+  // Fix orphaned punctuation patterns
+  const fixedContent = content
+    .replace(/\s*\n\s*\)/g, ')') // Fix orphaned closing parentheses on new lines
+    .replace(/\(\s*\n\s*/g, '(') // Fix orphaned opening parentheses
+    .replace(/\.\s*\n\s*"\s*/g, '." ') // Fix orphaned quotes after periods
+    .replace(/"\s*\n\s*\(/g, '" (') // Fix quotes before parentheses
+
   return (
     <div className={cn("prose prose-gray max-w-none", className)}>
       <ReactMarkdown
@@ -26,7 +33,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
           </h2>
         ),
         h3: ({ children }) => (
-          <h3 className="text-xl font-medium text-gray-800 mb-3 mt-6">
+          <h3 className="text-xl font-medium text-gray-800 mb-3 mt-6" style={{ hyphens: 'none', wordBreak: 'keep-all' }}>
             {children}
           </h3>
         ),
@@ -38,7 +45,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
         
         // Custom paragraph styles with proper line spacing
         p: ({ children }) => (
-          <p className="text-gray-700 mb-4 leading-relaxed">
+          <p className="text-gray-700 mb-4 leading-relaxed" style={{ orphans: 2, widows: 2 }}>
             {children}
           </p>
         ),
@@ -114,7 +121,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
         ),
         }}
       >
-        {content}
+        {fixedContent}
       </ReactMarkdown>
     </div>
   )

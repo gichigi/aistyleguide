@@ -18,7 +18,21 @@ Web app that generates brand style guides from website URLs using AI to extract 
 
 ### High Priority (P0)
 
+**🔽 CRITICAL: Download Buttons Not Working**
+- **Evidence**: Download modal shows format options but some buttons non-functional
+- **Impact**: Users can't export their paid style guides in preferred formats
+- **Severity**: Core feature failure affecting user experience post-payment
+- **Investigation Needed**: Check which download formats are broken (PDF, Word, HTML, Markdown)
+
 ### Medium Priority (P1)  
+
+**📝 CRITICAL: Generated Description Exceeds Validation Limit**
+- **Problem**: AI-generated brand descriptions are sometimes too long for form validation
+- **Impact**: Users must manually delete text from AI-generated content to proceed
+- **User Experience**: Unacceptable - AI should generate content that fits our own validation
+- **Evidence**: Brand details form shows validation error forcing users to edit AI output
+- **Fix Required**: Either increase validation limit or constrain AI generation length
+- **Root Cause**: Mismatch between AI generation parameters and form validation rules
 
 **🐛 Generation Retry Bug: Creates Apple Style Guide**
 - **Problem**: When users get generation error and click retry, API generates Apple brand style guide instead of their brand
@@ -30,6 +44,25 @@ Web app that generates brand style guides from website URLs using AI to extract 
   - `lib/template-processor.ts` - template rendering
   - `app/api/generate-styleguide/route.ts` - API processing
 
+**🔗 Webhook Configuration Issues** ✅ **PARTIALLY FIXED**
+- **Root Cause Found**: Environment variable mismatch - code defaulted to 'live' mode but used test keys
+- **Fixed**: Added `STRIPE_MODE=test` and renamed variables to `STRIPE_TEST_*` pattern
+- **Remaining Issues**:
+  - Webhook signature validation still failing (400 error: "No signatures found matching expected signature")
+  - Suggests webhook secret mismatch between local `.env` and Stripe dashboard
+  - URL redirect from www to non-www may corrupt signatures during redirect
+- **Evidence**: Test script shows 400 error from aistyleguide.com, 307 redirect from www version
+- **Fixed**: 
+  - ✅ Environment variable naming (STRIPE_MODE=test, STRIPE_TEST_*)
+  - ✅ Webhook URL set to non-www version in Stripe dashboard
+- **Still Failing**: 
+  - Webhook signature validation (400 error persists)
+  - **Likely Cause**: Webhook secret in `.env` doesn't match Stripe dashboard secret
+- **Next Steps**: 
+  - **CRITICAL**: Verify/regenerate webhook secret in Stripe dashboard
+  - Update Vercel production environment variables to match local changes
+  - Test with real Stripe webhook (not just test script)
+
 ### Low Priority (P2)
 
 **Investigate Complete Guide Generation Performance**
@@ -39,6 +72,13 @@ Web app that generates brand style guides from website URLs using AI to extract 
 - **Note**: May not be a bug - could be intentional design for complete guides
 
 ### Done/Completed
+
+**✅ Fixed Critical P0 Issues - Major Payment & Generation Bugs (Jan 2025)**
+- **$149 Complete Guide Race Condition**: Fixed React state timing issue where `setGuideType()` wasn't applied before `generateStyleGuide()` call - customers now get complete template
+- **Apple Title Bug**: Removed hardcoded "Apple Style Rules" from AI prompts and post-processing - all guides now use correct brand names
+- **Complete Guide Formatting**: Simplified AI prompts and reduced aggressive regex processing - complete guides now render cleanly like core guides
+- **Brand Voice Traits**: Updated AI prompt to generate single adjective traits instead of phrases - improved readability and consistency
+- **Orphaned Brackets CSS Fix**: Added `text-wrap: pretty` to prose paragraphs - prevents closing parentheses from appearing alone on new lines
 
 **✅ Fixed Payment Success Page UI (Jan 2025)**
 - Improved payment success page user experience and messaging
@@ -77,6 +117,12 @@ Web app that generates brand style guides from website URLs using AI to extract 
 - **T-shirt sizing works** - SMALL (30 min), MEDIUM (1-2 hours), LARGE (half day+) for realistic estimates
 - **Test CLI first, then UI** - Faster feedback loop for API issues, easier debugging
 - **Clean as you go** - Move completed tasks immediately to keep scratchpad focused
+
+### React State & Race Conditions
+- **Race Condition Pattern**: `setState()` is async - don't call functions immediately after that depend on the new state value. React batches state updates for performance, so the new value isn't available instantly
+- **Race Condition Fix**: Pass values directly to functions instead of relying on state that may not be updated yet. E.g., `generateStyleGuide(paramValue)` instead of `setState(paramValue); generateStyleGuide()`
+- **Debug Pattern**: When UI shows one thing but backend processes another, check for async state issues and parameter passing mismatches between frontend and API
+- **React State Timing**: State updates don't happen immediately - they're queued and processed later in the React lifecycle
 
 ### Error Handling & Validation
 - **Frontend validation > backend validation** - Better UX to block submission early vs show errors after

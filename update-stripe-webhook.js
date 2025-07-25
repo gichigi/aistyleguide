@@ -38,7 +38,7 @@ const env = loadEnv();
 
 // Configuration
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || env.STRIPE_SECRET_KEY;
-const CORRECT_WEBHOOK_URL = 'https://www.aistyleguide.com/api/webhook';
+const CORRECT_WEBHOOK_URL = 'https://aistyleguide.com/api/webhook';
 
 if (!STRIPE_SECRET_KEY) {
   console.error('Error: STRIPE_SECRET_KEY environment variable is required');
