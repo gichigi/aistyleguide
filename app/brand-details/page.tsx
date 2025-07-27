@@ -109,6 +109,9 @@ export default function BrandDetailsPage() {
   const [paymentComplete, setPaymentComplete] = useState(false)
   const [fadeIn, setFadeIn] = useState(false)
   const [showCharCount, setShowCharCount] = useState(false)
+  const [email, setEmail] = useState("")
+  const [sessionToken, setSessionToken] = useState("")
+  const [showEmailCapture, setShowEmailCapture] = useState(false)
 
   // Initialize state with default values to ensure inputs are always controlled
   const [brandDetails, setBrandDetails] = useState({ ...defaultBrandDetails })
@@ -120,6 +123,15 @@ export default function BrandDetailsPage() {
     }, 100)
 
     return () => clearTimeout(timer)
+  }, [])
+
+  // Generate session token on component mount
+  useEffect(() => {
+    if (!sessionToken) {
+      const token = crypto.randomUUID()
+      setSessionToken(token)
+      localStorage.setItem("emailCaptureToken", token)
+    }
   }, [])
 
   // Check payment status and guide type from localStorage
@@ -159,7 +171,7 @@ export default function BrandDetailsPage() {
     }
   }, [brandDetails.brandDetailsText])
 
-  // Load saved brand details from localStorage
+  // Load saved brand details and email from localStorage
   useEffect(() => {
     const savedDetails = localStorage.getItem("brandDetails")
     if (savedDetails) {
@@ -203,6 +215,17 @@ export default function BrandDetailsPage() {
       // If no saved details, initialize localStorage with default values
       localStorage.setItem("brandDetails", JSON.stringify(defaultBrandDetails))
       setBrandDetails(defaultBrandDetails)
+    }
+
+    // Load saved email
+    const savedEmail = localStorage.getItem("emailCapture")
+    if (savedEmail) {
+      try {
+        const parsedEmail = JSON.parse(savedEmail)
+        setEmail(parsedEmail.email || "")
+      } catch (e) {
+        console.error("Error parsing saved email:", e)
+      }
     }
   }, [])
 
@@ -273,9 +296,70 @@ export default function BrandDetailsPage() {
     return true;
   }
 
-  // Update isFormValid function
-  const isFormValid = () => {
-    // Need brand name, brand description and exactly 3 traits
+
+  const handleEmailChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEmail(value);
+    
+    // Save email capture data to localStorage (for immediate UI)
+    if (value.trim() && sessionToken) {
+      const emailCaptureData = {
+        sessionToken,
+        email: value.trim(),
+        capturedAt: Date.now(),
+        brandDetails,
+        paymentCompleted: false,
+        emailsSent: []
+      };
+      localStorage.setItem("emailCapture", JSON.stringify(emailCaptureData));
+      
+      // Also save to server-side for abandoned cart tracking
+      try {
+        console.log('[Email Capture Client] Starting server-side storage...', {
+          sessionToken: sessionToken?.substring(0, 8) + '***',
+          email: value.trim().substring(0, 3) + '***',
+          timestamp: new Date().toISOString()
+        });
+        
+        const response = await fetch('/api/capture-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionToken,
+            email: value.trim()
+          })
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          console.log('[Email Capture Client] Successfully stored server-side:', {
+            success: result.success,
+            captureId: result.captureId,
+            duration: result.duration
+          });
+        } else {
+          const errorText = await response.text();
+          console.error('[Email Capture Client] Failed to store server-side:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorText
+          });
+        }
+      } catch (error) {
+        console.error('[Email Capture Client] Network error storing server-side:', {
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
+        });
+      }
+    } else if (!value.trim()) {
+      localStorage.removeItem("emailCapture");
+      // Note: We don't delete from server-side as we want to track all attempts
+    }
+  }
+
+
+  // Check if core form is ready (without email)
+  const isCoreFormReady = () => {
     return (
       !!brandDetails.name?.trim() && 
       !!brandDetails.brandDetailsText.trim() && 
@@ -283,9 +367,40 @@ export default function BrandDetailsPage() {
     )
   }
 
+  // Show email capture when core form is ready
+  useEffect(() => {
+    const formReady = isCoreFormReady()
+    if (formReady && !showEmailCapture) {
+      setShowEmailCapture(true)
+      // Scroll to email section after a brief delay
+      setTimeout(() => {
+        const emailSection = document.getElementById('email-capture-section')
+        if (emailSection) {
+          emailSection.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }, 300)
+    } else if (!formReady && showEmailCapture) {
+      setShowEmailCapture(false) // Reset if form becomes invalid
+    }
+  }, [brandDetails.name, brandDetails.brandDetailsText, selectedTraits.length])
+
+  // Update isFormValid function - email is optional, no validation needed
+  const isFormValid = () => {
+    return isCoreFormReady()
+  }
+
+  // Handle the form submission
+  const handleGenerateClick = (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    // If form is valid, proceed with generation
+    if (isFormValid()) {
+      handleSubmit(e)
+    }
+  }
+
   // Update the handleSubmit function to use inline brand name extraction instead of external API
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
     setLoading(true)
     setProcessingStep('processing')
 
@@ -522,9 +637,39 @@ export default function BrandDetailsPage() {
                     <VoiceTraitSelector onChange={setSelectedTraits} />
                   </div>
                 </div>
+
+                {/* Email Capture Section - Progressive Disclosure */}
+                {showEmailCapture && (
+                  <div 
+                    id="email-capture-section"
+                    className="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-lg transition-all duration-300 ease-in-out animate-in slide-in-from-top-2 fade-in"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex-shrink-0">
+                        <svg className="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <Label htmlFor="email" className="text-sm font-medium text-blue-900">
+                          Email me a copy (optional)
+                        </Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="your@email.com"
+                          value={email}
+                          onChange={handleEmailChange}
+                          className="mt-2 bg-white border-blue-200 focus:border-blue-400 focus:ring-blue-400"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex justify-end mt-8">
                   <Button 
-                    type="submit" 
+                    onClick={handleGenerateClick}
                     disabled={loading || !!mainError || !!nameError || !isFormValid()} 
                     className="w-full sm:w-auto"
                   >
@@ -540,6 +685,8 @@ export default function BrandDetailsPage() {
                         </svg>
                         Complete
                       </>
+                    ) : showEmailCapture ? (
+                      "Generate Style Guide"
                     ) : (
                       "Generate Style Guide"
                     )}

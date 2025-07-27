@@ -35,7 +35,7 @@ export default function VoiceTraitSelector({ onChange }: { onChange?: (traits: s
       isPredefinedTrait(trait) ? trait.name : trait.name
     )
     onChange?.(traitNames)
-  }, [selectedTraits, customTraits, onChange])
+  }, [selectedTraits, customTraits])
 
   const togglePredefinedTrait = (name: TraitName) => {
     const isSelected = selectedTraits.some(t => isPredefinedTrait(t) && t.name === name)

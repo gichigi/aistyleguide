@@ -19,10 +19,11 @@ const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://aistyleguide.com'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { guideType } = body
+    const { guideType, sessionToken } = body
 
     // Log request info for debugging
     console.log(`Creating checkout session for guide type: ${guideType}`)
+    console.log(`Session token for abandoned cart tracking: ${sessionToken}`)
     console.log(`Using base URL: ${BASE_URL}`)
 
     // Validate guide type
@@ -58,6 +59,9 @@ export async function POST(request: Request) {
       success_url: `${BASE_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}&guide_type=${guideType}`,
       cancel_url: `${BASE_URL}/payment/cancel`,
       
+      // Bridge our early session token with Stripe's session ID for abandoned cart tracking
+      client_reference_id: sessionToken,
+      
       // Abandoned cart recovery configuration
       expires_at: expiresAt,
       after_expiration: {
@@ -74,10 +78,12 @@ export async function POST(request: Request) {
       metadata: {
         guide_type: guideType,
         created_at: new Date().toISOString(),
+        email_capture_token: sessionToken, // Backup reference in metadata
       },
     })
 
     console.log(`Checkout session created: ${session.id}`)
+    console.log(`Client reference ID (our session token): ${session.client_reference_id}`)
     console.log(`Session expires at: ${new Date(expiresAt * 1000).toISOString()}`)
     
     return NextResponse.json({ url: session.url })

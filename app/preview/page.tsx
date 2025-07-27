@@ -207,11 +207,18 @@ export default function PreviewPage() {
     try {
       setIsProcessingPayment(true);
       
+      // Get session token for abandoned cart tracking
+      const sessionToken = localStorage.getItem("emailCaptureToken");
+      console.log('[Payment] Using session token for abandoned cart tracking:', sessionToken);
+      
       // Create checkout session
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ guideType })
+        body: JSON.stringify({ 
+          guideType,
+          sessionToken // Pass our early session token to bridge with Stripe
+        })
       });
       
       if (!response.ok) {

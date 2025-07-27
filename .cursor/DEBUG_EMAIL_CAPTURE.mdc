@@ -1,0 +1,323 @@
+---
+description: Email capture debugging with supabase database and session ID captured for abandoned cart users
+alwaysApply: false
+---
+# Email Capture System - Debugging Guide
+
+## Overview
+This guide helps debug common issues with the abandoned cart email capture system.
+
+## System Components
+
+### 1. **Client-Side (Brand Details Page)**
+- **Location**: `app/brand-details/page.tsx`
+- **Function**: `handleEmailChange()`
+- **Log Prefix**: `[Email Capture Client]`
+
+### 2. **Server-Side API**
+- **Location**: `app/api/capture-email/route.ts`
+- **Endpoints**: POST, GET, PUT
+- **Log Prefix**: `[Email Capture API]`
+
+### 3. **Database**
+- **Platform**: Supabase
+- **Table**: `email_captures`
+- **Fields**: `session_token`, `email`, `captured_at`, `payment_completed`
+
+## Common Debugging Scenarios
+
+### 🔍 **Email Capture Not Working**
+
+**Check Client-Side Logs:**
+```
+[Email Capture Client] Starting server-side storage... {sessionToken: "abc123***", email: "use***"}
+[Email Capture Client] Successfully stored server-side: {success: true, captureId: "uuid", duration: "612ms"}
+```
+
+**Check Server-Side Logs:**
+```
+[Email Capture API] POST request started at 2025-07-27T19:20:42.000Z
+[Email Capture API] Request data: {sessionToken: "abc123...", email: "use***"}
+[Email Capture API] Storing capture for session: abc123..., email: use***
+[Email Capture API] Successfully stored in Supabase for session: abc123... (612ms)
+```
+
+### 🚨 **Common Error Patterns**
+
+#### **Invalid Email Format**
+```
+Error: {"error":"Invalid email format"}
+Log: [Email Capture API] Invalid email format: user***
+```
+
+#### **Missing Session Token**
+```
+Error: {"error":"Missing required fields: sessionToken, email"}
+Log: [Email Capture API] Missing required fields: {sessionToken: false, email: true}
+```
+
+#### **Database Connection Issues**
+```
+Error: {"error":"Database connection failed","details":"..."}
+Log: [Email Capture API] Supabase connection test failed: ConnectionError
+```
+
+#### **Session Token Not Found (PUT)**
+```
+Error: {"error":"Capture not found","sessionToken":"abc123"}
+Log: [Email Capture API] PUT - No capture found for session: abc123
+```
+
+### 📊 **Performance Monitoring**
+
+**Response Times:**
+- **Fast**: < 500ms
+- **Normal**: 500ms - 1s
+- **Slow**: > 1s (investigate database)
+
+**Example Logs:**
+```
+[Email Capture API] Successfully stored in Supabase for session: abc123 (612ms)
+[Email Capture API] PUT - Successfully marked session as completed: abc123 (308ms)
+```
+
+## Testing Commands
+
+### **Manual API Testing**
+
+```bash
+# Test email capture
+curl -X POST http://localhost:3002/api/capture-email \
+  -H "Content-Type: application/json" \
+  -d '{"sessionToken":"test-123","email":"test@example.com"}'
+
+# Test retrieval
+curl -X GET "http://localhost:3002/api/capture-email?sessionToken=test-123"
+
+# Test completion
+curl -X PUT http://localhost:3002/api/capture-email \
+  -H "Content-Type: application/json" \
+  -d '{"sessionToken":"test-123"}'
+
+# Get all captures
+curl -X GET http://localhost:3002/api/capture-email
+```
+
+### **Database Direct Query**
+```sql
+-- Check recent captures
+SELECT * FROM email_captures ORDER BY captured_at DESC LIMIT 10;
+
+-- Check abandoned carts (older than 2 hours)
+SELECT * FROM email_captures 
+WHERE payment_completed = false 
+AND captured_at < NOW() - INTERVAL '2 hours';
+
+-- Get summary stats
+SELECT 
+  COUNT(*) as total,
+  COUNT(*) FILTER (WHERE payment_completed = true) as completed,
+  COUNT(*) FILTER (WHERE payment_completed = false) as abandoned
+FROM email_captures;
+```
+
+## Error Codes Reference
+
+| Status | Error | Meaning |
+|--------|-------|---------|
+| 400 | Invalid JSON in request body | Malformed request |
+| 400 | Missing required fields | sessionToken or email missing |
+| 400 | Invalid email format | Email doesn't match regex |
+| 400 | Invalid session token format | Token too short |
+| 404 | Capture not found | Session token doesn't exist |
+| 500 | Database connection failed | Supabase connectivity issue |
+| 500 | Supabase upsert error | Database operation failed |
+| 503 | Database connection failed | Service unavailable |
+
+## Health Check
+
+### **Quick System Verification**
+1. **API Endpoints**: `curl http://localhost:3002/api/capture-email`
+2. **Database**: Check Supabase dashboard
+3. **Logs**: Check console for `[Email Capture]` messages
+4. **Performance**: Response times < 1s
+
+### **Data Integrity Checks**
+- All `session_token` values are unique
+- All `email` values are valid format
+- `captured_at` timestamps are recent
+- `payment_completed` boolean consistency
+
+## Troubleshooting Steps
+
+1. **Check server is running**: `curl http://localhost:3002/api/capture-email`
+2. **Verify Supabase connection**: Check project status in dashboard
+3. **Test API endpoints**: Run manual curl commands
+4. **Check logs**: Look for error patterns
+5. **Verify data**: Query database directly
+6. **Performance**: Monitor response times
+
+## Contact & Support
+
+- **Database**: Supabase Project `aistyleguide-email-captures`
+- **API Route**: `/api/capture-email` (POST, GET, PUT)
+- **Client Integration**: `app/brand-details/page.tsx` # Email Capture System - Debugging Guide
+
+## Overview
+This guide helps debug common issues with the abandoned cart email capture system.
+
+## System Components
+
+### 1. **Client-Side (Brand Details Page)**
+- **Location**: `app/brand-details/page.tsx`
+- **Function**: `handleEmailChange()`
+- **Log Prefix**: `[Email Capture Client]`
+
+### 2. **Server-Side API**
+- **Location**: `app/api/capture-email/route.ts`
+- **Endpoints**: POST, GET, PUT
+- **Log Prefix**: `[Email Capture API]`
+
+### 3. **Database**
+- **Platform**: Supabase
+- **Table**: `email_captures`
+- **Fields**: `session_token`, `email`, `captured_at`, `payment_completed`
+
+## Common Debugging Scenarios
+
+### 🔍 **Email Capture Not Working**
+
+**Check Client-Side Logs:**
+```
+[Email Capture Client] Starting server-side storage... {sessionToken: "abc123***", email: "use***"}
+[Email Capture Client] Successfully stored server-side: {success: true, captureId: "uuid", duration: "612ms"}
+```
+
+**Check Server-Side Logs:**
+```
+[Email Capture API] POST request started at 2025-07-27T19:20:42.000Z
+[Email Capture API] Request data: {sessionToken: "abc123...", email: "use***"}
+[Email Capture API] Storing capture for session: abc123..., email: use***
+[Email Capture API] Successfully stored in Supabase for session: abc123... (612ms)
+```
+
+### 🚨 **Common Error Patterns**
+
+#### **Invalid Email Format**
+```
+Error: {"error":"Invalid email format"}
+Log: [Email Capture API] Invalid email format: user***
+```
+
+#### **Missing Session Token**
+```
+Error: {"error":"Missing required fields: sessionToken, email"}
+Log: [Email Capture API] Missing required fields: {sessionToken: false, email: true}
+```
+
+#### **Database Connection Issues**
+```
+Error: {"error":"Database connection failed","details":"..."}
+Log: [Email Capture API] Supabase connection test failed: ConnectionError
+```
+
+#### **Session Token Not Found (PUT)**
+```
+Error: {"error":"Capture not found","sessionToken":"abc123"}
+Log: [Email Capture API] PUT - No capture found for session: abc123
+```
+
+### 📊 **Performance Monitoring**
+
+**Response Times:**
+- **Fast**: < 500ms
+- **Normal**: 500ms - 1s
+- **Slow**: > 1s (investigate database)
+
+**Example Logs:**
+```
+[Email Capture API] Successfully stored in Supabase for session: abc123 (612ms)
+[Email Capture API] PUT - Successfully marked session as completed: abc123 (308ms)
+```
+
+## Testing Commands
+
+### **Manual API Testing**
+
+```bash
+# Test email capture
+curl -X POST http://localhost:3002/api/capture-email \
+  -H "Content-Type: application/json" \
+  -d '{"sessionToken":"test-123","email":"test@example.com"}'
+
+# Test retrieval
+curl -X GET "http://localhost:3002/api/capture-email?sessionToken=test-123"
+
+# Test completion
+curl -X PUT http://localhost:3002/api/capture-email \
+  -H "Content-Type: application/json" \
+  -d '{"sessionToken":"test-123"}'
+
+# Get all captures
+curl -X GET http://localhost:3002/api/capture-email
+```
+
+### **Database Direct Query**
+```sql
+-- Check recent captures
+SELECT * FROM email_captures ORDER BY captured_at DESC LIMIT 10;
+
+-- Check abandoned carts (older than 2 hours)
+SELECT * FROM email_captures 
+WHERE payment_completed = false 
+AND captured_at < NOW() - INTERVAL '2 hours';
+
+-- Get summary stats
+SELECT 
+  COUNT(*) as total,
+  COUNT(*) FILTER (WHERE payment_completed = true) as completed,
+  COUNT(*) FILTER (WHERE payment_completed = false) as abandoned
+FROM email_captures;
+```
+
+## Error Codes Reference
+
+| Status | Error | Meaning |
+|--------|-------|---------|
+| 400 | Invalid JSON in request body | Malformed request |
+| 400 | Missing required fields | sessionToken or email missing |
+| 400 | Invalid email format | Email doesn't match regex |
+| 400 | Invalid session token format | Token too short |
+| 404 | Capture not found | Session token doesn't exist |
+| 500 | Database connection failed | Supabase connectivity issue |
+| 500 | Supabase upsert error | Database operation failed |
+| 503 | Database connection failed | Service unavailable |
+
+## Health Check
+
+### **Quick System Verification**
+1. **API Endpoints**: `curl http://localhost:3002/api/capture-email`
+2. **Database**: Check Supabase dashboard
+3. **Logs**: Check console for `[Email Capture]` messages
+4. **Performance**: Response times < 1s
+
+### **Data Integrity Checks**
+- All `session_token` values are unique
+- All `email` values are valid format
+- `captured_at` timestamps are recent
+- `payment_completed` boolean consistency
+
+## Troubleshooting Steps
+
+1. **Check server is running**: `curl http://localhost:3002/api/capture-email`
+2. **Verify Supabase connection**: Check project status in dashboard
+3. **Test API endpoints**: Run manual curl commands
+4. **Check logs**: Look for error patterns
+5. **Verify data**: Query database directly
+6. **Performance**: Monitor response times
+
+## Contact & Support
+
+- **Database**: Supabase Project `aistyleguide-email-captures`
+- **API Route**: `/api/capture-email` (POST, GET, PUT)
+- **Client Integration**: `app/brand-details/page.tsx` 

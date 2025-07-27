@@ -14,7 +14,7 @@ const STRIPE_WEBHOOK_SECRET =
     : process.env.STRIPE_WEBHOOK_SECRET;
 
 const stripe = new Stripe(STRIPE_SECRET_KEY!, {
-  apiVersion: "2023-10-16",
+  apiVersion: "2025-03-31.basil" as Stripe.LatestApiVersion,
 })
 
 // Store sent emails to prevent spam (in production, use a database)
@@ -61,6 +61,46 @@ async function handlePaymentSuccess(session: Stripe.Checkout.Session) {
   try {
     console.log('Processing successful payment:', session.id);
     
+    // Extract session bridge information for abandoned cart tracking
+    const ourSessionToken = session.client_reference_id;
+    console.log('Session bridge - Our token:', ourSessionToken);
+    console.log('Session bridge - Stripe ID:', session.id);
+    
+    // Mark email capture as completed if we have the session token
+    if (ourSessionToken) {
+      try {
+        console.log('[Webhook] Marking email capture as completed for session:', ourSessionToken);
+        const response = await fetch(`${process.env.NODE_ENV === 'development' ? 'http://localhost:3002' : process.env.NEXT_PUBLIC_BASE_URL}/api/capture-email`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionToken: ourSessionToken })
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          console.log('[Webhook] Email capture marked as completed:', {
+            sessionToken: ourSessionToken,
+            success: result.success,
+            duration: result.duration
+          });
+        } else {
+          const errorText = await response.text();
+          console.warn('[Webhook] Failed to mark email capture as completed:', {
+            sessionToken: ourSessionToken,
+            status: response.status,
+            error: errorText
+          });
+        }
+      } catch (error) {
+        console.error('[Webhook] Error marking email capture as completed:', {
+          sessionToken: ourSessionToken,
+          error: error instanceof Error ? error.message : String(error)
+        });
+      }
+    } else {
+      console.log('[Webhook] No session token found - payment not linked to email capture');
+    }
+    
     // Extract customer details for personal follow-up email
     const customerEmail = session.customer_details?.email;
     const customerName = session.customer_details?.name;
@@ -79,10 +119,9 @@ async function handlePaymentSuccess(session: Stripe.Checkout.Session) {
       return;
     }
     
-    // Send personal follow-up email from Tahi (with cache busting for development)
-    const cacheBust = process.env.NODE_ENV === 'development' ? `?v=${Date.now()}` : ''
-    console.log('🔄 Importing email service with cache bust:', cacheBust)
-    const { emailService } = await import(`@/lib/email-service${cacheBust}`)
+    // Send personal follow-up email from Tahi
+    console.log('🔄 Importing email service')
+    const { emailService } = await import('@/lib/email-service')
     console.log('✅ Email service imported successfully')
     const emailResult = await emailService.sendThankYouEmail({
       customerEmail,

@@ -20,6 +20,7 @@ Web app that generates brand style guides from website URLs using AI to extract 
 ## ✅ Recently Completed
 
 ### Latest (Jan 2025)
+- ✅ **Error Handling Enhancement** - Comprehensive error messages, retry options, fallback handling with network-specific detection, input validation, and user journey tracking
 - ✅ **Enhanced Brand Details UX** - Auto-population of brand name + formatted descriptions with paragraph breaks for better readability
 - ✅ **Voice Trait UI Cleanup** - Removed redundant "Choose from preset traits" subheading  
 - ✅ **Homepage Icon Update** - Changed www/globe icon to AI sparkle icon for clearer AI functionality indication
@@ -29,8 +30,9 @@ Web app that generates brand style guides from website URLs using AI to extract 
 - ✅ **Custom Voice Traits** - Users can add custom traits alongside predefined ones, AI generates matching descriptions, hybrid quality approach
 - ✅ **Enhanced Brand Input** - Homepage accepts URLs + text descriptions, AI expansion
 - ✅ **Voice Traits Integration** - Selected traits now influence AI-generated style rules
-- ✅ **Email Automation** - Thank you emails, abandoned cart recovery with discount codes
+- ✅ **Email Automation** - Thank you emails using stripe webhook
 - ✅ **Comparison Table** - Professional "Why choose AIStyleGuide" landing page section
+- ✅ **Abandoned Cart System** - Full email capture & recovery system with Vercel Cron, Supabase storage, founder-style emails, COMEBACK20 discount, 2-hour detection, duplicate prevention
 
 ### Foundation (2024)
 - ✅ **Core Journey** - Complete user flow from landing → analysis → preview → payment → delivery
@@ -38,32 +40,7 @@ Web app that generates brand style guides from website URLs using AI to extract 
 
 ## 🚧 Active Tasks
 
-### **🆕 P1: Error Handling Enhancement** ✅ COMPLETED
-*Better error messages, retry options, fallback handling*
-
-**✅ Implemented Features:**
-- **Inline Error Display** - Error messages now appear below input field with icon
-- **Network-Specific Errors** - Timeout, DNS, SSL certificate detection with helpful messages
-- **Website Content Detection** - JavaScript sites, login-required, empty content warnings  
-- **API Error Classification** - Rate limits, quota exceeded, content policy violations
-- **Input Processing** - Malformed URLs, unsupported domains with format examples
-- **Console Logging** - Request tracking, performance monitoring, error classification
-- **User Journey Tracking** - Complete flow logging from input to completion
-- **Minimum Description Validation** - Increased from 10 characters to 25 (≈5 words) for meaningful input
-
-**Specific Error Messages Added:**
-- "Website took too long to respond. Try again or enter details manually."
-- "Can't reach this website. Check the URL or try again later."  
-- "This website has security issues. Try entering details manually."
-- "This site loads content dynamically. Please enter your brand details manually."
-- "This page requires login. Please enter your brand details manually."
-- "We couldn't find enough content on this site. Please enter more details manually."
-- "Our AI is busy right now. Please try again in a few minutes."
-- "Our AI service is temporarily unavailable. Please try again later."
-- "Please check the URL format (e.g., yoursite.com or https://yoursite.com)"
-- "Please enter at least 5 words to describe your brand"
-
-### **🆕 P2: Preview Loading UX Optimization** 
+### **🆕 P1: Preview Loading UX Optimization** 
 *Remove loading interstitial, show processing state on button instead*
 
 **Current State:** Separate loading page before preview
@@ -76,17 +53,7 @@ Web app that generates brand style guides from website URLs using AI to extract 
 - Remove full-page loading states
 - Improve transition animations
 
-### **🆕 P2: Email Capture Optimization**
-*Improve email collection and abandoned cart recovery*
-
-**Current Setup:** Email captured via Stripe checkout
-**Enhancement Areas:**
-- Add optional email field on brand details page
-- Implement early email capture incentives
-- Optimize abandoned cart email timing
-- Add email preference management
-
-### **🆕 P3: Mobile Conversion Optimization**
+### **🆕 P2: Mobile Conversion Optimization**
 *Shorten fade-out effect, optimize mobile paywall dialog*
 
 **Current Mobile Issues:**
@@ -176,6 +143,19 @@ Web app that generates brand style guides from website URLs using AI to extract 
 - **Quality consistency matters** - Users notice format inconsistencies; match AI-generated content exactly to existing patterns
 - **Focused AI prompts perform better** - Single trait generation with specific format requirements more reliable than bulk generation
 - **Error handling should be invisible** - Graceful fallbacks with clear manual editing instructions maintain user flow when AI fails
+
+### Abandoned Cart System Implementation (Jan 2025)
+- **Session bridging is critical** - Use Stripe's `client_reference_id` to link early email capture with payment completion
+- **Vercel Cron > in-memory schedulers** - Server restarts kill in-memory jobs; Vercel Cron is persistent and reliable
+- **Duplicate prevention essential** - Database flag (`abandoned_email_sent`) prevents spam; mark as sent after successful email
+- **Progressive disclosure UX works** - Email field appears when form is ready, not on page load - reduces cognitive load
+- **Founder-style emails convert better** - Personal tone ("I get it - take your time") outperforms corporate messaging
+- **Supabase integration straightforward** - Simple CRUD operations, good for rapid prototyping, handles concurrent access well
+- **Environment variables matter** - Dynamic base URLs prevent hardcoded localhost issues in development vs production
+- **Comprehensive debugging saves time** - Performance monitoring, error logging, and test commands prevent future headaches
+- **TypeScript error handling** - Use helper functions for `unknown` error types to satisfy strict type checking
+
+**🔧 Debugging Reference**: See `DEBUG_EMAIL_CAPTURE.md` for troubleshooting common email capture issues, API testing commands, and error code reference.
 
 ## 🗺️ Future Roadmap
 
@@ -327,9 +307,9 @@ Web app that generates brand style guides from website URLs using AI to extract 
 
 ### Email Service (`lib/email-service.ts`)
 - **Provider**: Resend (developer-friendly, good deliverability)
-- **Templates**: Thank you emails, abandoned cart recovery
-- **Features**: HTML + text versions, discount codes, professional styling
-- **Spam Prevention**: Tracks sent emails to avoid duplicates
+- **Current**: Only thank you emails post-payment
+- **Planned**: Early capture emails, abandoned cart sequence, discount codes
+- **Features**: HTML + text versions, professional styling, spam prevention
 
 ### Stripe Configuration
 - **Email Capture**: `consent_collection.promotions = 'auto'`
