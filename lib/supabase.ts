@@ -1,8 +1,14 @@
 import { createClient } from '@supabase/supabase-js'
 
 // Supabase configuration
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://vxktjvjfacbvbruxwgeh.supabase.co'
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4a3RqdmpmYWNidmJydXh3Z2VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM2NDE5NzQsImV4cCI6MjA2OTIxNzk3NH0.TD9Qsg73INowWmgo9kadVN2aBJ8Ft2dGjhEfURvdtfE'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error(
+    'Missing Supabase environment variables. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY'
+  )
+}
 
 // Create and export Supabase client
 export const supabase = createClient(supabaseUrl, supabaseKey)
