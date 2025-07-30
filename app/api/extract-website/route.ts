@@ -431,24 +431,28 @@ export async function POST(request: Request) {
     const lowerContent = meaningfulContent.toLowerCase()
     const lowerTitle = title.toLowerCase()
     const isPlaceholderSite = (
-      // Example domains
-      lowerTitle.includes('example') ||
+      // Example domains (more specific)
+      (lowerTitle.includes('example') && lowerTitle.includes('domain')) ||
       lowerTitle.includes('placeholder') ||
       lowerTitle.includes('test page') ||
-      lowerTitle.includes('demo') ||
-      // Common placeholder content
+      (lowerTitle.includes('demo') && lowerTitle.includes('site')) ||
+      // Common placeholder content (more specific)
       lowerContent.includes('this domain is for use in illustrative examples') ||
       lowerContent.includes('this domain is established to be used for illustrative examples') ||
       lowerContent.includes('lorem ipsum') ||
       lowerContent.includes('sample website') ||
-      lowerContent.includes('coming soon') ||
+      (lowerContent.includes('coming soon') && 
+       (lowerTitle.includes('coming soon') || 
+        lowerContent.includes('website coming soon') || 
+        lowerContent.includes('site coming soon') ||
+        meaningfulContent.length < 500)) ||
       lowerContent.includes('under construction') ||
       lowerContent.includes('placeholder text') ||
-      // Test/development indicators
-      lowerContent.includes('test site') ||
-      lowerContent.includes('development site') ||
-      lowerContent.includes('staging site') ||
-      // Minimal/generic content patterns
+      // Test/development indicators (more specific)
+      (lowerContent.includes('test site') && meaningfulContent.length < 500) ||
+      (lowerContent.includes('development site') && meaningfulContent.length < 500) ||
+      (lowerContent.includes('staging site') && meaningfulContent.length < 500) ||
+      // Only flag as placeholder if it's actually minimal content AND has example patterns
       (lowerContent.includes('example') && lowerContent.includes('domain') && meaningfulContent.length < 500)
     )
     

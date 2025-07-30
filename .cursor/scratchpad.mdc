@@ -1,8 +1,3 @@
----
-description: 
-globs: 
-alwaysApply: false
----
 # AI Style Guide Generator - Project Scratchpad
 
 ## 📋 Project Overview
@@ -20,6 +15,8 @@ Web app that generates brand style guides from website URLs using AI to extract 
 ## ✅ Recently Completed
 
 ### Latest (Jan 2025)
+- ✅ **Website Extraction Bug Fix** - Fixed false positive in placeholder detection where "coming soon" in event content was incorrectly flagging legitimate sites as placeholders. Made detection more specific to only trigger on actual placeholder sites (title contains "coming soon" OR specific placeholder phrases OR minimal content)
+- ✅ **P0 Build Error Fix** - Added missing Supabase environment variables (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY) to Vercel deployment settings, resolving production build failures
 - ✅ **Error Handling Enhancement** - Comprehensive error messages, retry options, fallback handling with network-specific detection, input validation, and user journey tracking
 - ✅ **Enhanced Brand Details UX** - Auto-population of brand name + formatted descriptions with paragraph breaks for better readability
 - ✅ **Voice Trait UI Cleanup** - Removed redundant "Choose from preset traits" subheading  
@@ -108,6 +105,7 @@ Web app that generates brand style guides from website URLs using AI to extract 
 ### Technical Architecture
 - **Template consistency is critical** - Always use shared MarkdownComponents for uniform styling across all generated content
 - **Type safety prevents runtime errors** - Add type guards before accessing potentially undefined values, especially with AI responses
+- **False positive detection requires specificity** - Broad pattern matching (like "coming soon") can incorrectly flag legitimate content; use context-aware conditions (title checks, phrase specificity, content length thresholds) to avoid blocking real websites
 
 ### User Experience  
 - **Mobile-first + loading states** - Most users access on mobile, always provide feedback instead of blank screens
@@ -323,6 +321,11 @@ RESEND_API_KEY=re_your_api_key_here
 STRIPE_MODE=test (switches between test/live)
 NEXT_PUBLIC_APP_URL=http://localhost:3000 (for local testing)
 ```
+
+---
+
+*Last updated: January 2025*
+*Status: Active Development*
 
 ---
 
