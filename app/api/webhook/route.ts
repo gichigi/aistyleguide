@@ -20,11 +20,8 @@ const stripe = new Stripe(STRIPE_SECRET_KEY!, {
 // Store sent emails to prevent spam (in production, use a database)
 const sentEmails = new Set<string>();
 
-// Generate discount code for abandoned cart recovery
-function generateDiscountCode(): string {
-  const codes = ['SAVE20', 'COMEBACK20', 'FINISH20', 'RETURN20'];
-  return codes[Math.floor(Math.random() * codes.length)];
-}
+// Fixed discount code for abandoned cart recovery (matches Stripe coupon)
+const DISCOUNT_CODE = 'COMEBACK20'
 
 // Log webhook event details for debugging
 function logWebhookDetails(event: any, error?: any) {
@@ -171,7 +168,7 @@ async function handleSessionExpired(session: Stripe.Checkout.Session) {
     }
     
     // Generate discount code
-    const discountCode = generateDiscountCode();
+    const discountCode = DISCOUNT_CODE;
     
     // Send abandoned cart recovery email (with cache busting for development)
     const cacheBust = process.env.NODE_ENV === 'development' ? `?v=${Date.now()}` : ''

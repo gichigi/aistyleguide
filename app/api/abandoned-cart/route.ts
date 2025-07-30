@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server"
 import { supabase } from '@/lib/supabase'
 
-// Generate discount code for abandoned cart recovery
-function generateDiscountCode(): string {
-  const codes = ['SAVE20', 'COMEBACK20', 'FINISH20', 'RETURN20', 'COMPLETE20'];
-  return codes[Math.floor(Math.random() * codes.length)];
-}
+// Fixed discount code for abandoned cart recovery (matches Stripe coupon)
+const DISCOUNT_CODE = 'COMEBACK20'
 
 export async function GET(request: Request) {
   const startTime = Date.now()
@@ -73,7 +70,7 @@ export async function GET(request: Request) {
       try {
         console.log(`[Abandoned Cart] Processing capture: ${capture.session_token}, email: ${capture.email.substring(0, 3)}***`)
         
-        const discountCode = generateDiscountCode()
+        const discountCode = DISCOUNT_CODE
         const recoveryUrl = `/brand-details?session=${capture.session_token}&discount=${discountCode}`
         
         // Send abandoned cart email using real email service

@@ -259,7 +259,7 @@ x.com/tahigichigi`;
             
             <p style="font-size: 16px; margin-bottom: 20px;">I noticed you started creating your style guide but didn't finish. Totally get it - big decisions take time.</p>
             
-            <p style="font-size: 16px; margin-bottom: 20px;">Here's 20% off when you're ready: <strong style="color: #059669;">COMEBACK20</strong></p>
+            <p style="font-size: 16px; margin-bottom: 20px;">Here's 20% off when you're ready: <strong style="color: #059669;">${data.discountCode}</strong></p>
             
             <p style="font-size: 14px; margin-bottom: 20px; color: #6b7280;">Just add the code at checkout.</p>
             
@@ -295,7 +295,7 @@ ${greeting},
 
 I noticed you started creating your style guide but didn't finish. Totally get it - big decisions take time.
 
-Here's 20% off when you're ready: COMEBACK20
+Here's 20% off when you're ready: ${data.discountCode}
 
 Just add the code at checkout.
 

@@ -15,6 +15,8 @@ Web app that generates brand style guides from website URLs using AI to extract 
 ## ✅ Recently Completed
 
 ### Latest (Jan 2025)
+- ✅ **Fixed Discount Code Generation** - Replaced random code generation with fixed COMEBACK20 code to match Stripe coupon for consistent tracking and user experience
+- ✅ **Abandoned Cart Investigation** - Identified Vercel Cron limitation (Production-only), confirmed system works, need to use fixed COMEBACK20 discount code instead of random generation
 - ✅ **Website Extraction Bug Fix** - Fixed false positive in placeholder detection where "coming soon" in event content was incorrectly flagging legitimate sites as placeholders. Made detection more specific to only trigger on actual placeholder sites (title contains "coming soon" OR specific placeholder phrases OR minimal content)
 - ✅ **P0 Build Error Fix** - Added missing Supabase environment variables (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY) to Vercel deployment settings, resolving production build failures
 - ✅ **Error Handling Enhancement** - Comprehensive error messages, retry options, fallback handling with network-specific detection, input validation, and user journey tracking
@@ -145,6 +147,8 @@ Web app that generates brand style guides from website URLs using AI to extract 
 ### Abandoned Cart System Implementation (Jan 2025)
 - **Session bridging is critical** - Use Stripe's `client_reference_id` to link early email capture with payment completion
 - **Vercel Cron > in-memory schedulers** - Server restarts kill in-memory jobs; Vercel Cron is persistent and reliable
+- **Vercel Cron only runs on Production** - Preview/development deployments don't execute cron jobs; test manually or deploy to Production
+- **Use fixed discount codes** - Don't generate random codes; use consistent Stripe coupon code like COMEBACK20 for tracking and consistency
 - **Duplicate prevention essential** - Database flag (`abandoned_email_sent`) prevents spam; mark as sent after successful email
 - **Progressive disclosure UX works** - Email field appears when form is ready, not on page load - reduces cognitive load
 - **Founder-style emails convert better** - Personal tone ("I get it - take your time") outperforms corporate messaging
