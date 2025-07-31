@@ -5,11 +5,9 @@ import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { track } from "@vercel/analytics"
-import { validateInput, sanitizeInput } from "@/lib/input-utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   FileText,
@@ -20,6 +18,7 @@ import {
   FileCode,
   Brain,
   Globe,
+  Sparkles,
   Loader2,
   AlertTriangle,
   Users,
@@ -31,6 +30,7 @@ import {
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import dynamic from "next/dynamic"
+import { validateInput, sanitizeInput } from "@/lib/input-utils"
 import BrandBanner from "@/components/BrandBanner"
 import Logo from "@/components/Logo"
 import Header from "@/components/Header"
@@ -49,10 +49,10 @@ const SHOW_NIKE_DEMO_CTA = false;
 export default function LandingPage() {
   const router = useRouter()
   const { toast } = useToast()
-  const [isExtracting, setIsExtracting] = useState(false)
   const [url, setUrl] = useState("")
   const [error, setError] = useState("")
-  const [errorType, setErrorType] = useState<string | null>(null)
+  const [errorType, setErrorType] = useState<string | null>(null) // Track error type for styling
+  const [isExtracting, setIsExtracting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
 
   // Lazy load non-critical sections
@@ -66,7 +66,7 @@ export default function LandingPage() {
     loading: () => <div className="w-full py-6 bg-muted"></div>,
   })
 
-  // Enhanced error classification for better UX
+  // Classify error types for better UX
   const classifyError = (error: any, response?: Response): { type: string; message: string } => {
     const errorMessage = error?.message || error || "Unknown error"
     
@@ -78,50 +78,116 @@ export default function LandingPage() {
       timestamp: new Date().toISOString()
     })
 
-    // Network and timeout errors
-    if (errorMessage.includes('timeout') || errorMessage.includes('took too long')) {
-      return { type: 'TIMEOUT', message: "Site took too long to respond. Try again or add details manually." }
+    // Network-specific errors
+    if (error?.name === 'AbortError' || errorMessage.includes('timeout')) {
+      return {
+        type: 'TIMEOUT',
+        message: "Site didn't respond. Try again or add details manually."
+      }
     }
     
-    if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
-      return { type: 'NETWORK', message: "Can't reach this site. Check the URL or try again later." }
+    if (errorMessage.includes('fetch') || errorMessage.includes('network') || errorMessage.includes('Failed to fetch')) {
+      return {
+        type: 'NETWORK',
+        message: "Can't reach this site. Try again later."
+      }
     }
     
-    if (errorMessage.includes('SSL') || errorMessage.includes('certificate') || errorMessage.includes('security')) {
-      return { type: 'SECURITY', message: "Site has security issues. Try adding details manually." }
+    if (errorMessage.includes('SSL') || errorMessage.includes('certificate') || errorMessage.includes('CERT')) {
+      return {
+        type: 'SSL',
+        message: "Site has security issues. Add details manually."
+      }
     }
-    
-    // Service and AI errors
-    if (errorMessage.includes('AI service') || errorMessage.includes('OpenAI') || errorMessage.includes('model')) {
-      return { type: 'AI_SERVICE', message: "AI service temporarily unavailable. Please try again later." }
+
+    // API-specific errors based on response
+    if (response?.status === 429) {
+      return {
+        type: 'RATE_LIMIT',
+        message: "AI is overloaded. Try again in a few minutes."
+      }
     }
-    
-    if (errorMessage.includes('analysis') || errorMessage.includes('extraction')) {
-      return { type: 'ANALYSIS_FAILED', message: "Can't analyze this content. Try adding details manually." }
+
+    if (response?.status === 402 || errorMessage.includes('quota') || errorMessage.includes('billing')) {
+      return {
+        type: 'QUOTA_EXCEEDED',
+        message: "AI unavailable. Try again later."
+      }
     }
-    
-    // Content-specific errors  
-    if (errorMessage.includes('login') || errorMessage.includes('authentication')) {
-      return { type: 'LOGIN_REQUIRED', message: "Site requires login. Try adding details manually." }
+
+    if (errorMessage.includes('content policy') || errorMessage.includes('safety') || errorMessage.includes('inappropriate')) {
+      return {
+        type: 'CONTENT_POLICY',
+        message: "Couldnt analyze content. Add details manually."
+      }
     }
-    
+
+    // Website content issues
     if (errorMessage.includes('javascript') || errorMessage.includes('dynamic content')) {
-      return { type: 'JAVASCRIPT_SITE', message: "Site loads content dynamically. Add brand details manually." }
+      return {
+        type: 'JAVASCRIPT_SITE',
+        message: "Site uses dynamic content. Add details manually."
+      }
     }
-    
-    if (errorMessage.includes('test') || errorMessage.includes('example') || errorMessage.includes('placeholder')) {
-      return { type: 'TEST_DOMAIN', message: "This appears to be a test domain. Enter a real website URL." }
+
+    if (errorMessage.includes('login') || errorMessage.includes('authentication') || errorMessage.includes('password')) {
+      return {
+        type: 'LOGIN_REQUIRED',
+        message: "Login required. Add details manually."
+      }
     }
-    
-    if (errorMessage.includes('not enough content') || errorMessage.includes('insufficient')) {
-      return { type: 'INSUFFICIENT_CONTENT', message: "Can't find enough content on this site. Add more details manually." }
+
+    if (errorMessage.includes('no content') || errorMessage.includes('empty') || errorMessage.includes('insufficient content')) {
+      return {
+        type: 'NO_CONTENT',
+        message: "Not enough content. Add details manually."
+      }
     }
-    
-    // Default fallback
-    return { type: 'GENERIC', message: "Problem analyzing site. Try again or add details manually." }
+
+    // Input processing errors
+    if (errorMessage.includes('Invalid URL') || errorMessage.includes('malformed')) {
+      return {
+        type: 'MALFORMED_URL',
+        message: "Check URL format."
+      }
+    }
+
+    if (errorMessage.includes('Description too short') || errorMessage.includes('at least 5 words')) {
+      return {
+        type: 'DESCRIPTION_TOO_SHORT',
+        message: "Please enter at least 5 words to describe your brand"
+      }
+    }
+
+    if (errorMessage.includes('Description is too long') || errorMessage.includes('under 200 characters')) {
+      return {
+        type: 'DESCRIPTION_TOO_LONG',
+        message: "Description is too long. Please keep it under 200 characters"
+      }
+    }
+
+    if (errorMessage.includes('unsupported') || errorMessage.includes('blocked')) {
+      return {
+        type: 'UNSUPPORTED_DOMAIN',
+        message: "Can't access this site type. Add details manually."
+      }
+    }
+
+    if (errorMessage.includes('test domain') || errorMessage.includes('example domain')) {
+      return {
+        type: 'TEST_DOMAIN',
+        message: "This is a test domain. Enter a real site."
+      }
+    }
+
+    // Default error
+    return {
+      type: 'UNKNOWN',
+              message: "Problem analyzing site. Try again or add details manually."
+    }
   }
 
-  // Input validation helper
+  // Input validation using our new utility functions
   const handleInputValidation = (input: string) => {
     const validation = validateInput(input)
     if (!validation.isValid && validation.error) {
@@ -130,25 +196,6 @@ export default function LandingPage() {
     }
     setError("")
     return validation
-  }
-
-  // URL validation function (keep for compatibility)
-  const isValidUrl = (urlString: string): boolean => {
-    try {
-      // If URL is empty, it's valid (user can enter details manually)
-      if (!urlString.trim()) return true
-
-      // Add https:// if missing
-      const urlToCheck = urlString.match(/^https?:\/\//) ? urlString : `https://${urlString}`
-
-      // Try to create a URL object
-      new URL(urlToCheck)
-
-      // Additional validation: must have a domain with at least one dot
-      return urlToCheck.includes(".") && urlToCheck.match(/^https?:\/\/[^.]+\..+/) !== null
-    } catch (e) {
-      return false
-    }
   }
 
   const handleExtraction = async (e: React.FormEvent) => {
@@ -160,7 +207,7 @@ export default function LandingPage() {
     console.log(`[HOMEPAGE] Starting extraction process`)
     const extractionStart = performance.now()
 
-    // Validate input using our enhanced utility
+    // Validate input using our utility
     const validation = handleInputValidation(url)
     if (!validation) return
 
@@ -173,75 +220,71 @@ export default function LandingPage() {
 
     // Handle empty input - navigate to manual entry
     if (validation.inputType === 'empty') {
-      console.log(`[USER_JOURNEY] Empty input - redirecting to manual brand details`)
+      console.log(`[USER_JOURNEY] Empty input - redirecting to manual entry`)
       router.push("/brand-details")
       return
     }
-
-    // Handle description input - process through generation API
-    if (validation.inputType === 'description') {
-      console.log(`[USER_JOURNEY] Description input detected - starting generation flow`)
-      setIsExtracting(true)
-      
-      try {
-        // TODO: Add description generation API call here
-        // For now, redirect to brand details with the description
-        setTimeout(() => {
-          const params = new URLSearchParams({
-            fromExtraction: "true", 
-            description: validation.cleanInput
-          })
-          router.push(`/brand-details?${params.toString()}`)
-        }, 800)
-        return
-      } catch (error) {
-        const { type, message } = classifyError(error)
-        setError(message)
-        setErrorType(type)
-        setIsExtracting(false)
-        return
-      }
-    }
-
-    // Handle URL input - existing extraction logic
+    
     setIsExtracting(true)
-    console.log(`[USER_JOURNEY] URL input detected - starting website extraction`)
+    console.log(`[HOMEPAGE] Starting ${validation.inputType} extraction for: ${validation.cleanInput.substring(0, 50)}...`)
 
     try {
-      // Format the URL if needed (add https:// if missing)
-      let formattedUrl = validation.cleanInput
-      if (!formattedUrl.startsWith("http://") && !formattedUrl.startsWith("https://")) {
-        formattedUrl = "https://" + formattedUrl
+      let response
+      const apiStartTime = performance.now()
+      
+      if (validation.inputType === 'url') {
+        console.log(`[HOMEPAGE] Calling extract-website API (URL mode)`)
+        response = await fetch("/api/extract-website", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: validation.cleanInput }),
+        })
+      } else {
+        console.log(`[HOMEPAGE] Calling extract-website API (description mode)`)
+        response = await fetch("/api/extract-website", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ description: validation.cleanInput }),
+        })
       }
 
-      // Call our API endpoint to extract website info
-      const response = await fetch("/api/extract-website", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ url: formattedUrl }),
-      })
+      const apiTime = performance.now() - apiStartTime
+      console.log(`[PERFORMANCE] API call completed in ${apiTime.toFixed(2)}ms`)
 
       const data = await response.json()
+      console.log(`[HOMEPAGE] API response received:`, {
+        success: data.success,
+        hasName: !!data.brandName,
+        hasDescription: !!data.brandDetailsText,
+        status: response.status,
+        responseTime: apiTime
+      })
 
       if (data.success) {
+        // Save to localStorage with both name and description
+        const brandDetails = {
+          name: data.brandName || "",
+          brandDetailsText: data.brandDetailsText,
+          tone: "friendly" // Default tone
+        }
+        
+        localStorage.setItem("brandDetails", JSON.stringify(brandDetails))
+        console.log(`[USER_JOURNEY] Brand details saved to localStorage:`, {
+          hasName: !!brandDetails.name,
+          descriptionLength: brandDetails.brandDetailsText?.length || 0
+        })
+
         // Show success state briefly before redirecting
         setIsSuccess(true)
         setIsExtracting(false)
 
         const totalTime = performance.now() - extractionStart
-        console.log(`[USER_JOURNEY] Extraction successful after ${totalTime.toFixed(2)}ms - redirecting to brand details`)
+        console.log(`[PERFORMANCE] Total extraction completed in ${totalTime.toFixed(2)}ms`)
+        console.log(`[USER_JOURNEY] Extraction successful - redirecting to brand-details`)
 
         // Navigate to brand details page after a short delay for transition
         setTimeout(() => {
-          // Pass extracted data via URL params (same as start page)
-          const params = new URLSearchParams({
-            fromExtraction: "true",
-            brandName: data.brandName || "",
-            description: data.brandDetailsText || ""
-          })
-          router.push(`/brand-details?${params.toString()}`)
+          router.push("/brand-details?fromExtraction=true")
         }, 800)
       } else {
         // Classify and show specific error
@@ -256,9 +299,10 @@ export default function LandingPage() {
           status: response.status
         })
 
-        // Reset loading states
+        // Reset states
         setIsExtracting(false)
         setIsSuccess(false)
+
         console.log(`[USER_JOURNEY] Error occurred - staying on homepage for retry`)
         // Don't redirect - let user fix the error and try again
       }
@@ -281,6 +325,8 @@ export default function LandingPage() {
       // Reset states
       setIsExtracting(false)
       setIsSuccess(false)
+
+      console.log(`[USER_JOURNEY] Exception occurred - staying on homepage for retry`)
     }
   }
 
@@ -308,28 +354,23 @@ export default function LandingPage() {
 
               <form onSubmit={handleExtraction} className="w-full max-w-2xl">
                 {/* Minimal input + button layout, no color */}
-                <div className="relative w-full max-w-2xl mx-auto mt-4 mb-6 p-1 rounded-full bg-white border border-gray-200 shadow-sm">
-                  <div className="flex items-center w-full bg-white rounded-full overflow-hidden">
+                <div className="relative w-full max-w-2xl mx-auto mt-4 mb-6 p-1 rounded-xl bg-white border border-gray-200 shadow-sm">
+                  <div className="flex items-center w-full bg-white rounded-xl overflow-hidden">
                     <div className="relative flex-1">
                       <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <Globe className="h-6 w-6 text-gray-400 transition-colors duration-200" />
+                        <Sparkles className="h-6 w-6 text-gray-400 transition-colors duration-200" />
                       </div>
-                      <Input
+                      <input
                         type="text"
-                        placeholder="e.g. nike.com or coffee shop in Portland"
-                        className={`pl-12 pr-4 sm:pr-40 py-6 text-lg font-sans font-medium bg-transparent border-none focus:ring-0 focus:outline-none placeholder:text-gray-400 placeholder:font-medium placeholder:text-base w-full transition-all duration-200 ${error ? "ring-2 ring-red-500" : ""} ${isSuccess ? "ring-2 ring-green-500 bg-green-50" : ""}`}
+                        placeholder="Enter the URL or add a short description"
+                        className={`pl-12 pr-4 py-3 text-base font-sans font-medium bg-transparent border-none focus:ring-0 focus:outline-none placeholder:text-gray-400 placeholder:font-medium placeholder:text-sm w-full transition-all duration-200 ${error ? "ring-2 ring-red-500" : ""} ${isSuccess ? "ring-2 ring-green-500 bg-green-50" : ""}`}
                         value={url}
                         onChange={(e) => {
-                          // Use enhanced input sanitization
                           const sanitizedValue = sanitizeInput(e.target.value, url)
                           setUrl(sanitizedValue)
-                          if (error) setError("")
-                          if (errorType) setErrorType(null)
-                        }}
-                        onKeyDown={(e) => {
-                          // Prevent space key
-                          if (e.key === ' ') {
-                            e.preventDefault()
+                          if (error) {
+                            setError("")
+                            setErrorType(null)
                           }
                         }}
                         autoCapitalize="none"
@@ -338,20 +379,20 @@ export default function LandingPage() {
                         inputMode="url"
                         disabled={isExtracting || isSuccess}
                         aria-label="Website URL"
+                        aria-describedby={error ? "input-error" : undefined}
                         style={{ boxShadow: 'none' }}
                       />
                     </div>
                     <Button
                       type="submit"
                       size="lg"
-                      className={`h-10 sm:h-12 px-6 sm:px-8 rounded-full bg-gray-100 text-gray-800 font-medium text-base sm:text-lg shadow-none hover:bg-gray-200 focus:bg-gray-200 transition-all duration-200 z-10 ${isSuccess ? "bg-green-500 hover:bg-green-600 text-white" : ""}`}
+                      className={`h-12 px-4 sm:px-6 rounded-lg bg-black text-white font-semibold text-sm sm:text-base shadow-none hover:bg-gray-800 focus:bg-gray-800 focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 transition-all duration-200 z-10 ${isSuccess ? "bg-green-500 hover:bg-green-600 text-white focus:ring-green-400" : ""}`}
                       disabled={isExtracting || isSuccess}
-                      style={{ borderTopLeftRadius: 9999, borderBottomLeftRadius: 9999 }}
                     >
                       {isExtracting ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                          Checking
+                          Processing
                         </>
                       ) : isSuccess ? (
                         <>
@@ -360,23 +401,31 @@ export default function LandingPage() {
                         </>
                       ) : (
                         <>
-                          <span className="text-xs sm:text-sm md:text-base">Analyze</span> <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+                          <span className="text-xs sm:text-sm md:text-base">Get Started</span> <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
                         </>
                       )}
                     </Button>
                   </div>
-                  {/* Validation message at bottom left */}
+                  
+                  {/* Inline error display */}
                   {error && (
-                    <div className="absolute left-6 -bottom-7 flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-red-600" />
-                      <span className="text-xs text-red-600 font-medium">{error}</span>
+                    <div 
+                      id="input-error" 
+                      className="absolute left-1 -bottom-10 text-red-600 text-sm font-medium flex items-start gap-1 leading-5 max-w-lg"
+                      role="alert"
+                      aria-live="polite"
+                    >
+                      <svg className="h-4 w-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      <span>{error}</span>
                     </div>
                   )}
                   
                   {/* Manual entry link at bottom right outside the container */}
-                  <div className="absolute right-6 -bottom-7">
+                  <div className={`absolute right-6 ${error ? '-bottom-11' : '-bottom-7'}`}>
                     <Link href="/brand-details" className="text-gray-400 underline font-medium text-sm whitespace-nowrap" style={{ textTransform: 'lowercase' }}>
-                      or add detailed brand info
+                      or add brand details manually
                     </Link>
                   </div>
                 </div>
@@ -1201,15 +1250,7 @@ export default function LandingPage() {
                         <span>Multiple export formats</span>
                       </li>
                     </ul>
-                    <Button size="lg" className="mt-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-full px-8 py-3 shadow-md" onClick={() => {
-                      // Track pricing card click
-                      track('Pricing Card Clicked', { 
-                        guideType: 'core',
-                        price: 99,
-                        location: 'homepage-pricing'
-                      });
-                      router.push("/brand-details");
-                    }}>Get Core Guide</Button>
+                    <Button size="lg" className="mt-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-full px-8 py-3 shadow-md" onClick={() => router.push("/brand-details")}>Get Core Guide</Button>
                     
                     {/* Add guarantee */}
                     <div className="flex items-center justify-center gap-2 text-xs text-green-600 mt-3">
@@ -1239,15 +1280,7 @@ export default function LandingPage() {
                       <li className="flex items-center gap-2"><Check className="h-4 w-4 text-indigo-600" />Multiple download formats</li>
                       <li className="flex items-center gap-2"><Check className="h-4 w-4 text-indigo-600" />Best for agencies & larger teams</li>
                     </ul>
-                    <Button size="lg" className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-full px-8 py-3 shadow-md" onClick={() => {
-                      // Track pricing card click
-                      track('Pricing Card Clicked', { 
-                        guideType: 'complete',
-                        price: 149,
-                        location: 'homepage-pricing'
-                      });
-                      router.push("/brand-details?guideType=complete");
-                    }}>Get Complete Guide</Button>
+                    <Button size="lg" className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-full px-8 py-3 shadow-md" onClick={() => router.push("/brand-details?guideType=complete")}>Get Complete Guide</Button>
                     
                     {/* Add guarantee */}
                     <div className="flex items-center justify-center gap-2 text-xs text-green-600 mt-3">
@@ -1296,15 +1329,9 @@ export default function LandingPage() {
                         <span className="text-white">Priority support</span>
                       </li>
                     </ul>
-                    <Button size="lg" className="mt-2 bg-white hover:bg-gray-200 text-black font-bold rounded-full px-8 py-3 shadow-md" variant="outline" onClick={() => {
-                      // Track enterprise contact click
-                      track('Pricing Card Clicked', { 
-                        guideType: 'enterprise',
-                        price: 'custom',
-                        location: 'homepage-pricing'
-                      });
-                      window.location.href = 'mailto:enterprise@styleguideai.com';
-                    }}>Contact Sales</Button>
+                    <Button size="lg" className="mt-2 bg-white hover:bg-gray-200 text-black font-bold rounded-full px-8 py-3 shadow-md" variant="outline" asChild>
+                      <Link href="mailto:enterprise@styleguideai.com">Contact Sales</Link>
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
