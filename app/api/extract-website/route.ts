@@ -109,16 +109,61 @@ export async function POST(request: Request) {
     const body = await request.json()
     Logger.debug("Request body", { body })
 
-    if (!body.url) {
-      Logger.error("Missing URL in request")
+    // Check if we have either URL or description
+    if (!body.url && !body.description) {
+      Logger.error("Missing URL or description in request")
       return NextResponse.json(
         {
           success: false,
-          message: "URL is required",
-          error: "Missing required field: url",
+          message: "URL or description is required",
+          error: "Missing required field: url or description",
         },
         { status: 400 }
       )
+    }
+
+    // If description provided, generate brand details directly from description
+    if (body.description && !body.url) {
+      Logger.info("Processing description input", { descriptionLength: body.description.length })
+      
+      const prompt = `Based on this business description: "${body.description}"
+
+Extract brand details in this exact JSON format:
+{
+  "name": "business name (extract or infer if mentioned)",
+  "industry": "specific industry",
+  "description": "detailed business description",
+  "values": ["value1", "value2", "value3"],
+  "targetAudience": "detailed description of target audience",
+  "tone": "brand communication tone",
+  "competitors": ["competitor1", "competitor2"],
+  "uniqueSellingPoints": ["point1", "point2", "point3"]
+}`
+
+      try {
+        const result = await generateWithOpenAI(prompt, "You are a brand analysis expert.", "json", 800, "gpt-4o")
+        
+        if (result.success && result.content) {
+          const brandDetails = JSON.parse(result.content)
+          Logger.info("Successfully generated brand details from description")
+          
+          return NextResponse.json({
+            success: true,
+            brandName: brandDetails.name,
+            brandDetailsText: brandDetails.description,
+            extractedData: brandDetails
+          })
+        } else {
+          throw new Error("Failed to generate brand details")
+        }
+      } catch (error) {
+        Logger.error("Error processing description", error)
+        return NextResponse.json({
+          success: false,
+          message: "Could not process description. Try again or add details manually.",
+          error: "Description processing failed"
+        }, { status: 500 })
+      }
     }
 
     // Sanitize and validate the URL
