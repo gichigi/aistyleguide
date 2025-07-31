@@ -6,6 +6,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { track } from "@vercel/analytics"
+import { validateInput, sanitizeInput } from "@/lib/input-utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -51,6 +52,7 @@ export default function LandingPage() {
   const [isExtracting, setIsExtracting] = useState(false)
   const [url, setUrl] = useState("")
   const [error, setError] = useState("")
+  const [errorType, setErrorType] = useState<string | null>(null)
   const [isSuccess, setIsSuccess] = useState(false)
 
   // Lazy load non-critical sections
@@ -64,7 +66,73 @@ export default function LandingPage() {
     loading: () => <div className="w-full py-6 bg-muted"></div>,
   })
 
-  // URL validation function
+  // Enhanced error classification for better UX
+  const classifyError = (error: any, response?: Response): { type: string; message: string } => {
+    const errorMessage = error?.message || error || "Unknown error"
+    
+    console.error(`[HOMEPAGE] Error classification:`, {
+      errorMessage,
+      errorName: error?.name,
+      responseStatus: response?.status,
+      responseStatusText: response?.statusText,
+      timestamp: new Date().toISOString()
+    })
+
+    // Network and timeout errors
+    if (errorMessage.includes('timeout') || errorMessage.includes('took too long')) {
+      return { type: 'TIMEOUT', message: "Site took too long to respond. Try again or add details manually." }
+    }
+    
+    if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+      return { type: 'NETWORK', message: "Can't reach this site. Check the URL or try again later." }
+    }
+    
+    if (errorMessage.includes('SSL') || errorMessage.includes('certificate') || errorMessage.includes('security')) {
+      return { type: 'SECURITY', message: "Site has security issues. Try adding details manually." }
+    }
+    
+    // Service and AI errors
+    if (errorMessage.includes('AI service') || errorMessage.includes('OpenAI') || errorMessage.includes('model')) {
+      return { type: 'AI_SERVICE', message: "AI service temporarily unavailable. Please try again later." }
+    }
+    
+    if (errorMessage.includes('analysis') || errorMessage.includes('extraction')) {
+      return { type: 'ANALYSIS_FAILED', message: "Can't analyze this content. Try adding details manually." }
+    }
+    
+    // Content-specific errors  
+    if (errorMessage.includes('login') || errorMessage.includes('authentication')) {
+      return { type: 'LOGIN_REQUIRED', message: "Site requires login. Try adding details manually." }
+    }
+    
+    if (errorMessage.includes('javascript') || errorMessage.includes('dynamic content')) {
+      return { type: 'JAVASCRIPT_SITE', message: "Site loads content dynamically. Add brand details manually." }
+    }
+    
+    if (errorMessage.includes('test') || errorMessage.includes('example') || errorMessage.includes('placeholder')) {
+      return { type: 'TEST_DOMAIN', message: "This appears to be a test domain. Enter a real website URL." }
+    }
+    
+    if (errorMessage.includes('not enough content') || errorMessage.includes('insufficient')) {
+      return { type: 'INSUFFICIENT_CONTENT', message: "Can't find enough content on this site. Add more details manually." }
+    }
+    
+    // Default fallback
+    return { type: 'GENERIC', message: "Problem analyzing site. Try again or add details manually." }
+  }
+
+  // Input validation helper
+  const handleInputValidation = (input: string) => {
+    const validation = validateInput(input)
+    if (!validation.isValid && validation.error) {
+      setError(validation.error)
+      return false
+    }
+    setError("")
+    return validation
+  }
+
+  // URL validation function (keep for compatibility)
   const isValidUrl = (urlString: string): boolean => {
     try {
       // If URL is empty, it's valid (user can enter details manually)
@@ -86,29 +154,62 @@ export default function LandingPage() {
   const handleExtraction = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
-
-    // Reset states at the start
+    setErrorType(null)
     setIsSuccess(false)
-    setIsExtracting(false)
+    
+    console.log(`[HOMEPAGE] Starting extraction process`)
+    const extractionStart = performance.now()
 
-    if (!url.trim()) {
-      // If no URL, just navigate to brand details
+    // Validate input using our enhanced utility
+    const validation = handleInputValidation(url)
+    if (!validation) return
+
+    console.log(`[HOMEPAGE] Input validation passed:`, {
+      inputType: validation.inputType,
+      cleanInput: validation.cleanInput.substring(0, 100) + '...',
+      originalLength: url.length,
+      cleanLength: validation.cleanInput.length
+    })
+
+    // Handle empty input - navigate to manual entry
+    if (validation.inputType === 'empty') {
+      console.log(`[USER_JOURNEY] Empty input - redirecting to manual brand details`)
       router.push("/brand-details")
       return
     }
 
-    // Validate URL
-    if (!isValidUrl(url)) {
-      setError("Please enter a valid URL (e.g., example.com)")
-      return
+    // Handle description input - process through generation API
+    if (validation.inputType === 'description') {
+      console.log(`[USER_JOURNEY] Description input detected - starting generation flow`)
+      setIsExtracting(true)
+      
+      try {
+        // TODO: Add description generation API call here
+        // For now, redirect to brand details with the description
+        setTimeout(() => {
+          const params = new URLSearchParams({
+            fromExtraction: "true", 
+            description: validation.cleanInput
+          })
+          router.push(`/brand-details?${params.toString()}`)
+        }, 800)
+        return
+      } catch (error) {
+        const { type, message } = classifyError(error)
+        setError(message)
+        setErrorType(type)
+        setIsExtracting(false)
+        return
+      }
     }
 
-    // Show loading state
+    // Handle URL input - existing extraction logic
     setIsExtracting(true)
+    console.log(`[USER_JOURNEY] URL input detected - starting website extraction`)
 
     try {
       // Format the URL if needed (add https:// if missing)
-      let formattedUrl = url.trim()
+      let formattedUrl = validation.cleanInput
       if (!formattedUrl.startsWith("http://") && !formattedUrl.startsWith("https://")) {
         formattedUrl = "https://" + formattedUrl
       }
@@ -129,6 +230,9 @@ export default function LandingPage() {
         setIsSuccess(true)
         setIsExtracting(false)
 
+        const totalTime = performance.now() - extractionStart
+        console.log(`[USER_JOURNEY] Extraction successful after ${totalTime.toFixed(2)}ms - redirecting to brand details`)
+
         // Navigate to brand details page after a short delay for transition
         setTimeout(() => {
           // Pass extracted data via URL params (same as start page)
@@ -140,29 +244,39 @@ export default function LandingPage() {
           router.push(`/brand-details?${params.toString()}`)
         }, 800)
       } else {
-        // Show error toast but still navigate
-        toast({
-          title: "Website analysis issue",
-          description: data.message,
-          variant: "destructive",
+        // Classify and show specific error
+        const { type, message } = classifyError(data, response)
+        setError(message)
+        setErrorType(type)
+
+        console.error(`[HOMEPAGE] API returned error:`, {
+          errorType: type,
+          message: data.message,
+          originalError: data.error,
+          status: response.status
         })
 
-        // Reset states
+        // Reset loading states
         setIsExtracting(false)
         setIsSuccess(false)
-
-        // Navigate to brand details page
-        router.push("/brand-details")
+        console.log(`[USER_JOURNEY] Error occurred - staying on homepage for retry`)
+        // Don't redirect - let user fix the error and try again
       }
     } catch (error) {
-      console.error("Error extracting website info:", error)
-      setError("There was a problem analyzing this website. Please try again or enter details manually.")
-
-      toast({
-        title: "Error",
-        description: "There was a problem analyzing this website. Please try again or enter details manually.",
-        variant: "destructive",
+      const totalTime = performance.now() - extractionStart
+      const { type, message } = classifyError(error)
+      
+      console.error(`[HOMEPAGE] Extraction failed after ${totalTime.toFixed(2)}ms:`, {
+        errorType: type,
+        originalError: error,
+        inputType: validation?.inputType,
+        url: validation?.cleanInput?.substring(0, 100),
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server',
+        timestamp: new Date().toISOString()
       })
+
+      setError(message)
+      setErrorType(type)
 
       // Reset states
       setIsExtracting(false)
@@ -202,14 +316,15 @@ export default function LandingPage() {
                       </div>
                       <Input
                         type="text"
-                        placeholder="e.g. nike.com"
+                        placeholder="e.g. nike.com or coffee shop in Portland"
                         className={`pl-12 pr-4 sm:pr-40 py-6 text-lg font-sans font-medium bg-transparent border-none focus:ring-0 focus:outline-none placeholder:text-gray-400 placeholder:font-medium placeholder:text-base w-full transition-all duration-200 ${error ? "ring-2 ring-red-500" : ""} ${isSuccess ? "ring-2 ring-green-500 bg-green-50" : ""}`}
                         value={url}
                         onChange={(e) => {
-                          // Remove spaces from input
-                          const cleanedValue = e.target.value.replace(/\s/g, '')
-                          setUrl(cleanedValue)
+                          // Use enhanced input sanitization
+                          const sanitizedValue = sanitizeInput(e.target.value, url)
+                          setUrl(sanitizedValue)
                           if (error) setError("")
+                          if (errorType) setErrorType(null)
                         }}
                         onKeyDown={(e) => {
                           // Prevent space key
@@ -261,7 +376,7 @@ export default function LandingPage() {
                   {/* Manual entry link at bottom right outside the container */}
                   <div className="absolute right-6 -bottom-7">
                     <Link href="/brand-details" className="text-gray-400 underline font-medium text-sm whitespace-nowrap" style={{ textTransform: 'lowercase' }}>
-                      or add brand details manually
+                      or add detailed brand info
                     </Link>
                   </div>
                 </div>
