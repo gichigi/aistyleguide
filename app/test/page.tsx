@@ -12,7 +12,7 @@ import { FileText, Loader2, Download, Check, X } from "lucide-react"
 import { generateFile, FileFormat } from "@/lib/file-generator"
 import { useToast } from "@/hooks/use-toast"
 import Header from "@/components/Header"
-// Removed MarkdownRenderer import - using dangerouslySetInnerHTML instead
+import { MarkdownRenderer } from "@/components/MarkdownRenderer"
 
 const MODELS = [
   { label: "GPT-4o", value: "gpt-4o" },
@@ -203,13 +203,13 @@ export default function TestPage() {
               <div>
                 <h3 className="font-semibold mb-2 text-red-700">❌ OLD: dangerouslySetInnerHTML</h3>
                 <div className="prose prose-slate max-w-none border p-4 bg-red-50 rounded">
-                  <div dangerouslySetInnerHTML={{ __html: testMarkdown.replace(/\n/g, '<br/>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
+                  <div className="text-red-600">Raw HTML (broken): {testMarkdown}</div>
                 </div>
               </div>
               <div>
                 <h3 className="font-semibold mb-2 text-green-700">✅ NEW: MarkdownRenderer</h3>
                 <div className="border p-4 bg-white rounded">
-                  <div dangerouslySetInnerHTML={{ __html: testMarkdown }} />
+                  <MarkdownRenderer content={testMarkdown} className="prose prose-slate max-w-none" />
                 </div>
               </div>
             </div>
@@ -293,9 +293,9 @@ export default function TestPage() {
               {isLoading && <Progress value={log.length * 33} className="mb-4" />}
               {output ? (
                 <div id="pdf-content" className="mb-6">
-                  <div 
+                  <MarkdownRenderer 
                     className="prose prose-slate dark:prose-invert max-w-none"
-                    dangerouslySetInnerHTML={{ __html: output }} 
+                    content={output} 
                   />
                 </div>
               ) : (

@@ -20,7 +20,7 @@ import styled from "styled-components"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Logo from "@/components/Logo"
 import { StyleGuideHeader } from "@/components/StyleGuideHeader"
-// Removed MarkdownRenderer import - using dangerouslySetInnerHTML instead
+import { MarkdownRenderer } from "@/components/MarkdownRenderer"
 
 // Add fade-out effect before paywall
 const ContentWithFadeout = styled.div`
@@ -444,9 +444,9 @@ export default function PreviewPage() {
             <div className="p-8 bg-white">
               <div className="max-w-2xl mx-auto space-y-12">
                 <ContentWithFadeout>
-                  <div 
+                  <MarkdownRenderer 
                     className="prose prose-slate dark:prose-invert max-w-none style-guide-content prose-sm sm:prose-base"
-                    dangerouslySetInnerHTML={{ __html: previewContent || "" }}
+                    content={previewContent || ""}
                   />
                 </ContentWithFadeout>
 

@@ -5,6 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { track } from "@vercel/analytics"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 
@@ -1250,7 +1251,14 @@ export default function LandingPage() {
                         <span>Multiple export formats</span>
                       </li>
                     </ul>
-                    <Button size="lg" className="mt-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-full px-8 py-3 shadow-md" onClick={() => router.push("/brand-details")}>Get Core Guide</Button>
+                    <Button size="lg" className="mt-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-full px-8 py-3 shadow-md" onClick={() => {
+                      track('Pricing Card Clicked', {
+                        guideType: 'core',
+                        price: 99,
+                        location: 'homepage'
+                      });
+                      router.push("/brand-details");
+                    }}>Get Core Guide</Button>
                     
                     {/* Add guarantee */}
                     <div className="flex items-center justify-center gap-2 text-xs text-green-600 mt-3">
@@ -1280,7 +1288,14 @@ export default function LandingPage() {
                       <li className="flex items-center gap-2"><Check className="h-4 w-4 text-indigo-600" />Multiple download formats</li>
                       <li className="flex items-center gap-2"><Check className="h-4 w-4 text-indigo-600" />Best for agencies & larger teams</li>
                     </ul>
-                    <Button size="lg" className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-full px-8 py-3 shadow-md" onClick={() => router.push("/brand-details?guideType=complete")}>Get Complete Guide</Button>
+                    <Button size="lg" className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-full px-8 py-3 shadow-md" onClick={() => {
+                      track('Pricing Card Clicked', {
+                        guideType: 'complete',
+                        price: 149,
+                        location: 'homepage'
+                      });
+                      router.push("/brand-details?guideType=complete");
+                    }}>Get Complete Guide</Button>
                     
                     {/* Add guarantee */}
                     <div className="flex items-center justify-center gap-2 text-xs text-green-600 mt-3">
