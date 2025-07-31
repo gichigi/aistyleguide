@@ -109,16 +109,63 @@ export async function POST(request: Request) {
     const body = await request.json()
     Logger.debug("Request body", { body })
 
-    if (!body.url) {
-      Logger.error("Missing URL in request")
+    // Check if we have either URL or description
+    if (!body.url && !body.description) {
+      Logger.error("Missing URL or description in request")
       return NextResponse.json(
         {
           success: false,
-          message: "URL is required",
-          error: "Missing required field: url",
+          message: "URL or description is required",
+          error: "Missing required field: url or description",
         },
         { status: 400 }
       )
+    }
+
+    // If description provided, generate brand details directly from description
+    if (body.description && !body.url) {
+      Logger.info("Processing description input", { descriptionLength: body.description.length })
+      
+      const prompt = `Based on this business description: "${body.description}"
+
+Extract and expand brand details in this exact JSON format:
+{
+  "name": "business name (if mentioned, extract exactly; if not mentioned, create a creative, memorable name that fits the business)",
+  "industry": "specific industry category",
+  "description": "rich, detailed business description (300-450 characters) that expands on the original input with specific details about what they do, their approach, and what makes them special",
+  "values": ["core value 1", "core value 2", "core value 3"],
+  "targetAudience": "detailed description of their ideal customers, including demographics, needs, and characteristics",
+  "tone": "brand communication tone that fits their business style",
+  "competitors": ["relevant competitor 1", "relevant competitor 2", "relevant competitor 3"],
+  "uniqueSellingPoints": ["specific differentiator 1", "specific differentiator 2", "specific differentiator 3"]
+}
+
+Important: Make the description rich and detailed (300-450 chars) while staying true to the original business concept.`
+
+      try {
+        const result = await generateWithOpenAI(prompt, "You are a brand analysis expert.", "json", 800, "gpt-4o")
+        
+        if (result.success && result.content) {
+          const brandDetails = JSON.parse(result.content)
+          Logger.info("Successfully generated brand details from description")
+          
+          return NextResponse.json({
+            success: true,
+            brandName: brandDetails.name,
+            brandDetailsText: brandDetails.description,
+            extractedData: brandDetails
+          })
+        } else {
+          throw new Error("Failed to generate brand details")
+        }
+      } catch (error) {
+        Logger.error("Error processing description", error)
+        return NextResponse.json({
+          success: false,
+          message: "Could not process description. Try again or add details manually.",
+          error: "Description processing failed"
+        }, { status: 500 })
+      }
     }
 
     // Sanitize and validate the URL

@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast"
 import { generateFile, FileFormat } from "@/lib/file-generator"
 import Header from "@/components/Header"
 import { StyleGuideHeader } from "@/components/StyleGuideHeader"
-import { MarkdownRenderer } from "@/components/MarkdownRenderer"
+// Removed MarkdownRenderer import - using dangerouslySetInnerHTML instead
 import { ErrorMessage } from "@/components/ui/error-message"
 import { createErrorDetails, ErrorDetails } from "@/lib/api-utils"
 
@@ -530,9 +530,9 @@ function FullAccessContent() {
                 )}
                 
                 <div className={`max-w-2xl mx-auto space-y-12 transition-opacity duration-300 ${isRetrying ? 'opacity-50' : 'opacity-100'}`}>
-                  <MarkdownRenderer 
-                    content={guideContent} 
-                    className="prose-slate dark:prose-invert max-w-none style-guide-content prose-sm sm:prose-base" 
+                  <div 
+                    className="prose prose-slate dark:prose-invert max-w-none style-guide-content prose-sm sm:prose-base"
+                    dangerouslySetInnerHTML={{ __html: guideContent }}
                   />
                 </div>
               </div>
