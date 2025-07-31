@@ -12,7 +12,7 @@ import { FileText, Loader2, Download, Check, X } from "lucide-react"
 import { generateFile, FileFormat } from "@/lib/file-generator"
 import { useToast } from "@/hooks/use-toast"
 import Header from "@/components/Header"
-import { MarkdownRenderer } from "@/components/MarkdownRenderer"
+// Removed MarkdownRenderer import - using dangerouslySetInnerHTML instead
 
 const MODELS = [
   { label: "GPT-4o", value: "gpt-4o" },
@@ -209,7 +209,7 @@ export default function TestPage() {
               <div>
                 <h3 className="font-semibold mb-2 text-green-700">✅ NEW: MarkdownRenderer</h3>
                 <div className="border p-4 bg-white rounded">
-                  <MarkdownRenderer content={testMarkdown} />
+                  <div dangerouslySetInnerHTML={{ __html: testMarkdown }} />
                 </div>
               </div>
             </div>
@@ -293,7 +293,10 @@ export default function TestPage() {
               {isLoading && <Progress value={log.length * 33} className="mb-4" />}
               {output ? (
                 <div id="pdf-content" className="mb-6">
-                  <MarkdownRenderer content={output} className="prose-slate dark:prose-invert max-w-none" />
+                  <div 
+                    className="prose prose-slate dark:prose-invert max-w-none"
+                    dangerouslySetInnerHTML={{ __html: output }} 
+                  />
                 </div>
               ) : (
                 <div className="text-gray-400 italic">No output yet. Run a test to see results.</div>
