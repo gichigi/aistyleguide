@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Slider } from "@/components/ui/slider"
 import Link from "next/link"
 import { ArrowLeft, FileText, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -16,15 +17,19 @@ import { useToast } from "@/hooks/use-toast"
 import { useSearchParams } from "next/navigation"
 import Logo from "@/components/Logo"
 import Header from "@/components/Header"
+import VoiceTraitSelector from "@/components/VoiceTraitSelector"
 import { getBrandName } from "@/lib/utils"
 import { createErrorDetails } from "@/lib/api-utils"
 import { ErrorMessage } from "@/components/ui/error-message"
 
-// Default brand details - standardized structure
+// Enhanced brand details structure
 const defaultBrandDetails = {
-  brandName: "",
-  description: "",
-  tone: "friendly",
+  name: "",
+  brandDetailsText: "",
+  englishVariant: "american" as "american" | "british",
+  formalityLevel: "Neutral",
+  readingLevel: "6-8" as "6-8" | "10-12" | "13+",
+  tone: "friendly", // Keep for backward compatibility
 }
 
 // Inline brand name extraction function
@@ -43,6 +48,12 @@ export default function BrandDetailsPage() {
   const [paymentComplete, setPaymentComplete] = useState(false)
   const [fadeIn, setFadeIn] = useState(false)
   const [showCharCount, setShowCharCount] = useState(false)
+
+  // Enhanced state for voice traits and email capture
+  const [selectedTraits, setSelectedTraits] = useState<string[]>([])
+  const [showEmailCapture, setShowEmailCapture] = useState(false)
+  const [email, setEmail] = useState("")
+  const [sessionToken, setSessionToken] = useState<string | null>(null)
 
   // Initialize state with default values to ensure inputs are always controlled
   const [brandDetails, setBrandDetails] = useState({ ...defaultBrandDetails })
@@ -130,6 +141,103 @@ export default function BrandDetailsPage() {
     }
   }, [searchParams])
 
+  // Session management for email capture
+  useEffect(() => {
+    // Generate or retrieve session token for tracking
+    let token = localStorage.getItem("sessionToken")
+    if (!token) {
+      token = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+      localStorage.setItem("sessionToken", token)
+    }
+    setSessionToken(token)
+  }, [])
+
+  // Email capture and abandoned cart logic
+  const handleEmailChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEmail(value);
+    
+    // Save email capture data to localStorage (for immediate UI)
+    if (value.trim() && sessionToken) {
+      const emailCaptureData = {
+        sessionToken,
+        email: value.trim(),
+        capturedAt: Date.now(),
+        brandDetails,
+        paymentCompleted: false,
+        emailsSent: []
+      };
+      localStorage.setItem("emailCapture", JSON.stringify(emailCaptureData));
+      
+      // Also save to server-side for abandoned cart tracking
+      try {
+        console.log('[Email Capture Client] Starting server-side storage...', {
+          sessionToken: sessionToken?.substring(0, 8) + '***',
+          email: value.trim().substring(0, 3) + '***',
+          timestamp: new Date().toISOString()
+        });
+        
+        const response = await fetch('/api/capture-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionToken,
+            email: value.trim()
+          })
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          console.log('[Email Capture Client] Successfully stored server-side:', {
+            success: result.success,
+            captureId: result.captureId,
+            duration: result.duration
+          });
+        } else {
+          const errorText = await response.text();
+          console.error('[Email Capture Client] Failed to store server-side:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorText
+          });
+        }
+      } catch (error) {
+        console.error('[Email Capture Client] Network error storing server-side:', {
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
+        });
+      }
+    } else if (!value.trim()) {
+      localStorage.removeItem("emailCapture");
+    }
+  }
+
+  // Check if core form is ready (without email)
+  const isCoreFormReady = () => {
+    return (
+      !!brandDetails.brandName?.trim() && 
+      !!brandDetails.description?.trim() && 
+      selectedTraits.length === 3
+    )
+  }
+
+  // Show email capture when core form is ready
+  useEffect(() => {
+    const formReady = isCoreFormReady()
+    if (formReady && !showEmailCapture) {
+      setShowEmailCapture(true)
+      // Scroll to email section after a brief delay
+      setTimeout(() => {
+        const emailSection = document.getElementById('email-capture-section')
+        if (emailSection) {
+          emailSection.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }, 300)
+    } else if (!formReady && showEmailCapture) {
+      setShowEmailCapture(false) // Reset if form becomes invalid
+    }
+  }, [brandDetails.name, brandDetails.brandDetailsText, selectedTraits.length])
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     
@@ -180,19 +288,27 @@ export default function BrandDetailsPage() {
     return true;
   }
 
-  // Update handleSelectChange to ensure tone is always set
+  // Enhanced handleSelectChange for all new fields
   const handleSelectChange = (name: string, value: string) => {
     if (name === "tone" && !value) {
       value = "friendly" // Ensure tone always has a value
     }
     
     setBrandDetails((prev) => ({ ...prev, [name]: value }))
+    
+    // Save to localStorage for persistence
+    const updatedDetails = { ...brandDetails, [name]: value }
+    localStorage.setItem("brandDetails", JSON.stringify(updatedDetails))
   }
 
-  // Update isFormValid function
+  // Update isFormValid function to include voice traits requirement
   const isFormValid = () => {
-    // Only require description to be non-empty
-    return !!(brandDetails.description && brandDetails.description.trim().length > 0)
+    // Require description and 3 voice traits
+    return !!(
+      brandDetails.description && 
+      brandDetails.description.trim().length > 0 && 
+      selectedTraits.length === 3
+    )
   }
 
   // Enhanced handleSubmit with retry logic
@@ -200,12 +316,18 @@ export default function BrandDetailsPage() {
       // Use centralized brand name utility
       const brandName = getBrandName(brandDetails)
 
-      // Map the simplified form data to the expected template processor format
+      // Map the enhanced form data to the expected template processor format
       const detailsWithName = { 
         ...brandDetails, 
         name: brandName,
-        // Use description directly
+        // Map description for compatibility
         description: brandDetails.description,
+        brandDetailsText: brandDetails.description, // Also include as brandDetailsText
+        // Include all enhanced fields
+        traits: selectedTraits,
+        englishVariant: brandDetails.englishVariant,
+        formalityLevel: brandDetails.formalityLevel,
+        readingLevel: brandDetails.readingLevel,
         // Set default audience since we no longer collect it separately
         audience: "general audience"
       }
@@ -230,8 +352,9 @@ export default function BrandDetailsPage() {
       // Save brand details and preview
       console.log("[Brand Details] Saving to localStorage:", detailsWithName)
       localStorage.setItem("brandDetails", JSON.stringify(detailsWithName))
+      localStorage.setItem("selectedTraits", JSON.stringify(selectedTraits))
       localStorage.setItem("previewContent", data.preview)
-      console.log("[Brand Details] Successfully saved brand details with extracted name")
+      console.log("[Brand Details] Successfully saved brand details with extracted name and voice traits")
 
     return data
   }
@@ -375,7 +498,91 @@ export default function BrandDetailsPage() {
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {/* Voice Traits Selector */}
+                  <div className="grid gap-2">
+                    <Label>Brand Voice Traits (Choose 3)</Label>
+                    <VoiceTraitSelector onChange={setSelectedTraits} />
+                    <p className="text-xs text-muted-foreground">
+                      Select exactly 3 traits that best describe your brand's personality
+                    </p>
+                  </div>
+
+                  {/* English Variant */}
+                  <div className="grid gap-2">
+                    <Label htmlFor="englishVariant">English variant</Label>
+                    <Select
+                      onValueChange={(value) => handleSelectChange("englishVariant", value)}
+                      value={brandDetails.englishVariant || "american"}
+                      defaultValue="american"
+                    >
+                      <SelectTrigger id="englishVariant" className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="american">American English (color, optimize)</SelectItem>
+                        <SelectItem value="british">British English (colour, optimise)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Formality Level */}
+                  <div className="grid gap-2">
+                    <Label htmlFor="formalityLevel">Formality level</Label>
+                    <Select
+                      onValueChange={(value) => handleSelectChange("formalityLevel", value)}
+                      value={brandDetails.formalityLevel || "Neutral"}
+                      defaultValue="Neutral"
+                    >
+                      <SelectTrigger id="formalityLevel" className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Professional">Professional</SelectItem>
+                        <SelectItem value="Neutral">Neutral</SelectItem>
+                        <SelectItem value="Casual">Casual</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Reading Level */}
+                  <div className="grid gap-2">
+                    <Label htmlFor="readingLevel">Target reading level</Label>
+                    <Select
+                      onValueChange={(value) => handleSelectChange("readingLevel", value)}
+                      value={brandDetails.readingLevel || "6-8"}
+                      defaultValue="6-8"
+                    >
+                      <SelectTrigger id="readingLevel" className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="6-8">Grade 6-8 (General Public)</SelectItem>
+                        <SelectItem value="10-12">Grade 10-12 (Professional)</SelectItem>
+                        <SelectItem value="13+">Grade 13+ (Technical/Academic)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
+
+                {/* Email Capture Section */}
+                {showEmailCapture && (
+                  <div id="email-capture-section" className="grid gap-2 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <Label htmlFor="email">Email (optional)</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      placeholder="your@email.com"
+                      value={email}
+                      onChange={handleEmailChange}
+                      className="text-base p-4 font-medium placeholder:text-gray-400 placeholder:font-medium"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Get updates about your style guide and helpful writing tips (optional)
+                    </p>
+                  </div>
+                )}
                 
                 {/* Show enhanced error message */}
                 {apiError && (
@@ -390,7 +597,7 @@ export default function BrandDetailsPage() {
                 <div className="flex justify-end">
                   <Button 
                     type="submit" 
-                    disabled={loading || !!mainError || !brandDetails.description.trim() || brandDetails.description.length > 500} 
+                    disabled={loading || !!mainError || !isFormValid() || brandDetails.description.length > 500} 
                     className="w-full sm:w-auto"
                   >
                     {processingStep === 'processing' ? (
