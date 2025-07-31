@@ -128,17 +128,19 @@ export async function POST(request: Request) {
       
       const prompt = `Based on this business description: "${body.description}"
 
-Extract brand details in this exact JSON format:
+Extract and expand brand details in this exact JSON format:
 {
-  "name": "business name (extract or infer if mentioned)",
-  "industry": "specific industry",
-  "description": "detailed business description",
-  "values": ["value1", "value2", "value3"],
-  "targetAudience": "detailed description of target audience",
-  "tone": "brand communication tone",
-  "competitors": ["competitor1", "competitor2"],
-  "uniqueSellingPoints": ["point1", "point2", "point3"]
-}`
+  "name": "business name (if mentioned, extract exactly; if not mentioned, create a creative, memorable name that fits the business)",
+  "industry": "specific industry category",
+  "description": "rich, detailed business description (300-450 characters) that expands on the original input with specific details about what they do, their approach, and what makes them special",
+  "values": ["core value 1", "core value 2", "core value 3"],
+  "targetAudience": "detailed description of their ideal customers, including demographics, needs, and characteristics",
+  "tone": "brand communication tone that fits their business style",
+  "competitors": ["relevant competitor 1", "relevant competitor 2", "relevant competitor 3"],
+  "uniqueSellingPoints": ["specific differentiator 1", "specific differentiator 2", "specific differentiator 3"]
+}
+
+Important: Make the description rich and detailed (300-450 chars) while staying true to the original business concept.`
 
       try {
         const result = await generateWithOpenAI(prompt, "You are a brand analysis expert.", "json", 800, "gpt-4o")

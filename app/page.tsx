@@ -362,7 +362,7 @@ export default function LandingPage() {
                       </div>
                       <input
                         type="text"
-                        placeholder="Enter the URL or add a short description"
+                        placeholder="Enter URL or short description of your brand"
                         className={`pl-12 pr-4 py-3 text-base font-sans font-medium bg-transparent border-none focus:ring-0 focus:outline-none placeholder:text-gray-400 placeholder:font-medium placeholder:text-sm w-full transition-all duration-200 ${error ? "ring-2 ring-red-500" : ""} ${isSuccess ? "ring-2 ring-green-500 bg-green-50" : ""}`}
                         value={url}
                         onChange={(e) => {
