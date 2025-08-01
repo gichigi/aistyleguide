@@ -251,11 +251,7 @@ function validateBrandDetails(details: any) {
     errors.push("Target audience must be 500 characters or less")
   }
   
-  // Tone validation
-  const validTones = ["friendly", "professional", "casual", "formal", "technical"]
-  if (!details.tone || !validTones.includes(details.tone)) {
-    errors.push("Invalid tone selected")
-  }
+  // Tone is optional - voice is now defined by selected traits
   
   return errors
 }
@@ -283,6 +279,12 @@ export async function processTemplate(templateType: string, brandDetails: any, p
       name: brandDetails.name.trim(),
       description: brandDetails.description.trim(),
       audience: brandDetails.audience.trim(),
+      traits: brandDetails.traits || [],
+    }
+    
+    // For style guide rules generation (separate from voice traits)
+    const rulesDetails = {
+      ...validatedDetails,
       tone: brandDetails.tone,
     }
 
@@ -345,7 +347,7 @@ export async function processTemplate(templateType: string, brandDetails: any, p
     // Generate all rules at once for the complete plan
     if (plan === "complete") {
       try {
-        const completeRulesResult = await generateCompleteStyleGuide(validatedDetails);
+        const completeRulesResult = await generateCompleteStyleGuide(rulesDetails);
         if (completeRulesResult.success && completeRulesResult.content) {
           // Use same formatMarkdownContent() processing as core guides for consistent formatting
           template = template.replace(/{{complete_rules}}/g, formatMarkdownContent(completeRulesResult.content));
@@ -359,7 +361,7 @@ export async function processTemplate(templateType: string, brandDetails: any, p
     } else {
       // Generate all 25 rules at once and insert into template (core)
       try {
-        const coreRulesResult = await generateFullCoreStyleGuide(validatedDetails);
+        const coreRulesResult = await generateFullCoreStyleGuide(rulesDetails);
         if (coreRulesResult.success && coreRulesResult.content) {
           template = template.replace(/{{core_rules}}/g, formatMarkdownContent(coreRulesResult.content));
         } else {
@@ -374,9 +376,9 @@ export async function processTemplate(templateType: string, brandDetails: any, p
     // Generate examples if needed for complete template
     if (plan === "complete") {
       try {
-        const examplePrompt = `Create example content for the ${validatedDetails.name} brand with a ${validatedDetails.tone} tone.
-        The brand description is: ${validatedDetails.description}
-        Target audience: ${validatedDetails.audience}
+            const examplePrompt = `Create example content for the ${rulesDetails.name} brand with a ${rulesDetails.tone} tone.
+    The brand description is: ${rulesDetails.description}
+    Target audience: ${rulesDetails.audience}
         
         Generate in markdown format:
         1. A blog post example (2-3 paragraphs)
@@ -546,6 +548,12 @@ export async function renderStyleGuideTemplate({
         name: brandName,
         description: brandDetails.description?.trim() || brandDetails.brandDetailsText || '',
         audience: brandDetails.audience?.trim() || '',
+        traits: brandDetails.traits || [],
+      };
+      
+      // For style guide rules generation (separate from voice traits)
+      const rulesDetails = {
+        ...validatedDetails,
         tone: brandDetails.tone || '',
       };
       // Brand voice traits
@@ -557,7 +565,7 @@ export async function renderStyleGuideTemplate({
       }
       if (templateType === "complete") {
         // Complete rules
-        const completeRulesResult = await generateCompleteStyleGuide(validatedDetails);
+        const completeRulesResult = await generateCompleteStyleGuide(rulesDetails);
         if (completeRulesResult.success && completeRulesResult.content) {
           result = result.replace(/{{complete_rules}}/g, formatMarkdownContent(completeRulesResult.content));
         } else {
@@ -565,7 +573,7 @@ export async function renderStyleGuideTemplate({
         }
       } else {
         // Core rules
-        const coreRulesResult = await generateFullCoreStyleGuide(validatedDetails);
+        const coreRulesResult = await generateFullCoreStyleGuide(rulesDetails);
         if (coreRulesResult.success && coreRulesResult.content) {
           result = result.replace(/{{core_rules}}/g, formatMarkdownContent(coreRulesResult.content));
         } else {

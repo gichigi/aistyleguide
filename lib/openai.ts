@@ -1,5 +1,6 @@
 import { OpenAI } from "openai"
 import Logger from "./logger"
+import { TRAITS, type MixedTrait, type TraitName, isPredefinedTrait, isCustomTrait } from "./traits"
 
 interface GenerationResult {
   success: boolean
@@ -135,10 +136,144 @@ export async function generateWithOpenAI(
   }
 }
 
-// Function to generate brand voice traits
+// Helper function to convert predefined trait to markdown format
+function predefinedTraitToMarkdown(traitName: TraitName, index: number): string {
+  const trait = TRAITS[traitName]
+  
+  return `### ${index}. ${traitName}
+
+${trait.definition}
+
+***What It Means***
+
+${trait.do.map(item => `→ ${item}`).join('\n')}
+
+***What It Doesn't Mean***
+
+${trait.dont.map(item => `✗ ${item}`).join('\n')}`
+}
+
+// Function to generate custom trait description via AI
+async function generateCustomTraitDescription(traitName: string, brandDetails: any, index: number): Promise<string> {
+  const prompt = `You are a brand strategist. Generate a brand voice trait description for the custom trait "${traitName}" based on this brand information.
+
+Brand Info:
+• Brand Name: ${brandDetails.name}
+• What they do: ${brandDetails.description}
+• Audience: ${brandDetails.audience}
+
+Create the trait description in this EXACT format:
+
+### ${index}. ${traitName}
+
+[ONE SENTENCE description of what this trait means for this specific brand and why it's important]
+
+***What It Means***
+
+→ [Specific actionable example - around 12 words]
+→ [Specific actionable example - around 12 words] 
+→ [Specific actionable example - around 12 words]
+
+***What It Doesn't Mean***
+
+✗ [Specific clarification - around 12 words]
+✗ [Specific clarification - around 12 words]
+✗ [Specific clarification - around 12 words]
+
+These should guide HOW someone writes and speaks, not WHAT topics they cover. Focus on tone, word choice, and communication style. Make each example specific to this brand and actionable, keeping them natural and conversational around 12 words. Use → (unicode arrow) and ✗ (unicode cross) exactly as shown.`;
+
+  const result = await generateWithOpenAI(prompt, "You are a brand strategist creating specific, actionable trait descriptions.", "markdown", 800, "gpt-4o");
+  
+  if (result.success && result.content) {
+    return result.content.trim()
+  } else {
+    // Fallback if AI generation fails
+    return `### ${index}. ${traitName}
+
+Custom trait - we'll help define what this means for your brand voice.
+
+***What It Means***
+
+→ Apply this trait consistently across all brand communications
+→ Use this trait to guide content creation decisions
+→ Let this trait influence your brand's unique voice
+
+***What It Doesn't Mean***
+
+✗ Ignore your brand's core values and mission
+✗ Use this trait in ways that contradict your audience needs
+✗ Apply this trait without considering context and appropriateness`
+  }
+}
+
+// Main function to generate brand voice traits using user's selected traits
 export async function generateBrandVoiceTraits(brandDetails: any): Promise<GenerationResult> {
-  const prompt = `You are a brand strategist. Based on the following brand information, generate exactly 3 unique, complementary brand voice traits for this brand.\n\nBrand Info:\n• Brand Name: ${brandDetails.name}\n• Audience: ${brandDetails.audience}\n• Tone: ${brandDetails.tone}\n• What they do: ${brandDetails.summary || brandDetails.description}\n\nFor each trait, provide:\n1. A short, bold title as a numbered Markdown header (use \`### 1. TraitName\`, \`### 2. TraitName\`, etc.), with a blank line before and after.\n2. A **ONE SENTENCE** description of the trait and why it's important for this brand.\n3. "What It Means": 3 specific, actionable examples, each starting with → (unicode arrow, not emoji).  \n   - Place these under a bolded subheading: \`***What It Means***\`  \n   - Add a blank line before and after this section.\n4. "What It Doesn't Mean": 3 clarifications to avoid misinterpretation, each starting with ✗ (unicode cross, not emoji).  \n   - Place these under a bolded subheading: \`***What It Doesn't Mean***\`  \n   - Add a blank line before and after this section.\n\nFormatting rules:\n- Always use a blank line between each trait and each section.\n- Use numbered Markdown headers for trait names (### 1. TraitName, ### 2. TraitName, etc.).\n- Do not use bullet points.\n- Do not use meta-text, headings, or quote marks around trait titles.\n\nExample format:\n\n### 1. Simplicity\n\nA one-sentence description of the trait and why it's important.\n\n***What It Means***\n\n→ Use plain English and avoid jargon or unnecessary complexity.  \n→ Short, punchy sentences that get straight to the point.  \n→ Prioritize clarity so anyone can understand our message without a dictionary.\n\n***What It Doesn't Mean***\n\n✗ Dumbing down ideas or skipping important details.  \n✗ Ignoring nuance when discussing more advanced topics.  \n✗ Simplistic design or lack of depth in our overall communications.\n\n### 2. Boldness\n\nA one-sentence description of the trait and why it's important.\n\n***What It Means***\n\n→ Take clear stances on important topics.  \n→ Use confident, assertive language.  \n→ Encourage creative risk-taking in messaging.\n\n***What It Doesn't Mean***\n\n✗ Being aggressive or dismissive of other views.  \n✗ Making unsupported claims.  \n✗ Ignoring feedback or new ideas.\n\n### 3. Empathy\n\nA one-sentence description of the trait and why it's important.\n\n***What It Means***\n\n→ Show understanding of the user's needs and feelings.  \n→ Use language that acknowledges challenges and celebrates wins.  \n→ Make content feel personal and supportive.\n\n***What It Doesn't Mean***\n\n✗ Overpromising solutions to every problem.  \n✗ Using patronizing or insincere language.  \n✗ Ignoring the diversity of user experiences.\n\n---\nNow, generate 3 traits in this format.`;
-  return generateWithOpenAI(prompt, "You are a brand strategist.", "markdown", 2000, "gpt-4o");
+  try {
+    // Check if we have selected traits
+    if (!brandDetails.traits || !Array.isArray(brandDetails.traits) || brandDetails.traits.length === 0) {
+      return {
+        success: false,
+        error: "No traits selected for this brand"
+      }
+    }
+
+    console.log(`🎯 Processing ${brandDetails.traits.length} selected traits:`, brandDetails.traits)
+
+    const traitMarkdown: string[] = []
+    
+    for (let i = 0; i < brandDetails.traits.length; i++) {
+      const trait = brandDetails.traits[i]
+      const index = i + 1
+      
+      if (typeof trait === 'string') {
+        // Handle string trait names (backward compatibility)
+        if (Object.keys(TRAITS).includes(trait)) {
+          // It's a predefined trait
+          console.log(`📋 Using predefined trait: ${trait}`)
+          const markdown = predefinedTraitToMarkdown(trait as TraitName, index)
+          traitMarkdown.push(markdown)
+        } else {
+          // It's a custom trait name
+          console.log(`🎨 Generating custom trait: ${trait}`)
+          const markdown = await generateCustomTraitDescription(trait, brandDetails, index)
+          traitMarkdown.push(markdown)
+        }
+      } else if (trait && typeof trait === 'object') {
+        // Handle MixedTrait objects
+        if (isPredefinedTrait(trait)) {
+          console.log(`📋 Using predefined trait: ${trait.name}`)
+          const markdown = predefinedTraitToMarkdown(trait.name, index)
+          traitMarkdown.push(markdown)
+        } else if (isCustomTrait(trait)) {
+          console.log(`🎨 Generating custom trait: ${trait.name}`)
+          const markdown = await generateCustomTraitDescription(trait.name, brandDetails, index)
+          traitMarkdown.push(markdown)
+        }
+      }
+    }
+
+    if (traitMarkdown.length === 0) {
+      return {
+        success: false,
+        error: "No valid traits could be processed"
+      }
+    }
+
+    const finalContent = traitMarkdown.join('\n\n')
+    console.log(`✅ Generated brand voice traits successfully (${traitMarkdown.length} traits)`)
+    
+    return {
+      success: true,
+      content: finalContent
+    }
+    
+  } catch (error) {
+    console.error("Error in generateBrandVoiceTraits:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error generating brand voice traits"
+    }
+  }
 }
 
 /* Function to generate style guide rules

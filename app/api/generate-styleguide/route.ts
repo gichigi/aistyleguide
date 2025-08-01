@@ -18,11 +18,7 @@ function validateBrandDetails(details: any) {
   // Audience is optional since it's always set to "general audience"
   // No validation needed
   
-  // Tone validation
-  const validTones = ["friendly", "professional", "casual", "formal", "technical"]
-  if (!details.tone || !validTones.includes(details.tone)) {
-    errors.push("Invalid tone selected")
-  }
+  // Tone is optional - voice is now defined by selected traits
   
   return errors
 }

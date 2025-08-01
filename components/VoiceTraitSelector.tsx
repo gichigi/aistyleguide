@@ -121,7 +121,7 @@ export default function VoiceTraitSelector({ onChange }: { onChange?: (traits: s
     <div className="space-y-6">
       {/* Predefined trait pills */}
       <div>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {predefinedTraitNames.map((name) => (
             <button
               key={name}
@@ -244,7 +244,7 @@ export default function VoiceTraitSelector({ onChange }: { onChange?: (traits: s
             <div key={trait.id} className="p-4 border border-blue-200 rounded-lg bg-blue-50 animate-in slide-in-from-bottom-2 duration-300">
               <h3 className="font-semibold text-blue-900 mb-2">{trait.name}</h3>
               <p className="text-sm text-blue-700">
-                Custom trait - you define what this means for your brand voice.
+                We'll create a description that fits your brand perfectly.
               </p>
             </div>
           )
