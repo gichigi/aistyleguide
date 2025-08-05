@@ -219,10 +219,8 @@ export async function generateBrandVoiceTraits(brandDetails: any): Promise<Gener
 
     console.log(`🎯 Processing ${brandDetails.traits.length} selected traits:`, brandDetails.traits)
 
-    const traitMarkdown: string[] = []
-    
-    for (let i = 0; i < brandDetails.traits.length; i++) {
-      const trait = brandDetails.traits[i]
+    // Process all traits in parallel for better performance
+    const traitPromises = brandDetails.traits.map(async (trait: any, i: number) => {
       const index = i + 1
       
       if (typeof trait === 'string') {
@@ -230,27 +228,28 @@ export async function generateBrandVoiceTraits(brandDetails: any): Promise<Gener
         if (Object.keys(TRAITS).includes(trait)) {
           // It's a predefined trait
           console.log(`📋 Using predefined trait: ${trait}`)
-          const markdown = predefinedTraitToMarkdown(trait as TraitName, index)
-          traitMarkdown.push(markdown)
+          return predefinedTraitToMarkdown(trait as TraitName, index)
         } else {
           // It's a custom trait name
           console.log(`🎨 Generating custom trait: ${trait}`)
-          const markdown = await generateCustomTraitDescription(trait, brandDetails, index)
-          traitMarkdown.push(markdown)
+          return await generateCustomTraitDescription(trait, brandDetails, index)
         }
       } else if (trait && typeof trait === 'object') {
         // Handle MixedTrait objects
         if (isPredefinedTrait(trait)) {
           console.log(`📋 Using predefined trait: ${trait.name}`)
-          const markdown = predefinedTraitToMarkdown(trait.name, index)
-          traitMarkdown.push(markdown)
+          return predefinedTraitToMarkdown(trait.name, index)
         } else if (isCustomTrait(trait)) {
           console.log(`🎨 Generating custom trait: ${trait.name}`)
-          const markdown = await generateCustomTraitDescription(trait.name, brandDetails, index)
-          traitMarkdown.push(markdown)
+          return await generateCustomTraitDescription(trait.name, brandDetails, index)
         }
       }
-    }
+      return null
+    })
+
+    // Wait for all traits to be processed in parallel
+    const traitResults = await Promise.all(traitPromises)
+    const traitMarkdown = traitResults.filter(result => result !== null) as string[]
 
     if (traitMarkdown.length === 0) {
       return {

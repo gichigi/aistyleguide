@@ -181,9 +181,23 @@ export default function PreviewPage() {
     const loadPreview = async () => {
       if (!brandDetails) return
       try {
-        const preview = await renderStyleGuideTemplate({ brandDetails, useAIContent: false, templateType: 'preview' })
+        console.log('[Preview Page] Generating dynamic preview with AI content...')
+        const response = await fetch('/api/generate-preview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ brandDetails })
+        })
+        
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Failed to generate preview')
+        }
+        
+        const data = await response.json()
+        console.log(`[Preview Page] Preview generated successfully in ${data.duration}`)
+        
         if (isMounted) {
-          setPreviewContent(preview)
+          setPreviewContent(data.preview)
         }
       } catch (error) {
         console.error("Error generating preview:", error)
@@ -287,7 +301,7 @@ export default function PreviewPage() {
             <TabsContent value="core" className="mt-4 space-y-4">
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-lg sm:text-2xl font-bold">Core Style Guide</h3>
+                  <h3 className="text-lg sm:text-2xl font-bold">Preview Style Guide</h3>
                   <div className="mt-1 text-xl sm:text-3xl font-bold">$99</div>
                 </div>
 

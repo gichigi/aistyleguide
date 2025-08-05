@@ -1,0 +1,74 @@
+import { NextResponse } from "next/server"
+import { renderStyleGuideTemplate } from "@/lib/template-processor"
+
+// Simplified validation function
+function validateBrandDetails(details: any) {
+  const errors: string[] = []
+  
+  // Required fields
+  if (!details.name || details.name.trim().length === 0) {
+    errors.push("Brand name is required")
+  }
+  
+  if (!details.description || details.description.trim().length === 0) {
+    errors.push("Brand description is required")
+  }
+  
+  return errors
+}
+
+export async function POST(request: Request) {
+  try {
+    console.log('[Generate Preview API] Request received')
+    
+    const { brandDetails } = await request.json()
+    
+    if (!brandDetails) {
+      console.error('[Generate Preview API] No brand details provided')
+      return NextResponse.json(
+        { error: 'Brand details are required' },
+        { status: 400 }
+      )
+    }
+    
+    console.log('[Generate Preview API] Validating brand details...')
+    const validationErrors = validateBrandDetails(brandDetails)
+    if (validationErrors.length > 0) {
+      console.error('[Generate Preview API] Validation errors:', validationErrors)
+      return NextResponse.json(
+        { error: 'Invalid brand details', details: validationErrors },
+        { status: 400 }
+      )
+    }
+    
+    console.log('[Generate Preview API] Generating preview with AI content...')
+    const startTime = Date.now()
+    
+    // Generate preview with AI content on server-side
+    const preview = await renderStyleGuideTemplate({
+      brandDetails,
+      useAIContent: true,
+      templateType: 'preview'
+    })
+    
+    const duration = Date.now() - startTime
+    console.log(`[Generate Preview API] Preview generated successfully in ${duration}ms`)
+    
+    return NextResponse.json({
+      success: true,
+      preview,
+      duration: `${duration}ms`
+    })
+    
+  } catch (error) {
+    console.error('[Generate Preview API] Error generating preview:', error)
+    
+    return NextResponse.json(
+      { 
+        error: 'Failed to generate preview',
+        details: error instanceof Error ? error.message : String(error)
+      },
+      { status: 500 }
+    )
+  }
+}

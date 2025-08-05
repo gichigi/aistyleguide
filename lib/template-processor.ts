@@ -571,8 +571,8 @@ export async function renderStyleGuideTemplate({
         } else {
           result = result.replace(/{{complete_rules}}/g, "_Could not generate complete rules for this brand._");
         }
-      } else {
-        // Core rules
+      } else if (templateType === "core") {
+        // Core rules (only for core template, not preview)
         const coreRulesResult = await generateFullCoreStyleGuide(rulesDetails);
         if (coreRulesResult.success && coreRulesResult.content) {
           result = result.replace(/{{core_rules}}/g, formatMarkdownContent(coreRulesResult.content));
@@ -580,6 +580,7 @@ export async function renderStyleGuideTemplate({
           result = result.replace(/{{core_rules}}/g, "_Could not generate core rules for this brand._");
         }
       }
+      // Preview template doesn't need core rules generation
     } catch (error) {
       result = result.replace(/{{brand_voice_traits}}/g, "_Could not generate brand voice traits for this brand._");
       result = result.replace(/{{core_rules}}/g, "_Could not generate core rules for this brand._");
