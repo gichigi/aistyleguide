@@ -39,7 +39,7 @@ export interface AbandonedCartEmailData {
   customerName?: string;
   recoveryUrl: string;
   discountCode?: string;
-  expiresAt: number;
+  sessionId?: string;
 }
 
 /**
@@ -140,7 +140,7 @@ class EmailService {
   }
 
   async sendAbandonedCartEmail(data: AbandonedCartEmailData) {
-    const subject = '💡 Complete Your Style Guide - 20% Off Inside!';
+    const subject = 'Complete Your Style Guide – 20% Off';
     const html = this.generateAbandonedCartEmailHTML(data);
     const text = this.generateAbandonedCartEmailText(data);
 
@@ -235,58 +235,40 @@ x.com/tahigichigi`;
   }
 
   private generateAbandonedCartEmailHTML(data: AbandonedCartEmailData): string {
-    const expiryDate = new Date(data.expiresAt * 1000).toLocaleDateString();
-    
     return `
       <!DOCTYPE html>
       <html>
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Complete Your Style Guide - 20% Off</title>
+          <title>Complete Your Style Guide</title>
         </head>
-        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #dc2626; margin-bottom: 10px;">💡 Don't Miss Out!</h1>
-            <p style="font-size: 18px; color: #666;">Your style guide is waiting</p>
-          </div>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
           
-          <div style="background: #fef2f2; border: 1px solid #fecaca; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-            <h2 style="margin-top: 0; color: #dc2626;">🎯 Special Offer - 20% Off!</h2>
-            <p>We noticed you were interested in creating your AI Style Guide. Complete your purchase now and save 20%!</p>
-            ${data.discountCode ? `<p style="background: white; padding: 10px; border-radius: 4px; text-align: center; font-weight: bold; color: #dc2626;">Discount Code: ${data.discountCode}</p>` : ''}
-          </div>
-          
-          <div style="margin-bottom: 30px;">
-            <h3 style="color: #1e293b;">Why Choose AI Style Guide?</h3>
-            <ul style="color: #4b5563;">
-              <li>✨ Personalized recommendations based on your brand</li>
-              <li>🎨 Professional design guidelines</li>
-              <li>📱 Ready-to-use templates and assets</li>
-              <li>💼 Boost your brand's professional image</li>
-            </ul>
+          <div style="margin-bottom: 40px;">
+            <p style="font-size: 18px; margin-bottom: 30px;">Hey there,</p>
             
-            <div style="text-align: center; margin: 25px 0;">
+            <p style="font-size: 16px; margin-bottom: 30px;">I noticed you started creating your style guide but didn't finish. Totally get it - big decisions take time.</p>
+            
+            <p style="font-size: 16px; margin-bottom: 8px;">Here's 20% off when you're ready:</p>
+            ${data.discountCode ? `<p style="font-size: 18px; font-weight: bold; color: #10b981; margin-bottom: 30px;">${data.discountCode}</p>` : ''}
+            
+            <p style="font-size: 16px; margin-bottom: 30px;">Just add the code at checkout.</p>
+            
+            <p style="font-size: 16px; margin-bottom: 40px;">No pressure, just wanted to make sure you had it.</p>
+            
+            <div style="text-align: center; margin: 40px 0;">
               <a href="${data.recoveryUrl}" 
-                 style="background: #dc2626; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 500;">
-                Complete Purchase - 20% Off
+                 style="background: #10b981; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">
+                Generate Your Style Guide
               </a>
             </div>
-            
-            <p style="text-align: center; color: #64748b; font-size: 14px;">
-              ⏰ This offer expires on ${expiryDate}
-            </p>
           </div>
           
-          <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; margin-top: 30px;">
-            <p style="color: #64748b; font-size: 14px;">
-              Questions? Reply to this email or contact us at 
-              <a href="mailto:support@aistyleguide.com" style="color: #2563eb;">support@aistyleguide.com</a>
-            </p>
-            <p style="color: #64748b; font-size: 14px;">
-              Don't want these emails? 
-              <a href="#" style="color: #64748b;">Unsubscribe here</a>
-            </p>
+          <div style="border-top: 1px solid #ddd; padding-top: 30px; margin-top: 40px;">
+            <p style="font-size: 16px; margin-bottom: 8px;">Tahi</p>
+            <p style="color: #666; font-size: 14px; margin-bottom: 8px;">Founder, AI Style Guide</p>
+            <p style="color: #666; font-size: 14px;">x.com/tahigichigi</p>
           </div>
         </body>
       </html>
@@ -294,30 +276,22 @@ x.com/tahigichigi`;
   }
 
   private generateAbandonedCartEmailText(data: AbandonedCartEmailData): string {
-    const expiryDate = new Date(data.expiresAt * 1000).toLocaleDateString();
-    
     return `
-💡 Don't Miss Out - Your Style Guide is Waiting!
+Hey there,
 
-🎯 Special Offer - 20% Off!
+I noticed you started creating your style guide but didn't finish. Totally get it - big decisions take time.
 
-We noticed you were interested in creating your AI Style Guide. Complete your purchase now and save 20%!
+Here's 20% off when you're ready: ${data.discountCode || 'COMEBACK20'}
 
-${data.discountCode ? `Discount Code: ${data.discountCode}` : ''}
+Just add the code at checkout.
 
-Why Choose AI Style Guide?
-✨ Personalized recommendations based on your brand
-🎨 Professional design guidelines  
-📱 Ready-to-use templates and assets
-💼 Boost your brand's professional image
+No pressure, just wanted to make sure you had it.
 
-Complete your purchase: ${data.recoveryUrl}
+Generate Your Style Guide: ${data.recoveryUrl}
 
-⏰ This offer expires on ${expiryDate}
-
-Questions? Contact us at support@aistyleguide.com
-
-The AI Style Guide Team
+Tahi
+Founder, AI Style Guide
+x.com/tahigichigi
     `;
   }
 }

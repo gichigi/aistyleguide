@@ -18,31 +18,22 @@ Web app that generates brand style guides from website URLs using AI to extract 
 
 ### High Priority (P0)
 
-**🔽 CRITICAL: Download Buttons Not Working**
-- **Evidence**: Download modal shows format options but some buttons non-functional
-- **Impact**: Users can't export their paid style guides in preferred formats
-- **Severity**: Core feature failure affecting user experience post-payment
-- **Investigation Needed**: Check which download formats are broken (PDF, Word, HTML, Markdown)
-
 ### Medium Priority (P1)  
 
-**📝 CRITICAL: Generated Description Exceeds Validation Limit**
-- **Problem**: AI-generated brand descriptions are sometimes too long for form validation
-- **Impact**: Users must manually delete text from AI-generated content to proceed
-- **User Experience**: Unacceptable - AI should generate content that fits our own validation
-- **Evidence**: Brand details form shows validation error forcing users to edit AI output
-- **Fix Required**: Either increase validation limit or constrain AI generation length
-- **Root Cause**: Mismatch between AI generation parameters and form validation rules
+**📧 Brand Details Email Capture Failing** 🚨 **ACTIVE TASK**  
+- **Problem**: Email validation rejecting valid email addresses
+- **Evidence**: `[Email Capture API] Invalid email format: accou***` (truncated email showing as invalid)
+- **Impact**: Lost email leads for abandoned cart recovery and follow-up
+- **Root Cause**: Email validation regex may be too strict or truncation issue
+- **Priority**: P1 - affects marketing pipeline and user experience
 
-**🐛 Generation Retry Bug: Creates Apple Style Guide**
-- **Problem**: When users get generation error and click retry, API generates Apple brand style guide instead of their brand
-- **Evidence**: API logs show correct brand details but generates "Apple Style Rules" in response
-- **Root Cause**: Unknown - needs investigation in retry flow and template processing
-- **Impact**: Users get wrong content after paying for custom style guide
-- **Files to investigate**: 
-  - `app/payment/success/page.tsx` - retry function
-  - `lib/template-processor.ts` - template rendering
-  - `app/api/generate-styleguide/route.ts` - API processing
+**👁️ Preview Page Expectation Mismatch** 🚨 **NEW ISSUE**
+- **Problem**: Users select brand voice traits but /preview still shows hardcoded generic content
+- **Impact**: User confusion - they expect to see their selected traits in preview
+- **Solutions**: 
+  1. Update /preview to show "This is a preview" messaging
+  2. Generate dynamic preview using selected traits with paywall effect
+- **Priority**: P1 - affects user trust and conversion expectations
 
 **🔗 Webhook Configuration Issues** ✅ **PARTIALLY FIXED**
 - **Root Cause Found**: Environment variable mismatch - code defaulted to 'live' mode but used test keys
@@ -72,6 +63,15 @@ Web app that generates brand style guides from website URLs using AI to extract 
 - **Note**: May not be a bug - could be intentional design for complete guides
 
 ### Done/Completed
+
+**✅ Homepage Dynamic Field Testing Complete (Jan 2025)**
+- **Tested**: Both URL and description processing through API endpoints
+- **URL Processing**: ✅ Working - validated with apple.com, spotify.com, nike.com, google.com
+- **Description Processing**: ✅ Working - tested various business descriptions with AI generation
+- **Error Handling**: ✅ Working - proper error classification and user-friendly messages
+- **Input Validation**: ✅ Working - URL vs description detection, length validation, format checking
+- **Response Structure**: ✅ Consistent - returns success, brandName, brandDetailsText format
+- **Status**: No issues found - dynamic field API functionality works correctly across all test cases
 
 **✅ Fixed Critical P0 Issues - Major Payment & Generation Bugs (Jan 2025)**
 - **$149 Complete Guide Race Condition**: Fixed React state timing issue where `setGuideType()` wasn't applied before `generateStyleGuide()` call - customers now get complete template

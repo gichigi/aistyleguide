@@ -19,7 +19,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://aistyleguide.com'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { guideType } = body
+    const { guideType, emailCaptureToken } = body
 
     // Log request info for debugging
     console.log(`Creating checkout session for guide type: ${guideType}`)
@@ -73,10 +73,11 @@ export async function POST(request: Request) {
       // Collect customer email even if they don't complete payment
       customer_email: undefined, // Let Stripe collect it during checkout
       
-      // Add metadata to track guide type for webhooks
+      // Add metadata to track guide type and email capture for webhooks
       metadata: {
         guide_type: guideType,
         created_at: new Date().toISOString(),
+        email_capture_token: emailCaptureToken || '', // For abandoned cart email tracking
       },
     })
 

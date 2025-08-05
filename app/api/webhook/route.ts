@@ -22,8 +22,7 @@ const sentEmails = new Set<string>();
 
 // Generate discount code for abandoned cart recovery
 function generateDiscountCode(): string {
-  const codes = ['SAVE20', 'COMEBACK20', 'FINISH20', 'RETURN20'];
-  return codes[Math.floor(Math.random() * codes.length)];
+  return 'COMEBACK20';
 }
 
 // Log webhook event details for debugging
@@ -99,6 +98,27 @@ async function handlePaymentSuccess(session: Stripe.Checkout.Session) {
       console.error('❌ Failed to send personal follow-up email:', emailResult.error);
     }
     
+    // Mark email capture as payment completed to prevent abandoned cart emails
+    const emailCaptureToken = session.metadata?.email_capture_token;
+    if (emailCaptureToken) {
+      console.log('📧 Marking email capture as payment completed:', emailCaptureToken.substring(0, 8) + '***');
+      try {
+        const captureResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'}/api/capture-email`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionToken: emailCaptureToken })
+        });
+        
+        if (captureResponse.ok) {
+          console.log('✅ Email capture marked as payment completed');
+        } else {
+          console.error('❌ Failed to mark email capture as completed:', await captureResponse.text());
+        }
+      } catch (error) {
+        console.error('❌ Error updating email capture:', error);
+      }
+    }
+    
   } catch (error) {
     console.error('Error handling payment success:', error);
   }
@@ -112,7 +132,7 @@ async function handleSessionExpired(session: Stripe.Checkout.Session) {
     // Extract customer details and recovery info
     const customerEmail = session.customer_details?.email;
     const customerName = session.customer_details?.name;
-    const recoveryUrl = session.after_expiration?.recovery?.url;
+    const recoveryUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://aistyleguide.com'}/brand-details?fromExtraction=true`;
     const expiresAt = session.after_expiration?.recovery?.expires_at;
     
     // Check if customer consented to promotional emails
@@ -142,7 +162,7 @@ async function handleSessionExpired(session: Stripe.Checkout.Session) {
       customerName: customerName || undefined,
       recoveryUrl,
       discountCode,
-      expiresAt: expiresAt || Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60), // 30 days default
+      sessionId: session.id,
     });
     
     if (emailResult.success) {

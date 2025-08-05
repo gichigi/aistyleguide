@@ -209,11 +209,17 @@ export default function PreviewPage() {
     try {
       setIsProcessingPayment(true);
       
+      // Get email capture token for abandoned cart tracking
+      const emailCaptureToken = localStorage.getItem('emailCaptureToken');
+      
       // Create checkout session
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ guideType })
+        body: JSON.stringify({ 
+          guideType,
+          emailCaptureToken // Include for abandoned cart connection
+        })
       });
       
       if (!response.ok) {

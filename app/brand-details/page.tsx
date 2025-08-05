@@ -297,15 +297,19 @@ export default function BrandDetailsPage() {
   }
 
 
-  const handleEmailChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setEmail(value);
+  };
+
+  const handleEmailBlur = async () => {
+    const trimmedEmail = email.trim();
     
     // Save email capture data to localStorage (for immediate UI)
-    if (value.trim() && sessionToken) {
+    if (trimmedEmail && sessionToken) {
       const emailCaptureData = {
         sessionToken,
-        email: value.trim(),
+        email: trimmedEmail,
         capturedAt: Date.now(),
         brandDetails,
         paymentCompleted: false,
@@ -317,7 +321,7 @@ export default function BrandDetailsPage() {
       try {
         console.log('[Email Capture Client] Starting server-side storage...', {
           sessionToken: sessionToken?.substring(0, 8) + '***',
-          email: value.trim().substring(0, 3) + '***',
+          email: trimmedEmail.substring(0, 3) + '***',
           timestamp: new Date().toISOString()
         });
         
@@ -326,7 +330,7 @@ export default function BrandDetailsPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             sessionToken,
-            email: value.trim()
+            email: trimmedEmail
           })
         });
         
@@ -351,11 +355,11 @@ export default function BrandDetailsPage() {
           stack: error instanceof Error ? error.stack : undefined
         });
       }
-    } else if (!value.trim()) {
+    } else if (!trimmedEmail) {
       localStorage.removeItem("emailCapture");
       // Note: We don't delete from server-side as we want to track all attempts
     }
-  }
+  };
 
 
   // Check if core form is ready (without email)
@@ -660,6 +664,7 @@ export default function BrandDetailsPage() {
                           placeholder="your@email.com"
                           value={email}
                           onChange={handleEmailChange}
+                          onBlur={handleEmailBlur}
                           className="mt-2 bg-white border-blue-200 focus:border-blue-400 focus:ring-blue-400"
                         />
                       </div>
