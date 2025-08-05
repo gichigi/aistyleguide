@@ -33,6 +33,19 @@ Web app that generates brand style guides from website URLs using AI to extract 
 
 ### Low Priority (P2)
 
+**🏷️ Fix Preview Page Title Display**
+- **Issue**: Preview page still shows "Core Style Guide" instead of "Preview Style Guide" at the top
+- **Root Cause**: Title likely coming from template content, not the React component we updated
+- **Location**: May be in template markdown or different component than expected
+- **Impact**: User confusion - contradicts transparency goals
+
+**📧 Test & Debug Abandoned Cart Email System**
+- **Issue**: Automated abandoned cart emails may not be working in production
+- **Current State**: System deployed with hourly cron, admin client, and proper environment variables
+- **Need To Check**: Vercel cron logs, email processing logs, database status after 2+ hours
+- **Testing**: Create test email capture, wait 2+ hours, verify automated email delivery
+- **Debug**: Check if cron job actually runs, if database queries work, if emails send
+
 **Investigate Complete Guide Generation Performance**
 - **Observation**: Complete guides make 2 sequential OpenAI calls (voice traits + style rules)
 - **Impact**: Takes 60-90 seconds total, contributing to timeout issues
