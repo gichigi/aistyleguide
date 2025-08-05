@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { supabase } from "@/lib/supabase"
+import { supabaseAdmin } from "@/lib/supabase-admin"
 
 export async function POST(request: Request) {
   try {
@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     // Get all email captures where payment was not completed after 2 hours
     const twoHoursAgo = new Date(Date.now() - (2 * 60 * 60 * 1000)).toISOString();
     
-    const { data: abandonedCaptures, error } = await supabase
+    const { data: abandonedCaptures, error } = await supabaseAdmin
       .from('email_captures')
       .select('*')
       .eq('payment_completed', false)
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
         
         if (emailResult.success) {
           // Mark as abandoned email sent
-          const { error: updateError } = await supabase
+          const { error: updateError } = await supabaseAdmin
             .from('email_captures')
             .update({ abandoned_email_sent: true })
             .eq('id', capture.id);

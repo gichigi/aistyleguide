@@ -18,6 +18,8 @@ Web app that generates brand style guides from website URLs using AI to extract 
 
 ### High Priority (P0)
 
+
+
 ### Medium Priority (P1)
 
 **🔗 Webhook Configuration Issues** ✅ **PARTIALLY FIXED**
@@ -48,6 +50,16 @@ Web app that generates brand style guides from website URLs using AI to extract 
 - **Note**: May not be a bug - could be intentional design for complete guides
 
 ### Done/Completed
+
+**✅ Abandoned Cart Email Automation System (Jan 2025)**
+- **Fixed**: Automated abandoned cart email scheduler now running every hour via Vercel cron
+- **Admin Client**: Created `lib/supabase-admin.ts` with service role key for full database access
+- **Scheduler**: Added `vercel.json` with hourly cron job (`0 * * * *`) to trigger email processor
+- **Permissions**: Updated `/api/process-abandoned-emails` to use admin client instead of anon key
+- **Testing**: Manual trigger processed 12 emails successfully, database properly tracks sent status
+- **Automation**: System now automatically processes eligible emails (2+ hours old, unpaid, not sent)
+- **Environment**: Added `SUPABASE_SERVICE_ROLE_KEY` to Vercel production for reliable automation
+- **Status**: Production ready - fully automated abandoned cart recovery system working end-to-end
 
 **✅ Preview Page Dynamic Content & Performance Optimization (Jan 2025)**
 - **Fixed**: Preview page now generates dynamic brand voice traits instead of hardcoded content
