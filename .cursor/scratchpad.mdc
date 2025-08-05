@@ -22,24 +22,14 @@ Web app that generates brand style guides from website URLs using AI to extract 
 
 ### Medium Priority (P1)
 
-**🔗 Webhook Configuration Issues** ✅ **PARTIALLY FIXED**
-- **Root Cause Found**: Environment variable mismatch - code defaulted to 'live' mode but used test keys
-- **Fixed**: Added `STRIPE_MODE=test` and renamed variables to `STRIPE_TEST_*` pattern
-- **Remaining Issues**:
-  - Webhook signature validation still failing (400 error: "No signatures found matching expected signature")
-  - Suggests webhook secret mismatch between local `.env` and Stripe dashboard
-  - URL redirect from www to non-www may corrupt signatures during redirect
-- **Evidence**: Test script shows 400 error from aistyleguide.com, 307 redirect from www version
-- **Fixed**: 
-  - ✅ Environment variable naming (STRIPE_MODE=test, STRIPE_TEST_*)
-  - ✅ Webhook URL set to non-www version in Stripe dashboard
-- **Still Failing**: 
-  - Webhook signature validation (400 error persists)
-  - **Likely Cause**: Webhook secret in `.env` doesn't match Stripe dashboard secret
-- **Next Steps**: 
-  - **CRITICAL**: Verify/regenerate webhook secret in Stripe dashboard
-  - Update Vercel production environment variables to match local changes
-  - Test with real Stripe webhook (not just test script)
+**📝 Add Brand Description to Generated Style Guides** 
+- **Goal**: Include the brand description in preview, core, and complete style guide templates
+- **Current State**: Style guides only show brand voice traits, missing the foundational brand description
+- **Impact**: Users lose context about what their brand actually does when viewing style guides
+- **Implementation**: Add brand description section to templates and template processor
+- **Benefit**: More complete and useful style guides that include brand context alongside voice guidelines
+
+
 
 ### Low Priority (P2)
 
@@ -51,60 +41,19 @@ Web app that generates brand style guides from website URLs using AI to extract 
 
 ### Done/Completed
 
-**✅ Abandoned Cart Email Automation System (Jan 2025)**
-- **Fixed**: Automated abandoned cart email scheduler now running every hour via Vercel cron
-- **Admin Client**: Created `lib/supabase-admin.ts` with service role key for full database access
-- **Scheduler**: Added `vercel.json` with hourly cron job (`0 * * * *`) to trigger email processor
-- **Permissions**: Updated `/api/process-abandoned-emails` to use admin client instead of anon key
-- **Testing**: Manual trigger processed 12 emails successfully, database properly tracks sent status
-- **Automation**: System now automatically processes eligible emails (2+ hours old, unpaid, not sent)
-- **Environment**: Added `SUPABASE_SERVICE_ROLE_KEY` to Vercel production for reliable automation
-- **Status**: Production ready - fully automated abandoned cart recovery system working end-to-end
+**✅ Latest Session Achievements (Aug 2025)**
+- **Preview Page Overhaul**: Dynamic brand voice generation with 50%+ performance improvement (8s → 3-4s)
+- **Abandoned Cart Automation**: Fully automated hourly email scheduler with Vercel cron and admin Supabase client
+- **Webhook System Fixed**: Stripe signature validation now working - payment processing and email delivery functional
+- **Email Capture Optimization**: Changed from onChange to onBlur - 95% fewer API calls and better data quality
+- **Performance Optimization**: Parallel processing for custom traits using Promise.all() vs sequential calls
+- **Security Enhancement**: Moved AI generation from client-side to server-side API endpoints
 
-**✅ Preview Page Dynamic Content & Performance Optimization (Jan 2025)**
-- **Fixed**: Preview page now generates dynamic brand voice traits instead of hardcoded content
-- **Template**: Updated to use {{brand_voice_traits}} placeholder matching core/complete templates
-- **API Architecture**: Created server-side /api/generate-preview endpoint to secure OpenAI calls
-- **Performance**: Implemented parallel processing for custom traits - reduced generation time from 8+ seconds to 3-4 seconds (50%+ improvement)
-- **Content Accuracy**: Fixed template processor to generate only brand voice (not full core rules) for preview
-- **Transparency**: Updated title from "Core Style Guide" to "Preview Style Guide" for user clarity
-- **Security**: Moved AI generation from client-side to server-side, preventing API key exposure
-- **Status**: Production ready - users now see their selected brand voice traits in preview before payment
-
-**✅ Brand Details Email Capture System Fixed (Jan 2025)**
-- **Fixed**: Complete abandoned cart email system - connects email capture to Stripe checkout sessions
-- **Email Capture UX**: Changed from onChange (every keystroke) to onBlur (field completion) - 95% fewer API calls
-- **Session Linking**: Email capture tokens now passed to Stripe checkout metadata for payment tracking
-- **Webhook Integration**: Payment success automatically marks email_captures as completed to prevent abandoned emails
-- **Automated Processing**: Created /api/process-abandoned-emails endpoint for 2-hour delayed abandoned cart emails
-- **Email Template**: Clean standard styling with COMEBACK20 discount code linking to /brand-details for user tweaks
-- **Duplicate Prevention**: Database flags ensure users only get one abandoned cart email per session
-- **Data Quality**: Removed regex validation and keystroke spam - only complete, valid emails stored
-- **Status**: Production ready - full abandoned cart recovery system working end-to-end
-
-**✅ Homepage Dynamic Field Testing Complete (Jan 2025)**
-- **Tested**: Both URL and description processing through API endpoints
-- **URL Processing**: ✅ Working - validated with apple.com, spotify.com, nike.com, google.com
-- **Description Processing**: ✅ Working - tested various business descriptions with AI generation
-- **Error Handling**: ✅ Working - proper error classification and user-friendly messages
-- **Input Validation**: ✅ Working - URL vs description detection, length validation, format checking
-- **Response Structure**: ✅ Consistent - returns success, brandName, brandDetailsText format
-- **Status**: No issues found - dynamic field API functionality works correctly across all test cases
-
-**✅ Fixed Critical P0 Issues - Major Payment & Generation Bugs (Jan 2025)**
-- **$149 Complete Guide Race Condition**: Fixed React state timing issue where `setGuideType()` wasn't applied before `generateStyleGuide()` call - customers now get complete template
-- **Apple Title Bug**: Removed hardcoded "Apple Style Rules" from AI prompts and post-processing - all guides now use correct brand names
-- **Complete Guide Formatting**: Simplified AI prompts and reduced aggressive regex processing - complete guides now render cleanly like core guides
-- **Brand Voice Traits**: Updated AI prompt to generate single adjective traits instead of phrases - improved readability and consistency
-- **Orphaned Brackets CSS Fix**: Added `text-wrap: pretty` to prose paragraphs - prevents closing parentheses from appearing alone on new lines
-
-**✅ Fixed Payment Success Page UI (Jan 2025)**
-- Improved payment success page user experience and messaging
-- **Key Lessons**: UI should inform users about wait times and what they're getting
-
-**✅ Fixed Style Guide Generation Timeout (Jan 2025)**  
-- Increased timeout from 30 seconds to 5 minutes for style guide generation
-- **Key Lessons**: Frontend timeouts must account for backend AI processing times (60-90s for complete guides)
+**✅ Major System Components (Jan 2025)**
+- **Payment & Generation Pipeline**: Fixed race conditions, hardcoded values, and timeout issues for $149 complete guides
+- **Email Systems**: Complete abandoned cart recovery with session linking, webhook integration, and automated processing
+- **Dynamic Content**: Homepage URL/description processing, preview generation, and template processing working end-to-end
+- **User Experience**: Mobile-first design, loading states, error handling, and payment success flows optimized
 
 ---
 
@@ -127,6 +76,8 @@ Web app that generates brand style guides from website URLs using AI to extract 
 - **OpenAI responses need validation** - Always check format, handle edge cases, use chunked generation
 - **Cost optimization matters** - GPT-3.5 for extraction, GPT-4 for generation, 10k character limits
 - **Model fallbacks** - Having backup models prevents complete failures
+- **Parallel processing wins** - Promise.all() for multiple AI calls reduces latency by 50%+ vs sequential
+- **Client-side AI is dangerous** - Always use server-side endpoints to protect API keys and ensure reliability
 
 ### Development Process
 - **Incremental implementation** - Break complex changes into phases for testing and validation
@@ -135,6 +86,13 @@ Web app that generates brand style guides from website URLs using AI to extract 
 - **T-shirt sizing works** - SMALL (30 min), MEDIUM (1-2 hours), LARGE (half day+) for realistic estimates
 - **Test CLI first, then UI** - Faster feedback loop for API issues, easier debugging
 - **Clean as you go** - Move completed tasks immediately to keep scratchpad focused
+
+### Email & Automation Systems
+- **Email capture timing** - onBlur vs onChange makes huge difference in data quality and API efficiency
+- **Admin vs anon clients** - Use service role keys for automated operations, anon keys for user-facing features
+- **Webhook secret management** - Different secrets for CLI vs dashboard vs production - match environment correctly
+- **Automation scheduling** - Vercel Pro cron jobs work great for hourly tasks, require proper environment setup
+- **Database permissions** - RLS policies block automation - service role bypasses for reliable background jobs
 
 ### React State & Race Conditions
 - **Race Condition Pattern**: `setState()` is async - don't call functions immediately after that depend on the new state value. React batches state updates for performance, so the new value isn't available instantly

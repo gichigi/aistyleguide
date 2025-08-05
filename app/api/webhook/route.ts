@@ -78,10 +78,8 @@ async function handlePaymentSuccess(session: Stripe.Checkout.Session) {
       return;
     }
     
-    // Send personal follow-up email from Tahi (with cache busting for development)
-    const cacheBust = process.env.NODE_ENV === 'development' ? `?v=${Date.now()}` : ''
-    console.log('🔄 Importing email service with cache bust:', cacheBust)
-    const { emailService } = await import(`@/lib/email-service${cacheBust}`)
+    // Send personal follow-up email from Tahi
+    const { emailService } = await import('@/lib/email-service')
     console.log('✅ Email service imported successfully')
     const emailResult = await emailService.sendThankYouEmail({
       customerEmail,
