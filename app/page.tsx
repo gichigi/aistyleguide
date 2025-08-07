@@ -354,17 +354,31 @@ export default function LandingPage() {
               </p>
 
               <form onSubmit={handleExtraction} className="w-full max-w-2xl">
-                {/* Minimal input + button layout, no color */}
-                <div className="relative w-full max-w-2xl mx-auto mt-4 mb-6 p-1 rounded-xl bg-white border border-gray-200 shadow-sm">
-                  <div className="flex items-center w-full bg-white rounded-xl overflow-hidden">
+                {/* Mobile-optimized input layout */}
+                <div className="relative w-full max-w-2xl mx-auto mt-4 mb-6">
+                  {/* Mobile: Stack vertically, Desktop: Side by side */}
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-1 sm:p-1 sm:rounded-xl sm:bg-white sm:border sm:border-gray-200 sm:shadow-sm">
                     <div className="relative flex-1">
+                      {/* Icon - smaller on mobile, normal on desktop */}
                       <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <Sparkles className="h-6 w-6 text-gray-400 transition-colors duration-200" />
+                        <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 transition-colors duration-200" />
                       </div>
                       <input
                         type="text"
-                        placeholder="Enter URL or short description of your brand"
-                        className={`pl-12 pr-4 py-3 text-base font-sans font-medium bg-transparent border-none focus:ring-0 focus:outline-none placeholder:text-gray-400 placeholder:font-medium placeholder:text-sm w-full transition-all duration-200 ${error ? "ring-2 ring-red-500" : ""} ${isSuccess ? "ring-2 ring-green-500 bg-green-50" : ""}`}
+                        placeholder="Enter URL or describe the brand"
+                        className={`
+                          w-full py-4 pl-10 pr-4 sm:pl-11 sm:pr-4 sm:py-3
+                          text-base font-medium 
+                          bg-white sm:bg-transparent 
+                          border border-gray-200 sm:border-none 
+                          rounded-lg sm:rounded-none
+                          shadow-sm sm:shadow-none
+                          focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:focus:ring-0 sm:focus:outline-none 
+                          placeholder:text-gray-500 placeholder:font-normal placeholder:text-sm
+                          transition-all duration-200 
+                          ${error ? "ring-2 ring-red-500 border-red-500" : ""} 
+                          ${isSuccess ? "ring-2 ring-green-500 bg-green-50" : ""}
+                        `}
                         value={url}
                         onChange={(e) => {
                           const sanitizedValue = sanitizeInput(e.target.value, url)
@@ -377,32 +391,41 @@ export default function LandingPage() {
                         autoCapitalize="none"
                         autoCorrect="off"
                         spellCheck="false"
-                        inputMode="url"
+                        inputMode="text"
                         disabled={isExtracting || isSuccess}
-                        aria-label="Website URL"
+                        aria-label="Website URL or brand description"
                         aria-describedby={error ? "input-error" : undefined}
-                        style={{ boxShadow: 'none' }}
                       />
                     </div>
                     <Button
                       type="submit"
                       size="lg"
-                      className={`h-12 px-4 sm:px-6 rounded-lg bg-black text-white font-semibold text-sm sm:text-base shadow-none hover:bg-gray-800 focus:bg-gray-800 focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 transition-all duration-200 z-10 ${isSuccess ? "bg-green-500 hover:bg-green-600 text-white focus:ring-green-400" : ""}`}
+                      className={`
+                        w-full sm:w-auto
+                        h-14 sm:h-12 px-6 sm:px-4 
+                        rounded-lg sm:rounded-lg
+                        bg-black text-white font-semibold text-base sm:text-sm
+                        shadow-sm sm:shadow-none 
+                        hover:bg-gray-800 focus:bg-gray-800 focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 
+                        transition-all duration-200 
+                        ${isSuccess ? "bg-green-500 hover:bg-green-600 text-white focus:ring-green-400" : ""}
+                      `}
                       disabled={isExtracting || isSuccess}
                     >
                       {isExtracting ? (
                         <>
-                          <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                          Processing
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          <span>Processing</span>
                         </>
                       ) : isSuccess ? (
                         <>
-                          <CheckCircle className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                          Done!
+                          <CheckCircle className="mr-2 h-5 w-5" />
+                          <span>Done!</span>
                         </>
                       ) : (
                         <>
-                          <span className="text-xs sm:text-sm md:text-base">Get Started</span> <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+                          <span>Try it out</span> 
+                          <ArrowRight className="ml-2 h-5 w-5" />
                         </>
                       )}
                     </Button>
