@@ -251,7 +251,7 @@ x.com/tahigichigi`;
             <p style="font-size: 16px; margin-bottom: 30px;">I noticed you started creating your style guide but didn't finish. Totally get it - big decisions take time.</p>
             
             <p style="font-size: 16px; margin-bottom: 8px;">Here's 20% off when you're ready:</p>
-            ${data.discountCode ? `<p style="font-size: 18px; font-weight: bold; color: #10b981; margin-bottom: 30px;">${data.discountCode}</p>` : ''}
+            ${data.discountCode ? `<p style="font-size: 18px; font-weight: bold; margin-bottom: 30px;">${data.discountCode}</p>` : ''}
             
             <p style="font-size: 16px; margin-bottom: 30px;">Just add the code at checkout.</p>
             
@@ -259,7 +259,7 @@ x.com/tahigichigi`;
             
             <div style="text-align: center; margin: 40px 0;">
               <a href="${data.recoveryUrl}" 
-                 style="background: #10b981; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">
+                 style="background: #333; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">
                 Generate Your Style Guide
               </a>
             </div>
@@ -277,9 +277,9 @@ x.com/tahigichigi`;
 
   private generateAbandonedCartEmailText(data: AbandonedCartEmailData): string {
     return `
-Hey there,
+Hey how's it going?
 
-I noticed you started creating your style guide but didn't finish. Totally get it - big decisions take time.
+I noticed you started generating your content style guide but didn't finish. I know how busy things get.
 
 Here's 20% off when you're ready: ${data.discountCode || 'COMEBACK20'}
 
@@ -291,7 +291,7 @@ Generate Your Style Guide: ${data.recoveryUrl}
 
 Tahi
 Founder, AI Style Guide
-x.com/tahigichigi
+
     `;
   }
 }
