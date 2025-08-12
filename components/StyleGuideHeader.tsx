@@ -18,7 +18,16 @@ export function StyleGuideHeader({ brandName, guideType, date }: StyleGuideHeade
           {guideType === 'complete' ? 'The Complete Style Guide' : 'Core Style Guide'}
         </div>
         <h1 className="text-4xl font-extrabold tracking-tight mb-2 text-gray-900">
-          {brandName} Brand Voice & Style Guide
+          {/* Mobile: single line */}
+          <span className="md:hidden">
+            {brandName} Brand Voice & Style Guide
+          </span>
+          {/* Desktop: brand name on first line, subtitle on second */}
+          <span className="hidden md:block">
+            {brandName}
+            <br />
+            Brand Voice & Style Guide
+          </span>
         </h1>
         <p className="text-gray-500 text-base">Created on {formattedDate}</p>
       </div>

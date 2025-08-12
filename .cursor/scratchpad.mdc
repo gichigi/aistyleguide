@@ -61,6 +61,7 @@ Web app that generates brand style guides from website URLs using AI to extract 
 - **Email Capture Optimization**: Changed from onChange to onBlur - 95% fewer API calls and better data quality
 - **Performance Optimization**: Parallel processing for custom traits using Promise.all() vs sequential calls
 - **Security Enhancement**: Moved AI generation from client-side to server-side API endpoints
+- **Mobile Homepage UX**: Responsive input layout, optimized icon sizing, and "Try it out" CTA for better mobile experience
 
 **✅ Major System Components (Jan 2025)**
 - **Payment & Generation Pipeline**: Fixed race conditions, hardcoded values, and timeout issues for $149 complete guides

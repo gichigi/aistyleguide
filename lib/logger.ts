@@ -34,7 +34,10 @@ class Logger {
   }
 
   static debug(message: string, details?: any): void {
-    this.log(this.createEntry("debug", message, details))
+    // Only show debug logs in development
+    if (process.env.NODE_ENV !== 'production') {
+      this.log(this.createEntry("debug", message, details))
+    }
   }
 
   static info(message: string, details?: any): void {

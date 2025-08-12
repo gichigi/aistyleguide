@@ -30,54 +30,7 @@ const defaultBrandDetails = {
 
 
 
-// Inline brand name extraction function
-function extractBrandNameInline(brandDetailsText: string) {
-  try {
-    // Simple extraction logic - look for common patterns
-    const text = brandDetailsText.trim()
-    
-    // Look for patterns like "Nike is a..." or "Apple creates..." - updated to handle ® symbols
-    const patterns = [
-      /^([A-Z][a-zA-Z0-9\s&®™©-]{1,30}?)\s+(?:is|are|was|were|creates?|makes?|provides?|offers?|specializes?)/i,
-      /^([A-Z][a-zA-Z0-9\s&®™©-]{1,30}?)\s+(?:helps?|serves?|works?|focuses?)/i,
-      /(?:company|brand|business|startup|organization)\s+(?:called|named)\s+([A-Z][a-zA-Z0-9\s&®™©-]{1,30})/i,
-      /^([A-Z][a-zA-Z0-9\s&®™©-]{1,30}?)\s*[,.]?\s*(?:a|an|the)/i
-    ]
-    
-    // Try each pattern
-    for (const pattern of patterns) {
-      const match = text.match(pattern)
-      if (match && match[1]) {
-        let brandName = match[1].trim()
-        // Clean up trailing punctuation and symbols
-        brandName = brandName.replace(/[®™©]*$/, '').trim()
-        // Validate it's not too generic
-        const genericWords = ['company', 'business', 'brand', 'startup', 'organization', 'team', 'we', 'our', 'this', 'that']
-        if (!genericWords.includes(brandName.toLowerCase()) && brandName.length > 1) {
-          return { success: true, brandName }
-        }
-      }
-    }
-    
-    // Fallback: look for first capitalized word that's not too common
-    const words = text.split(/\s+/)
-    for (const word of words) {
-      if (/^[A-Z][a-zA-Z0-9&®™©-]{1,20}$/.test(word)) {
-        const cleanWord = word.replace(/[®™©]*$/, '').trim()
-        const commonWords = ['The', 'This', 'That', 'Our', 'We', 'Company', 'Business', 'Brand', 'Team']
-        if (!commonWords.includes(cleanWord)) {
-          return { success: true, brandName: cleanWord }
-        }
-      }
-    }
-    
-    // Final fallback
-    return { success: true, brandName: "Your Brand" }
-  } catch (error) {
-    console.error("Brand name extraction failed:", error)
-    return { success: true, brandName: "Your Brand" }
-  }
-}
+
 
 // Format auto-populated descriptions with paragraph breaks between sentences
 function formatAutoPopulatedDescription(description: string): string {
@@ -531,16 +484,6 @@ export default function BrandDetailsPage() {
                         const value = e.target.value.slice(0, 500) // Enforce max length
                         setBrandDetails(prev => {
                           const updatedDetails = { ...prev, brandDetailsText: value }
-                          
-                          // Auto-populate brand name if it's empty and we have enough text
-                          if (!prev.name?.trim() && value.trim().length > 10) {
-                            const extractionResult = extractBrandNameInline(value)
-                            if (extractionResult.success && extractionResult.brandName && extractionResult.brandName !== "Your Brand") {
-                              updatedDetails.name = extractionResult.brandName
-                              // Clear any previous name validation error
-                              setNameError("")
-                            }
-                          }
                           
                           // Save to localStorage
                           localStorage.setItem("brandDetails", JSON.stringify(updatedDetails))

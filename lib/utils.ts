@@ -7,11 +7,11 @@ export function cn(...inputs: ClassValue[]) {
 
 // Brand name utility - single source of truth
 export const getBrandName = (brandDetails: any): string => {
-  // Use provided brand name if available and not empty
-  if (brandDetails?.brandName && brandDetails.brandName.trim()) {
-    return brandDetails.brandName.trim()
+  // Use the name field directly since it's now required
+  if (brandDetails?.name && brandDetails.name.trim()) {
+    return brandDetails.name.trim()
   }
   
-  // Fall back to generic placeholder
+  // Fall back to generic placeholder (should rarely happen now)
   return "Your Brand"
 }
