@@ -1,18 +1,35 @@
 import { generateBrandVoiceTraits, generateWithOpenAI, generateFullCoreStyleGuide, generateCompleteStyleGuide } from "./openai"
 import { marked } from 'marked'
+import fs from 'fs'
+import path from 'path'
 
-// Function to load a template file via API
+// Function to load a template file via API or directly from filesystem
 export async function loadTemplate(templateName: string): Promise<string> {
   console.log(`[loadTemplate] Called with templateName: "${templateName}"`)
   
   try {
-    // Use absolute URL with origin for server-side calls
-    const baseUrl = typeof window !== 'undefined' 
-      ? window.location.origin 
-      : process.env.NEXT_PUBLIC_APP_URL || ''
+    // On server-side, read directly from filesystem
+    if (typeof window === 'undefined') {
+      console.log(`[loadTemplate] Server-side: reading template directly from filesystem`)
+      
+      const templatePath = path.join(process.cwd(), 'templates', `${templateName}.md`)
+      console.log(`[loadTemplate] Reading from path: "${templatePath}"`)
+      
+      try {
+        const template = await fs.promises.readFile(templatePath, 'utf8')
+        console.log(`[loadTemplate] Successfully read template "${templateName}" (${template.length} chars)`)
+        return template
+      } catch (readError) {
+        console.error(`[loadTemplate] Failed to read template file:`, readError)
+        throw new Error(`Failed to load template: ${templateName}`)
+      }
+    }
+    
+    // On client-side, use API
+    console.log(`[loadTemplate] Client-side: fetching template via API`)
+    const baseUrl = window.location.origin
     
     console.log(`[loadTemplate] Base URL: "${baseUrl}"`)
-    console.log(`[loadTemplate] Environment: ${typeof window !== 'undefined' ? 'client-side' : 'server-side'}`)
     
     const fullUrl = `${baseUrl}/api/load-template?name=${templateName}`
     console.log(`[loadTemplate] Fetching from: "${fullUrl}"`)
@@ -36,7 +53,7 @@ export async function loadTemplate(templateName: string): Promise<string> {
     return data.content
   } catch (error) {
     console.error(`[loadTemplate] Error loading template ${templateName}:`, error)
-    throw new Error(`Failed to load template: ${templateName}`)
+    throw error
   }
 }
 
