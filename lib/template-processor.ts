@@ -1,4 +1,4 @@
-import { generateBrandVoiceTraits, generateWithOpenAI, generateFullCoreStyleGuide, generateCompleteStyleGuide } from "./openai"
+import { generateBrandVoiceTraits, generateWithOpenAI, generateFullCoreStyleGuide, generateCompleteStyleGuide, generateAudienceSummary } from "./openai"
 
 // Function to load a template file via API
 export async function loadTemplate(templateName: string): Promise<string> {
@@ -322,6 +322,7 @@ export async function processTemplate(templateType: string, brandDetails: any, p
     console.log("Basic placeholders replaced")
 
     // Generate brand voice traits for both core and complete plans
+    let traitsContextForRules: string | undefined
     try {
       const brandVoiceResult = await generateBrandVoiceTraits(validatedDetails);
       if (brandVoiceResult.success && brandVoiceResult.content) {
@@ -332,16 +333,20 @@ export async function processTemplate(templateType: string, brandDetails: any, p
         template = template.replace(/{{voice_trait_3}}/g, traits[2] || '');
         // Remove any leftover placeholders
         template = template.replace(/{{voice_trait_\d}}/g, '');
+        // Prepare traits context for rules prompts (limit length to control tokens)
+        traitsContextForRules = brandVoiceResult.content.slice(0, 4000);
       } else {
         template = template.replace(/{{voice_trait_1}}/g, '_Could not generate brand voice trait 1._');
         template = template.replace(/{{voice_trait_2}}/g, '_Could not generate brand voice trait 2._');
         template = template.replace(/{{voice_trait_3}}/g, '_Could not generate brand voice trait 3._');
+        traitsContextForRules = undefined;
       }
     } catch (error) {
       console.error("Error generating brand voice traits:", error)
       template = template.replace(/{{voice_trait_1}}/g, '_Could not generate brand voice trait 1._');
       template = template.replace(/{{voice_trait_2}}/g, '_Could not generate brand voice trait 2._');
       template = template.replace(/{{voice_trait_3}}/g, '_Could not generate brand voice trait 3._');
+      traitsContextForRules = undefined;
     }
 
     console.log("Voice trait placeholders replaced")
@@ -349,7 +354,7 @@ export async function processTemplate(templateType: string, brandDetails: any, p
     // Generate all rules at once for the complete plan
     if (plan === "complete") {
       try {
-        const completeRulesResult = await generateCompleteStyleGuide(rulesDetails);
+        const completeRulesResult = await generateCompleteStyleGuide(rulesDetails, traitsContextForRules);
         if (completeRulesResult.success && completeRulesResult.content) {
           // Use same formatMarkdownContent() processing as core guides for consistent formatting
           template = template.replace(/{{complete_rules}}/g, formatMarkdownContent(completeRulesResult.content));
@@ -363,7 +368,7 @@ export async function processTemplate(templateType: string, brandDetails: any, p
     } else {
       // Generate all 25 rules at once and insert into template (core)
       try {
-        const coreRulesResult = await generateFullCoreStyleGuide(rulesDetails);
+        const coreRulesResult = await generateFullCoreStyleGuide(rulesDetails, traitsContextForRules);
         if (coreRulesResult.success && coreRulesResult.content) {
           template = template.replace(/{{core_rules}}/g, formatMarkdownContent(coreRulesResult.content));
         } else {
@@ -553,23 +558,41 @@ export async function renderStyleGuideTemplate({
         description: brandDetails.description?.trim() || brandDetails.brandDetailsText || '',
         audience: brandDetails.audience?.trim() || '',
         traits: brandDetails.traits || [],
+        keywords: Array.isArray(brandDetails.keywords) ? brandDetails.keywords : [],
       };
       
       // For style guide rules generation (separate from voice traits)
       const rulesDetails = {
         ...validatedDetails,
         tone: brandDetails.tone || '',
+        formalityLevel: brandDetails.formalityLevel || '',
+        readingLevel: brandDetails.readingLevel || '',
+        englishVariant: brandDetails.englishVariant || '',
       };
+      // Ensure non-empty audience for prompts only
+      if (!rulesDetails.audience || rulesDetails.audience.toLowerCase() === 'general audience') {
+        try {
+          const aud = await generateAudienceSummary({ name: rulesDetails.name, description: rulesDetails.description })
+          if (aud.success && aud.content) {
+            rulesDetails.audience = aud.content.trim()
+          }
+        } catch (e) {
+          // Leave audience empty if summary fails; prompts will still work
+        }
+      }
       // Brand voice traits
+      let traitsContextForRules: string | undefined
       const brandVoiceResult = await generateBrandVoiceTraits(validatedDetails);
       if (brandVoiceResult.success && brandVoiceResult.content) {
         result = result.replace(/{{brand_voice_traits}}/g, formatMarkdownContent(brandVoiceResult.content));
+        traitsContextForRules = brandVoiceResult.content.slice(0, 4000)
       } else {
         result = result.replace(/{{brand_voice_traits}}/g, "_Could not generate brand voice traits for this brand._");
+        traitsContextForRules = undefined
       }
       if (templateType === "complete") {
         // Complete rules
-        const completeRulesResult = await generateCompleteStyleGuide(rulesDetails);
+        const completeRulesResult = await generateCompleteStyleGuide(rulesDetails, traitsContextForRules);
         if (completeRulesResult.success && completeRulesResult.content) {
           result = result.replace(/{{complete_rules}}/g, formatMarkdownContent(completeRulesResult.content));
         } else {
@@ -577,7 +600,7 @@ export async function renderStyleGuideTemplate({
         }
       } else if (templateType === "core") {
         // Core rules (only for core template, not preview)
-        const coreRulesResult = await generateFullCoreStyleGuide(rulesDetails);
+        const coreRulesResult = await generateFullCoreStyleGuide(rulesDetails, traitsContextForRules);
         if (coreRulesResult.success && coreRulesResult.content) {
           result = result.replace(/{{core_rules}}/g, formatMarkdownContent(coreRulesResult.content));
         } else {

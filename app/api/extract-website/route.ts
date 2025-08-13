@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { generateWithOpenAI } from "@/lib/openai"
+import { generateWithOpenAI, generateAudienceSummary, extractDomainTermsAndLexicon } from "@/lib/openai"
 import Logger from "@/lib/logger"
 import { validateUrl } from "@/lib/url-validation"
 import * as cheerio from "cheerio"
@@ -147,12 +147,42 @@ Important: Make the description rich and detailed (300-450 chars) while staying 
         
         if (result.success && result.content) {
           const brandDetails = JSON.parse(result.content)
+          // Normalize audience to a concise string
+          let audienceStr = ''
+          try {
+            if (typeof brandDetails.targetAudience === 'string') {
+              audienceStr = brandDetails.targetAudience
+            } else if (brandDetails.targetAudience) {
+              audienceStr = flattenTargetAudience(brandDetails.targetAudience)
+            }
+          } catch {}
+
+          // Extract domain terms and lexicon
+          let keywords = ''
+          let domainTerms: string[] | undefined
+          let lexicon: any | undefined
+          try {
+            const terms = await extractDomainTermsAndLexicon({ name: brandDetails.name, description: brandDetails.description })
+            if (terms.success && terms.content) {
+              const parsed = JSON.parse(terms.content)
+              domainTerms = Array.isArray(parsed.domainTerms) ? parsed.domainTerms : []
+              lexicon = parsed.lexicon || {}
+              const preferred = Array.isArray(lexicon.preferred) ? lexicon.preferred : []
+              const combined = [...new Set([...(domainTerms || []), ...preferred])]
+              keywords = combined.join('\n')
+            }
+          } catch {}
+
           Logger.info("Successfully generated brand details from description")
           
           return NextResponse.json({
             success: true,
             brandName: brandDetails.name,
             brandDetailsText: brandDetails.description,
+            audience: audienceStr,
+            keywords,
+            domainTerms,
+            lexicon,
             extractedData: brandDetails
           })
         } else {
@@ -334,12 +364,39 @@ ${summary}
     const brandNameMatch = brandDetailsText.match(/^([^.]+?)\s+is\s+/i)
     const brandName = brandNameMatch ? brandNameMatch[1].trim() : ""
 
+    // Generate a concise audience description from crawled content (internal use)
+    let audience = ''
+    try {
+      const aud = await generateAudienceSummary({ name: brandName || 'Brand', description: brandDetailsText })
+      if (aud.success && aud.content) audience = aud.content.trim()
+    } catch {}
+
+    // Extract domain terms and lexicon from crawled content
+    let keywords = ''
+    let domainTerms: string[] | undefined
+    let lexicon: any | undefined
+    try {
+      const terms = await extractDomainTermsAndLexicon({ name: brandName || 'Brand', description: brandDetailsText })
+      if (terms.success && terms.content) {
+        const parsed = JSON.parse(terms.content)
+        domainTerms = Array.isArray(parsed.domainTerms) ? parsed.domainTerms : []
+        lexicon = parsed.lexicon || {}
+        const preferred = Array.isArray(lexicon.preferred) ? lexicon.preferred : []
+        const combined = [...new Set([...(domainTerms || []), ...preferred])]
+        keywords = combined.join('\n')
+      }
+    } catch {}
+
     Logger.info("Successfully extracted brand information")
     return NextResponse.json({
       success: true,
       message: "Successfully extracted brand information",
       brandDetailsText,
       brandName,
+      audience,
+      keywords,
+      domainTerms,
+      lexicon,
     })
   } catch (error) {
     Logger.error(

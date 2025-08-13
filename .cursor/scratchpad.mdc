@@ -16,9 +16,12 @@ Web app that generates brand style guides from website URLs using AI to extract 
 
 ## 🚧 Active Tasks
 
+Note on terminology: "Clear" means remove the task from Active Tasks, add a short summary under Completed, and record any key lessons learned.
+
 ### High Priority (P0)
 
-
+- Collect usability feedback on new Keywords tag UI (Foundation variant) and adjust spacing/contrast as needed
+- Evaluate impact of passing keywords to prompts; if weak, enable Task 3 variants (lexicon linking, required usage)
 
 ### Medium Priority (P1)
 - **Benefit**: More complete and useful style guides that include brand context alongside voice guidelines
@@ -49,6 +52,19 @@ Web app that generates brand style guides from website URLs using AI to extract 
 ### Done/Completed
 
 **✅ Latest Session Achievements (Aug 2025)**
+- **Task 1 — Pass traits (predefined and custom) into rules prompts**
+  - Implemented conditional "Traits Context" in rules prompts.
+  - Predefined traits use static `TRAITS`; custom traits use AI-generated descriptions.
+  - If traits are missing/fail, omit the section so prompts rely on brand info only.
+  - Verified via CLI across formal and casual brands; observed expected tone shifts.
+- **Task 2 — Audience summary from extraction + prompt usage**
+  - Extraction API now returns `audience` for URL and description paths.
+  - Wired audience through homepage/start → brand-details → generation.
+  - `renderStyleGuideTemplate` uses audience in prompts; hidden from templates.
+  - Verified end-to-end via CLI; output reflects formal/inclusive choices for healthcare.
+- **Custom traits prompt enhancement**
+  - Custom trait generator now explicitly references the core audience in the one-sentence description and tailors examples to that audience.
+  - Expect more lines like “instills confidence in healthcare providers.”
 - **Preview Page Overhaul**: Dynamic brand voice generation with 50%+ performance improvement (8s → 3-4s)
 - **Abandoned Cart Automation**: Fully automated hourly email scheduler with Vercel cron and admin Supabase client
 - **Webhook System Fixed**: Stripe signature validation now working - payment processing and email delivery functional
@@ -69,6 +85,19 @@ Web app that generates brand style guides from website URLs using AI to extract 
 
 
 ## 📚 Key Lessons Learned
+
+### Brand Voice & Rules — Key Learnings (Task 1)
+- **Audience at crawl-time > post-form**: Generating audience from crawled content yields higher-quality guidance and better grounding vs. generating it later from trimmed brand details.
+- **Audience-aware custom traits**: Prompting custom trait generation to reference audience improves specificity and perceived intentionality.
+
+- **Traits subtly steer rules**: Passing full trait descriptions nudges choices (e.g., contractions, pronouns, date formats) in the expected direction for both formal and casual brands.
+- **Custom traits add specificity**: AI-generated custom traits (e.g., "Technical", "Conversational") produce clearer, brand-fitting guidance than predefined-only.
+- **Predefined traits are static**: Good baseline but generic; plan to tailor via AI rewrite (Task 3) for brand fit.
+- **Model infers from brand context**: Even without traits, rules are reasonable; trait context strengthens intent rather than fully changing direction.
+- **Conditional traits context is safer**: If trait gen fails, we omit the section; prompts fall back to brand info—no invented traits.
+- **User-perceived intent depends on content**: Domain terms + brand lexicon and rules that explicitly reference tone/traits (e.g., "Use contractions to reinforce your casual, conversational voice") best demonstrate intentionality.
+- **Control gaps identified**: Formality and reading level not yet enforced by prompts—causes mixed contractions/pronouns in some cases; wiring (Task 2b) will fix.
+- **Token efficiency**: Trimming trait context (~4k chars) keeps calls stable while preserving signal.
 
 ### Technical Architecture
 - **Markdown rendering complexity** - `react-markdown` provides safer, more consistent rendering than `marked` + dangerouslySetInnerHTML

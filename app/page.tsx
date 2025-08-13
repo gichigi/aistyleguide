@@ -300,7 +300,11 @@ export default function LandingPage() {
         const brandDetails = {
           name: data.brandName || "",
           brandDetailsText: data.brandDetailsText,
-          tone: "friendly" // Default tone
+          tone: "friendly", // Default tone
+          audience: data.audience || ""
+        }
+        if (data.keywords) {
+          localStorage.setItem("brandKeywords", data.keywords)
         }
         
         localStorage.setItem("brandDetails", JSON.stringify(brandDetails))

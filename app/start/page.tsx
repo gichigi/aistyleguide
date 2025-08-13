@@ -64,8 +64,13 @@ export default function StartPage() {
           const params = new URLSearchParams({
             fromExtraction: "true",
             brandName: data.brandName || "",
-            description: data.brandDetailsText || ""
+            description: data.brandDetailsText || "",
+            audience: data.audience || ""
           })
+          if (data.keywords) {
+            // Preload keywords into localStorage for brand-details
+            try { localStorage.setItem('brandKeywords', data.keywords) } catch {}
+          }
           router.push(`/brand-details?${params.toString()}`)
         }, 800)
       } else {

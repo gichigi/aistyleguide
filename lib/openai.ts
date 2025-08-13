@@ -166,13 +166,13 @@ Create the trait description in this EXACT format:
 
 ### ${index}. ${traitName}
 
-[ONE SENTENCE description of what this trait means for this specific brand and why it's important]
+[ONE SENTENCE description of what this trait means for this specific brand and why it's important. Explicitly reference the core audience at least once (e.g., "instills confidence in healthcare providers", "helps CFOs make faster decisions").]
 
 ***What It Means***
 
-→ [Specific actionable example - around 12 words]
-→ [Specific actionable example - around 12 words] 
-→ [Specific actionable example - around 12 words]
+→ [Specific actionable example for the audience - around 12 words]
+→ [Specific actionable example for the audience - around 12 words] 
+→ [Specific actionable example for the audience - around 12 words]
 
 ***What It Doesn't Mean***
 
@@ -180,7 +180,7 @@ Create the trait description in this EXACT format:
 ✗ [Specific clarification - around 12 words]
 ✗ [Specific clarification - around 12 words]
 
-These should guide HOW someone writes and speaks, not WHAT topics they cover. Focus on tone, word choice, and communication style. Make each example specific to this brand and actionable, keeping them natural and conversational around 12 words. Use → (unicode arrow) and ✗ (unicode cross) exactly as shown.`;
+These should guide HOW someone writes and speaks, not WHAT topics they cover. Focus on tone, word choice, and communication style tailored to the audience. Make each example specific to this brand and actionable, keeping them natural and conversational around 12 words. Use → (unicode arrow) and ✗ (unicode cross) exactly as shown.`;
 
   const result = await generateWithOpenAI(prompt, "You are a brand strategist creating specific, actionable trait descriptions.", "markdown", 800, "gpt-4o");
   
@@ -315,7 +315,12 @@ Use British English spelling
 }*/
 
 // Function to generate the entire core style guide in one go
-export async function generateFullCoreStyleGuide(brandDetails: any): Promise<GenerationResult> {
+export async function generateFullCoreStyleGuide(brandDetails: any, traitsContext?: string): Promise<GenerationResult> {
+  const traitsSection = traitsContext ? `\nTraits Context:\n${traitsContext}\n` : '';
+  const styleConstraints = `\nStyle Constraints:\n- Formality: ${brandDetails.formalityLevel || 'Neutral'} (Professional: avoid contractions; Casual: allow contractions; Very Formal: use third person)\n- Reading Level: ${brandDetails.readingLevel || '10-12'} (6–8: short sentences, simple vocab; 13+: technical precision allowed)\n- English Variant: ${brandDetails.englishVariant || 'american'} (apply spelling and punctuation accordingly)`;
+  const keywordSection = Array.isArray(brandDetails.keywords) && brandDetails.keywords.length
+    ? `\nBrand Keywords (use naturally in examples where helpful):\n- ${brandDetails.keywords.slice(0, 15).join('\n- ')}`
+    : '';
   const prompt = `You are a writing style guide expert. Based on the brand info below, create a set of 25 specific writing style rules for this brand.
 
 Brand Info:
@@ -323,6 +328,10 @@ Brand Info:
   • Audience: ${brandDetails.audience}
   • Tone: ${brandDetails.tone}
   • What they do: ${brandDetails.summary || brandDetails.description}
+
+${traitsSection}
+${styleConstraints}
+${keywordSection}
 
 Instructions:
 - Each rule must be about writing style, grammar, punctuation, spelling, or formatting.
@@ -372,7 +381,12 @@ Generate exactly 25 rules, each about a different aspect of writing style.`;
 }
 
 // Function to generate the entire complete style guide in one go
-export async function generateCompleteStyleGuide(brandDetails: any): Promise<GenerationResult> {
+export async function generateCompleteStyleGuide(brandDetails: any, traitsContext?: string): Promise<GenerationResult> {
+  const traitsSection = traitsContext ? `\nTraits Context:\n${traitsContext}\n` : '';
+  const styleConstraints = `\nStyle Constraints:\n- Formality: ${brandDetails.formalityLevel || 'Neutral'} (Professional: avoid contractions; Casual: allow contractions; Very Formal: use third person)\n- Reading Level: ${brandDetails.readingLevel || '10-12'} (6–8: short sentences, simple vocab; 13+: technical precision allowed)\n- English Variant: ${brandDetails.englishVariant || 'american'} (apply spelling and punctuation accordingly)`;
+  const keywordSection = Array.isArray(brandDetails.keywords) && brandDetails.keywords.length
+    ? `\nBrand Keywords (use naturally in examples where helpful):\n- ${brandDetails.keywords.slice(0, 15).join('\n- ')}`
+    : '';
   const prompt = `You are a writing style guide expert. Based on the brand info below, create a comprehensive set of writing style rules for this brand, covering all the detailed topics listed.
 
 Brand Info:
@@ -380,6 +394,10 @@ Brand Info:
   • Audience: ${brandDetails.audience}
   • Tone: ${brandDetails.tone}
   • What they do: ${brandDetails.summary || brandDetails.description}
+
+${traitsSection}
+${styleConstraints}
+${keywordSection}
 
 Instructions:
 - Each main section should be H2 (##) without numbers (e.g., "## Spelling Conventions").
@@ -579,6 +597,55 @@ Put the person before their condition or characteristic to show respect and dign
 - Focus on how to write, edit, and format text for this brand.
 `;
   return generateWithOpenAI(prompt, "You are a writing style guide expert.", "markdown", 9000, "gpt-4o");
+}
+
+// Extract domain terms and a simple brand lexicon (preferred/banned terms)
+export async function extractDomainTermsAndLexicon(params: { name: string; description: string }): Promise<GenerationResult> {
+  const { name, description } = params
+  const prompt = `From the brand info below, extract domain-specific keywords and a short brand lexicon.
+
+Return strict JSON with this shape:
+{
+  "domainTerms": ["term1", "term2", "term3", "term4", "term5"],
+  "lexicon": {
+    "preferred": ["preferred term 1", "preferred term 2"],
+    "banned": ["banned term 1", "banned term 2"]
+  }
+}
+
+Guidelines:
+- Choose concrete, non-generic domain terms (products, features, industry jargon users would actually write).
+- Preferred terms: words/phrases the brand should use consistently.
+- Banned terms: confusing or off-brand alternatives to avoid.
+- Keep arrays short (5–10 domain terms; 2–5 preferred; 2–5 banned).
+
+Brand Name: ${name}
+Brand Description: ${description}`
+
+  return generateWithOpenAI(
+    prompt,
+    "You are a careful content taxonomist. Return strict JSON only.",
+    "json",
+    400,
+    "gpt-4o"
+  )
+}
+
+// Generate a short internal audience description (1–2 sentences, ~25–40 words)
+export async function generateAudienceSummary(params: { name: string; description: string }): Promise<GenerationResult> {
+  const { name, description } = params
+  const prompt = `Based on the brand below, write a concise audience description (1–2 sentences, ~25–40 words). Keep it practical and specific. Output plain text only.
+
+Brand Name: ${name}
+What they do: ${description}`
+
+  return generateWithOpenAI(
+    prompt,
+    "You are a brand strategist who writes precise, practical audience descriptions.",
+    "markdown",
+    200,
+    "gpt-4o"
+  )
 }
 
 // Function to generate a concise brand summary from a single textarea
