@@ -56,6 +56,15 @@ export default function LandingPage() {
   const [isExtracting, setIsExtracting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
 
+  // Check if input is valid for submission
+  const isInputValid = () => {
+    const trimmedInput = url.trim()
+    if (!trimmedInput) return false
+    
+    const validation = validateInput(trimmedInput)
+    return validation.isValid
+  }
+
   // Lazy load non-critical sections
   const TestimonialsSection = dynamic(() => import("../components/testimonials-section"), {
     ssr: false,
@@ -69,11 +78,28 @@ export default function LandingPage() {
 
   // Classify error types for better UX
   const classifyError = (error: any, response?: Response): { type: string; message: string } => {
-    const errorMessage = error?.message || error || "Unknown error"
+    // Handle cases where error is an empty object or null
+    let errorMessage = "Unknown error"
+    
+    if (error) {
+      if (typeof error === 'string') {
+        errorMessage = error
+      } else if (error.message) {
+        errorMessage = error.message
+      } else if (error.error) {
+        errorMessage = error.error
+      } else if (typeof error === 'object' && Object.keys(error).length === 0) {
+        errorMessage = "Empty error response"
+      } else {
+        errorMessage = String(error)
+      }
+    }
     
     console.error(`[HOMEPAGE] Error classification:`, {
       errorMessage,
       errorName: error?.name,
+      errorType: typeof error,
+      errorKeys: error && typeof error === 'object' ? Object.keys(error) : [],
       responseStatus: response?.status,
       responseStatusText: response?.statusText,
       timestamp: new Date().toISOString()
@@ -181,10 +207,18 @@ export default function LandingPage() {
       }
     }
 
+    // Handle empty error responses  
+    if (errorMessage === "Empty error response") {
+      return {
+        type: 'EMPTY_RESPONSE',
+        message: "Can't analyze this site. Try again or add details manually."
+      }
+    }
+
     // Default error
     return {
       type: 'UNKNOWN',
-              message: "Problem analyzing site. Try again or add details manually."
+      message: "Problem analyzing site. Try again or add details manually."
     }
   }
 
@@ -409,8 +443,9 @@ export default function LandingPage() {
                         hover:bg-gray-800 focus:bg-gray-800 focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 
                         transition-all duration-200 
                         ${isSuccess ? "bg-green-500 hover:bg-green-600 text-white focus:ring-green-400" : ""}
+                        ${!isInputValid() && !isExtracting && !isSuccess ? "opacity-50 cursor-not-allowed" : ""}
                       `}
-                      disabled={isExtracting || isSuccess}
+                      disabled={isExtracting || isSuccess || !isInputValid()}
                     >
                       {isExtracting ? (
                         <>

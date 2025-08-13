@@ -312,6 +312,8 @@ export async function processTemplate(templateType: string, brandDetails: any, p
     // Replace basic placeholders
     template = template.replace(/{{DD MONTH YYYY}}/g, formatDate())
     template = template.replace(/{{brand_name}}/g, validatedDetails.name)
+    template = template.replace(/{{brand_description}}/g, validatedDetails.description)
+    template = template.replace(/{{brand_audience}}/g, validatedDetails.audience)
     template = template.replace(
       /{{brand_contact_email}}/g,
       `support@${validatedDetails.name.toLowerCase().replace(/\s+/g, "")}.com`,
@@ -535,7 +537,9 @@ export async function renderStyleGuideTemplate({
   // Replace basic placeholders
   let result = template
     .replace(/{{DD MONTH YYYY}}/g, formattedDate)
-    .replace(/{{brand_name}}/g, brandName);
+    .replace(/{{brand_name}}/g, brandName)
+    .replace(/{{brand_description}}/g, brandDetails.description || brandDetails.brandDetailsText || 'A innovative company focused on delivering exceptional results.')
+    .replace(/{{brand_audience}}/g, brandDetails.audience || 'Business professionals and decision makers');
     
   console.log(`[renderStyleGuideTemplate] Basic placeholders replaced`)
 
