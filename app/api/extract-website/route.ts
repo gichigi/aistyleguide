@@ -126,13 +126,15 @@ export async function POST(request: Request) {
     if (body.description && !body.url) {
       Logger.info("Processing description input", { descriptionLength: body.description.length })
       
-      const prompt = `Based on this business description: "${body.description}"
+      const prompt = `CRITICAL: Your description must be exactly 300-400 characters.
+
+Based on this business description: "${body.description}"
 
 Extract and expand brand details in this exact JSON format:
 {
   "name": "business name (if mentioned, extract exactly; if not mentioned, create a creative, memorable name that fits the business)",
   "industry": "specific industry category",
-  "description": "rich, detailed business description (300-450 characters) that expands on the original input with specific details about what they do, their approach, and what makes them special",
+  "description": "rich, detailed business description (300-400 characters) that expands on the original input with specific details about what they do, their approach, and what makes them special",
   "values": ["core value 1", "core value 2", "core value 3"],
   "targetAudience": "detailed description of their ideal customers, including demographics, needs, and characteristics",
   "tone": "brand communication tone that fits their business style",
@@ -140,10 +142,13 @@ Extract and expand brand details in this exact JSON format:
   "uniqueSellingPoints": ["specific differentiator 1", "specific differentiator 2", "specific differentiator 3"]
 }
 
-Important: Make the description rich and detailed (300-450 chars) while staying true to the original business concept.`
+CRITICAL REMINDER: The description field must be exactly 300-400 characters. Count carefully to stay within this range.
+
+EXAMPLE (345 characters):
+"Nike is a leading sports brand that designs and manufactures athletic footwear, apparel, and equipment for athletes worldwide. They target fitness enthusiasts, professional athletes, and active individuals who value performance and innovation. Nike stands out through cutting-edge technology, iconic designs, and partnerships with top athletes."`
 
       try {
-        const result = await generateWithOpenAI(prompt, "You are a brand analysis expert.", "json", 800, "gpt-4o")
+        const result = await generateWithOpenAI(prompt, "You are a brand analysis expert.", "json", 800, "gpt-4o-mini", 0.5)
         
         if (result.success && result.content) {
           const brandDetails = JSON.parse(result.content)
@@ -189,7 +194,7 @@ Important: Make the description rich and detailed (300-450 chars) while staying 
           throw new Error("Failed to generate brand details")
         }
       } catch (error) {
-        Logger.error("Error processing description", error)
+        Logger.error("Error processing description", error instanceof Error ? error : new Error("Unknown error"))
         return NextResponse.json({
           success: false,
           message: "Could not process description. Try again or add details manually.",
@@ -321,9 +326,11 @@ Important: Make the description rich and detailed (300-450 chars) while staying 
     summary = summary.slice(0, 10000)
 
     // Generate prompt for website extraction with improved guidance
-    const prompt = `Analyze the following website content and extract the brand's core identity.
+    const prompt = `CRITICAL: Your description must be exactly 300-400 characters.
 
-Write a single, cohesive paragraph (30-50 words) that follows this structure:
+Analyze the following website content and extract the brand's core identity.
+
+Write a single, cohesive paragraph (300-400 characters) that follows this structure:
 1. Start with the brand name followed by what they are/do
 2. Include their main products/services
 3. Specify their target audience
@@ -335,11 +342,12 @@ Your paragraph should be:
 - Written in third person
 - Focused on their current offerings, not history
 - Use short sentences and simple punctuation
+- CRITICAL: Keep under 500 characters to prevent validation errors
 
-Examples: 
-'Nike is a leading sports brand, selling a wide range of workout products, services and experiences worldwide. Nike targets athletes and sports enthusiasts globally, focusing on those who want high-quality sportswear and equipment.'
+CRITICAL REMINDER: Your paragraph must be exactly 300-400 characters. Count carefully to stay within this range.
 
-'OpenAI is a technology company specializing in artificial intelligence research and development. OpenAI offers cutting-edge AI products and services to businesses and developers worldwide. Their target audience includes organizations looking to leverage advanced AI solutions.'
+PERFECT EXAMPLE (345 characters):
+"Nike is a leading sports brand that designs and manufactures athletic footwear, apparel, and equipment for athletes worldwide. They target fitness enthusiasts, professional athletes, and active individuals who value performance and innovation. Nike stands out through cutting-edge technology, iconic designs, and partnerships with top athletes."
 
 Website Content:
 ${summary}
@@ -349,7 +357,9 @@ ${summary}
       prompt,
       "You are an expert brand analyst with experience writing clear, readable brand summaries. Use simple language and short sentences. Avoid complex words, marketing jargon, and run-on sentences. Make your description easily scannable and accessible to all readers.",
       "json", // Use json format for faster processing
-      500 // Reduce max tokens since we only need a short paragraph
+      500, // Reduce max tokens since we only need a short paragraph
+      "gpt-4o-mini",
+      0.5
     )
 
     if (!result.success || !result.content) {

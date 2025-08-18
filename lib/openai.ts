@@ -47,7 +47,8 @@ export async function generateWithOpenAI(
   systemPrompt: string,
   responseFormat: ResponseFormat = "json",
   max_tokens: number = 2000,
-  model: string = "gpt-3.5-turbo" // Default to faster model
+  model: string = "gpt-4o-mini", // Default to efficient model
+  temperature: number = 0.7
 ): Promise<GenerationResult> {
   const maxAttempts = 3
   Logger.info("Starting OpenAI generation", { prompt: prompt.substring(0, 100) + "...", format: responseFormat, model })
@@ -63,7 +64,7 @@ export async function generateWithOpenAI(
           { role: "system", content: systemPrompt },
           { role: "user", content: prompt }
         ],
-        temperature: 0.6,
+        temperature: temperature,
         max_tokens: max_tokens
       })
 

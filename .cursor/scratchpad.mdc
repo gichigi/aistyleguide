@@ -20,8 +20,13 @@ Note on terminology: "Clear" means remove the task from Active Tasks, add a shor
 
 ### High Priority (P0)
 
+
 - Collect usability feedback on new Keywords tag UI (Foundation variant) and adjust spacing/contrast as needed
-- Evaluate impact of passing keywords to prompts; if weak, enable Task 3 variants (lexicon linking, required usage)
+- Test keywords end-to-end (extraction → tags → generation). Verify examples naturally use 2–3 keywords per section without stuffing.
+- If impact is weak, apply learnings:
+  - Enable Task 3b — Make rules explicitly reference traits/tone (e.g., "Use contractions to reinforce your casual, conversational voice").
+  - Consider Task 3a — Extract 5–10 domain terms + brand lexicon and require usage in examples (with soft limits), avoiding banned terms.
+  - Tweak placement in prompts (e.g., move Brand Keywords above Instructions) and lower temperature for rules.
 
 ### Medium Priority (P1)
 - **Benefit**: More complete and useful style guides that include brand context alongside voice guidelines
@@ -79,6 +84,7 @@ Note on terminology: "Clear" means remove the task from Active Tasks, add a shor
 - **Email Systems**: Complete abandoned cart recovery with session linking, webhook integration, and automated processing
 - **Dynamic Content**: Homepage URL/description processing, preview generation, and template processing working end-to-end
 - **User Experience**: Mobile-first design, loading states, error handling, and payment success flows optimized
+- **Description Length Validation**: Improved extraction prompts with tighter constraints (300-400 chars), concrete examples, lower temperature (0.5), and gpt-4o-mini for better adherence to character limits
 
 ---
 
@@ -98,6 +104,14 @@ Note on terminology: "Clear" means remove the task from Active Tasks, add a shor
 - **User-perceived intent depends on content**: Domain terms + brand lexicon and rules that explicitly reference tone/traits (e.g., "Use contractions to reinforce your casual, conversational voice") best demonstrate intentionality.
 - **Control gaps identified**: Formality and reading level not yet enforced by prompts—causes mixed contractions/pronouns in some cases; wiring (Task 2b) will fix.
 - **Token efficiency**: Trimming trait context (~4k chars) keeps calls stable while preserving signal.
+
+### AI Character Limit Adherence (Description Extraction)
+- **Cognitive overload hypothesis**: When AI generates 8+ fields simultaneously (name, industry, description, values, audience, tone, competitors, USPs), it treats character limits as one constraint among many and consistently exceeds targets
+- **Multiple prompt strategies tested**: "CRITICAL" warnings, concrete examples (345 chars), tighter ranges (300-400), lower temperature (0.5), model changes (gpt-4o-mini) all provided modest improvements but not strict adherence  
+- **Consistency across inputs**: Regardless of input complexity, AI consistently generates 420-530 characters vs 300-400 target—suggests systematic prompt design issue rather than content-specific
+- **Form validation as safety net**: 500-character client-side validation catches overages, allowing manual editing—better UX than truncation mid-sentence
+- **Two-step separation needed**: For strict limits, separate description generation (laser-focused on character counting) from multi-field creative extraction
+- **Acceptable range found**: 400-450 characters provides good detail while staying under 500-char form limit—balance of quality vs constraints
 
 ### Technical Architecture
 - **Markdown rendering complexity** - `react-markdown` provides safer, more consistent rendering than `marked` + dangerouslySetInnerHTML
