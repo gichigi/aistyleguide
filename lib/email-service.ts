@@ -248,7 +248,7 @@ x.com/tahigichigi`;
           <div style="margin-bottom: 40px;">
             <p style="font-size: 18px; margin-bottom: 30px;">Hey there,</p>
             
-            <p style="font-size: 16px; margin-bottom: 30px;">I noticed you started creating your style guide but didn't finish. Totally get it - big decisions take time.</p>
+            <p style="font-size: 16px; margin-bottom: 30px;">I noticed you started creating your style guide but didn't finish. I know how busy things get.</p>
             
             <p style="font-size: 16px; margin-bottom: 8px;">Here's 20% off when you're ready:</p>
             ${data.discountCode ? `<p style="font-size: 18px; font-weight: bold; margin-bottom: 30px;">${data.discountCode}</p>` : ''}

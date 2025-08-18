@@ -29,6 +29,17 @@ Note on terminology: "Clear" means remove the task from Active Tasks, add a shor
   - Tweak placement in prompts (e.g., move Brand Keywords above Instructions) and lower temperature for rules.
 
 ### Medium Priority (P1)
+
+**🔄 Fix Preview Page Error Handling**
+- **Issue**: Preview page auto-redirects to `/full-access` when AI generation fails, confusing users who haven't paid yet
+- **Current**: Shows toast → immediately redirects user away from their work
+- **Solution**: 
+  - ❌ Remove auto-redirect to `/full-access`
+  - ✅ Add retry button: "Try Again"  
+  - ✅ Add fallback: "Edit Details" (back to `/brand-details`)
+  - ✅ Keep error toast but make it actionable
+- **Rationale**: Users worked hard to fill the form - don't abandon them on temporary AI failures
+- **Impact**: Better user retention, clearer error recovery flow
 - **Benefit**: More complete and useful style guides that include brand context alongside voice guidelines
 
 
