@@ -153,6 +153,7 @@ export default function PreviewPage() {
   const [fadeIn, setFadeIn] = useState(false)
   const [brandDetails, setBrandDetails] = useState<any>(null)
   const [shouldRedirect, setShouldRedirect] = useState(false)
+  const [showStickyButton, setShowStickyButton] = useState(true)
 
   useEffect(() => {
     // Load brand details
@@ -168,6 +169,23 @@ export default function PreviewPage() {
 
     return () => clearTimeout(timer)
   }, [])
+
+  // Smart unstick behavior - hide button when paywall is visible
+  useEffect(() => {
+    const handleScroll = () => {
+      const paywallBanner = document.querySelector('.paywall-banner')
+      if (paywallBanner) {
+        const rect = paywallBanner.getBoundingClientRect()
+        const isPaywallVisible = rect.top < window.innerHeight && rect.bottom > 0
+        setShowStickyButton(!isPaywallVisible)
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    handleScroll() // Check initial state
+
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [previewContent])
 
   useEffect(() => {
     if (shouldRedirect) {
@@ -276,9 +294,26 @@ export default function PreviewPage() {
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:bg-gray-950/95 dark:border-gray-800">
+      <header className="fixed top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:bg-gray-950/95 dark:border-gray-800">
         <div className="max-w-5xl mx-auto px-8 h-16 flex items-center justify-between">
           <Logo size="md" linkToHome={true} />
+          {showStickyButton && (
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => {
+                  track('Paywall Clicked', { 
+                    location: 'sticky-header',
+                    action: 'unlock-style-guide'
+                  });
+                  setPaymentDialogOpen(true);
+                }}
+                className="text-base sm:text-lg py-3 sm:py-4 px-6 sm:px-8 bg-gray-900 hover:bg-gray-800 text-white shadow-sm hover:shadow-md transition-all duration-200"
+              >
+                <CreditCard className="h-4 w-4 mr-2" /> 
+                Unlock Style Guide
+              </Button>
+            </div>
+          )}
         </div>
       </header>
 
@@ -286,23 +321,26 @@ export default function PreviewPage() {
       <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
         <DialogContent className="sm:max-w-[600px] text-sm sm:text-base">
           <DialogHeader className="space-y-4">
-            <DialogTitle className="text-base sm:text-xl">Complete your purchase</DialogTitle>
+            <DialogTitle className="text-base sm:text-xl">Get your style guide</DialogTitle>
             <DialogDescription className="text-xs sm:text-base">
-              Choose your style guide package
+              Choose your style guide package. 
             </DialogDescription>
           </DialogHeader>
 
           <Tabs defaultValue="core" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="core">Core Guide</TabsTrigger>
+              <TabsTrigger value="core" className="relative">
+                Core Guide
+                <span className="ml-1 text-xs text-gray-500 font-normal">$0</span>
+              </TabsTrigger>
               <TabsTrigger value="complete">Complete Guide</TabsTrigger>
             </TabsList>
 
             <TabsContent value="core" className="mt-4 space-y-4">
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-lg sm:text-2xl font-bold">Preview Style Guide</h3>
-                  <div className="mt-1 text-xl sm:text-3xl font-bold">$99</div>
+                  <h3 className="text-lg sm:text-2xl font-bold">Core Style Guide</h3>
+                  <div className="mt-1 text-xl sm:text-3xl font-bold">$0</div>
                 </div>
 
                 <div className="rounded-lg bg-blue-50 p-4 space-y-2">
@@ -333,14 +371,6 @@ export default function PreviewPage() {
                   </div>
                 </div>
 
-                {/* Add guarantee */}
-                <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 rounded-lg p-3">
-                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                  <span className="font-medium">30-day money-back guarantee</span>
-                </div>
-
                 <Button
                   onClick={() => {
                     // Track payment button click
@@ -359,7 +389,7 @@ export default function PreviewPage() {
                   ) : (
                     <CreditCard className="mr-2 h-4 w-4" />
                   )}
-                  Get Core Guide
+                  Get Free Core Guide
                 </Button>
               </div>
             </TabsContent>
@@ -445,7 +475,7 @@ export default function PreviewPage() {
       </Dialog>
 
       {/* Main Content */}
-      <main className={`flex-1 py-8 transition-opacity duration-500 ease-in-out ${fadeIn ? "opacity-100" : "opacity-0"}`}>
+      <main className={`flex-1 pt-24 pb-8 transition-opacity duration-500 ease-in-out ${fadeIn ? "opacity-100" : "opacity-0"}`}>
         <div className="max-w-5xl mx-auto">
           <div className="mb-6 px-8">
           <Link
@@ -471,7 +501,7 @@ export default function PreviewPage() {
                 </ContentWithFadeout>
 
                 {/* Add paywall banner */}
-                  <div className="my-6 mb-20 p-6 sm:p-8 bg-blue-50 border border-blue-100 rounded-lg shadow-sm text-center">
+                  <div className="paywall-banner my-6 mb-20 p-6 sm:p-8 bg-blue-50 border border-blue-100 rounded-lg shadow-sm text-center">
                     <div className="max-w-md mx-auto">
                       <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center mx-auto mb-4 shadow-sm">
                         <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -484,6 +514,9 @@ export default function PreviewPage() {
                       <p className="text-sm sm:text-base text-gray-600 mb-4 leading-relaxed">
                         Get access to all writing rules, detailed examples, and professional formats to create a consistent brand voice.
                   </p>
+                      <div className="text-sm text-gray-700 mb-4 px-4 py-2 bg-gray-50 rounded-lg border">
+                        <span className="font-medium">Core Guide:</span> $0 • <span className="font-medium">Complete Guide:</span> $149
+                      </div>
                   
                   <Button
                     onClick={() => {

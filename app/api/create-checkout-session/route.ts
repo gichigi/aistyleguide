@@ -41,16 +41,19 @@ export async function POST(request: Request) {
       payment_method_types: ['card'],
       line_items: [
         {
-          price_data: {
+          price: guideType === 'core' ? (
+            mode === 'test' 
+              ? 'price_1RsmD4DcMqVA1kBXfN1ovyjK'  // Test mode $0 price
+              : 'price_1RPQdmDcMqVA1kBXsQvIBFiz'   // Live mode $0 price
+          ) : undefined,
+          price_data: guideType === 'complete' ? {
             currency: 'usd',
             product_data: {
-              name: `${guideType === 'core' ? 'Core' : 'Complete'} Style Guide`,
-              description: guideType === 'core' 
-                ? 'Unlock 25 essential brand writing rules and voice guidelines for clear, consistent content. Perfect for startups and small teams.'
-                : 'Get the full brand style guide with 99+ advanced rules, voice traits, and pro content templates. Ideal for agencies and growing teams.',
+              name: 'Complete Style Guide',
+              description: 'Get the full brand style guide with 99+ advanced rules, voice traits, and pro content templates. Ideal for agencies and growing teams.',
             },
-            unit_amount: guideType === 'core' ? 9900 : 14900, // $99 or $149
-          },
+            unit_amount: 14900, // $149
+          } : undefined,
           quantity: 1,
         },
       ],

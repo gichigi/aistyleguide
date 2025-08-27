@@ -32,9 +32,8 @@ export function detectInputType(input: string): InputDetectionResult {
   // URL patterns to check for
   const urlPatterns = [
     /^https?:\/\//i,                    // Starts with http:// or https://
-    /\.[a-z]{2,}([\/\?]|$)/i,          // Contains domain extension (.com, .org, etc.)
-    /^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/,    // Basic domain pattern (example.com)
     /^www\./i,                         // Starts with www.
+    /^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}([\/\?]|$)/i,    // Domain pattern (example.com)
     /^localhost$/i                     // localhost (treat as URL for proper validation)
   ]
 
@@ -64,9 +63,10 @@ export function validateInput(input: string): InputValidationResult {
   // Handle empty input
   if (detection.inputType === 'empty') {
     return {
-      isValid: true, // Empty is valid - user can go to manual entry
+      isValid: false, // Empty is not valid - button should be disabled
       cleanInput: detection.cleanInput,
-      inputType: 'empty'
+      inputType: 'empty',
+      error: "Enter a website URL or brand description"
     }
   }
 

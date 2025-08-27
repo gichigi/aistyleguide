@@ -18,56 +18,103 @@ Web app that generates brand style guides from website URLs using AI to extract 
 
 Note on terminology: "Clear" means remove the task from Active Tasks, add a short summary under Completed, and record any key lessons learned.
 
-### High Priority (P0)
+
+### Active Tasks
+
+**Current Priority**: Move to P0 roadmap items below for next development cycle.
 
 
-- Collect usability feedback on new Keywords tag UI (Foundation variant) and adjust spacing/contrast as needed
-- Test keywords end-to-end (extraction → tags → generation). Verify examples naturally use 2–3 keywords per section without stuffing.
-- If impact is weak, apply learnings:
-  - Enable Task 3b — Make rules explicitly reference traits/tone (e.g., "Use contractions to reinforce your casual, conversational voice").
-  - Consider Task 3a — Extract 5–10 domain terms + brand lexicon and require usage in examples (with soft limits), avoiding banned terms.
-  - Tweak placement in prompts (e.g., move Brand Keywords above Instructions) and lower temperature for rules.
+### Roadmap
 
-### Medium Priority (P1)
+ **AIStyleGuide – Sales‑First Action Plan (Sales & Validation First)**
 
-**🔄 Fix Preview Page Error Handling**
-- **Issue**: Preview page auto-redirects to `/full-access` when AI generation fails, confusing users who haven't paid yet
-- **Current**: Shows toast → immediately redirects user away from their work
-- **Solution**: 
-  - ❌ Remove auto-redirect to `/full-access`
-  - ✅ Add retry button: "Try Again"  
-  - ✅ Add fallback: "Edit Details" (back to `/brand-details`)
-  - ✅ Keep error toast but make it actionable
-- **Rationale**: Users worked hard to fill the form - don't abandon them on temporary AI failures
-- **Impact**: Better user retention, clearer error recovery flow
-- **Benefit**: More complete and useful style guides that include brand context alongside voice guidelines
+---
+
+## **P0 — Immediate (Pre‑purchase impact)**
+
+- [ ]  Add **pre‑pay preview/samples** (tweet/LinkedIn/email snippet in user's voice) on the preview page; export disabled until checkout. [Janosch+Anna]
+- [ ]  Let users pick **5–7 traits** (with presets) *or* accept **AI‑suggested** traits; keep a clear "manual vs AI" toggle. [Anna]
+- [ ]  Add **inspiration inputs** before pay: choose admired brands/people or paste URLs to posts; use **like/dislike** (swipe) to personalize the preview. [Janosch+Anna]
 
 
+### **Acquisition (Rafa) — do in parallel (still P0)**
 
-### Low Priority (P2)
+- [x]  Keep only **Use optimised ad rotation** auto‑apply (done). [Rafa]
+- [ ]  **Add exact match** mirrors for all phrase keywords; remove broad/generic terms. [Rafa]
+- [ ]  **Expand high‑intent clusters** (tool/generator/template keywords) and pause low‑intent until CTR improves. [Rafa]
+- [ ]  **Split campaigns by country** (UK/US/SG etc.) and by **funnel stage** (High Intent vs Awareness) with ad groups: Tools / Templates / Generators. [Rafa]
+- [ ]  **Double down on Template** theme (already converted); write new benefit‑focused ads. [Rafa]
+- [ ]  Ensure **conversion tracking** is clean and aim for 10–15 conversions/campaign/month. [Rafa]
 
-**🏷️ Fix Preview Page Title Display**
-- **Issue**: Preview page still shows "Core Style Guide" instead of "Preview Style Guide" at the top
-- **Root Cause**: Title likely coming from template content, not the React component we updated
-- **Location**: May be in template markdown or different component than expected
-- **Impact**: User confusion - contradicts transparency goals
+---
 
-**📧 Test & Debug Abandoned Cart Email System**
-- **Issue**: Automated abandoned cart emails may not be working in production
-- **Current State**: System deployed with hourly cron, admin client, and proper environment variables
-- **Need To Check**: Vercel cron logs, email processing logs, database status after 2+ hours
-- **Testing**: Create test email capture, wait 2+ hours, verify automated email delivery
-- **Debug**: Check if cron job actually runs, if database queries work, if emails send
+## **P1 — Next 2–4 Weeks (Deepen personalization & trust)**
 
-**Investigate Complete Guide Generation Performance**
-- **Observation**: Complete guides make 2 sequential OpenAI calls (voice traits + style rules)
-- **Impact**: Takes 60-90 seconds total, contributing to timeout issues
-- **Consider**: Parallel generation or caching to reduce time
-- **Note**: May not be a bug - could be intentional design for complete guides
+- [ ]  Enrich **"this means/doesn't mean"** examples inside trait picker and rules. [Janosch]
+- [ ]  Ensure rules are **materially personalized** (not just name inserts); tie back to chosen traits and inspirations. [Janosch]
+- [ ]  Add **side‑by‑side "before vs after"** voice comparison on preview. [Anna]
+- [ ]  Add **transparent comparison** with ChatGPT templates (strengths/limits). [Janosch]
+- [ ]  Introduce **gamified micro‑steps** (progress bar, badges) to keep users moving. [Janosch]
+- [ ]  Add **favicon** and small polish items on landing/preview for trust. [Janosch]
+- [ ]  Clarify for **international users** (spelling toggle, locale hints, date/number formats). [Janosch+Andrew]
+- [ ]  **Findability** UX: clearer access to drafts/previews and generated docs within app. [Andrew]
+
+---
+
+## **P2 — Later (Post‑purchase & operations)**
+
+- [ ]  **Fix PDF export**; if fail, show fallback "Save as PDF from Word/HTML/MD." [Janosch]
+- [ ]  Send **professional confirmation email** with product sender name, clear subject, **invoice**, and **download link**. [Janosch]
+- [ ]  Allow **rich‑text editing** of the generated guide before download; support **maintain/update** guide in‑platform. [Janosch]
+- [ ]  Add **usage guides**: how to plug into GPT/system prompts; adapting to character limits; channel‑specific examples. [Janosch+Andrew]
+- [ ]  Consider **subscription** for ongoing updates/content; evaluate **affiliate integrations** (e.g., Buffer). [Janosch]
+- [ ]  Replace "Back to Details" with **in‑flow "Edit your answers"**; rethink **Regenerate** to permit targeted changes. [Janosch]
+
+---
+
+## **Nice‑to‑Haves / Conditional Experiments**
+
+- [ ]  Gamified **swipe** interface for inspirations if engagement lifts; measure time‑to‑purchase. [Janosch]
+- [ ]  **Audience & values** fields (Notion parity) only if they measurably improve preview quality. [Jakob]
+- [ ]  "Straw‑man" **draft preset** for client presentations (fast mode). [Andrew]
+
+---
+
+## **Milestones & Order of Work**
+
+**Milestone 1 (This week):** P0 preview + paywall improvements live; ads P0 changes shipped; trait UX copy & reading level clarified; AI/manual trait toggle.
+
+**Milestone 2 (Weeks 2–4):** Inspirations intake (choose brands/people + like/dislike); 5–7 traits option; Core vs Complete paywall clarity; Intl spelling & bias note; before/after comparison.
+
+**Milestone 3 (Post‑validation):** P2 emails + PDF fix + in‑app editor + usage guides; subscription & affiliate exploration.
+
 
 ### Done/Completed
 
-**✅ Latest Session Achievements (Aug 2025)**
+**✅ Latest Session Achievements (Jan 2025) - FREE CORE VALIDATION COMPLETE**
+- **🎉 FREE CORE VALIDATION SYSTEM** (Complete end-to-end implementation)
+  - ✅ **Core Guide Free**: Updated Stripe checkout to use test/live $0 price IDs
+  - ✅ **Tasteful Pricing Display**: All "$0" pricing across app (homepage, preview, modal)
+  - ✅ **Clear Value Communication**: "Core Guide: $0 • Complete Guide: $149" in paywall
+  - ✅ **Sticky Navigation**: Fixed nav with smart upgrade buttons on preview/full-access
+  - ✅ **Perfect Button Hierarchy**: "Download Core Guide" (white) + "Get Complete Guide" (primary)
+  - ✅ **Smart Upgrade Flow**: Modal opens directly to Complete guide with pre-filled data
+  - ✅ **Fixed All Issues**: Homepage validation, API keys, Stripe integration, console errors
+  - **Key Lesson**: Balance clarity with taste - elegant free offering maintains premium perception
+  - **Result**: Complete validation system ready for demand testing
+
+- **🎯 CLEARED P0 ITEMS** (3 major funnel improvements)
+  - **Two-step funnel**: Free Core guide creates lightweight entry → paid Complete upgrade
+  - **Core vs Complete clarity**: Pricing banner shows "$0 vs $149" + upgrade modal explains value
+  - **Compelling preview CTA**: Sticky nav with smart button hierarchy drives conversions
+  - **Key Lesson**: Free offering solves multiple conversion problems simultaneously
+
+- **🌐 TRAIT SELECTION UX** (International accessibility improvement)
+  - **Reading level clarity**: Removed confusing US grades (6-8, 10-12, 13+) → clean universal terms (General Public, Professional, Technical/Academic)
+  - **Keywords field clarity**: Added help text "To use in your writing examples" explaining actual AI usage
+  - **Key Lesson**: Simple language changes have big accessibility impact for international users
+
+**✅ Previous Session Achievements (Aug 2025)**
 - **Task 1 — Pass traits (predefined and custom) into rules prompts**
   - Implemented conditional "Traits Context" in rules prompts.
   - Predefined traits use static `TRAITS`; custom traits use AI-generated descriptions.

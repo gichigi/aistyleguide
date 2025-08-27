@@ -564,6 +564,7 @@ export default function BrandDetailsPage() {
                     {/* Right: Keywords (domain terms + lexicon) as tags */}
                     <div className="grid gap-2">
                       <Label htmlFor="keywordInput">Keywords (optional)</Label>
+                      <p className="text-xs text-muted-foreground">To use in your writing examples</p>
                       {/* Tag list */}
                       <div
                         className="flex w-full max-h-48 overflow-y-auto rounded-md border border-input bg-background px-3 py-2 flex-wrap items-start gap-1 content-start"
@@ -660,15 +661,15 @@ export default function BrandDetailsPage() {
                       >
                         <SelectTrigger id="readingLevel" className="w-full [&>span]:text-left [&>span]:justify-start">
                           <SelectValue placeholder="Select reading level">
-                            {brandDetails.readingLevel === "6-8" && "Grade 6-8"}
-                            {brandDetails.readingLevel === "10-12" && "Grade 10-12"}
-                            {brandDetails.readingLevel === "13+" && "Grade 13+"}
+                            {brandDetails.readingLevel === "6-8" && "General Public"}
+                            {brandDetails.readingLevel === "10-12" && "Professional"}
+                            {brandDetails.readingLevel === "13+" && "Technical/Academic"}
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="6-8">Grade 6-8 (General Public)</SelectItem>
-                          <SelectItem value="10-12">Grade 10-12 (Professional)</SelectItem>
-                          <SelectItem value="13+">Grade 13+ (Technical/Academic)</SelectItem>
+                          <SelectItem value="6-8">General Public</SelectItem>
+                          <SelectItem value="10-12">Professional</SelectItem>
+                          <SelectItem value="13+">Technical/Academic</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

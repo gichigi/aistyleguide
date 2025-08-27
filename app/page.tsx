@@ -59,8 +59,11 @@ export default function LandingPage() {
   // Check if input is valid for submission
   const isInputValid = () => {
     const trimmedInput = url.trim()
+    
+    // Empty input is not valid - button should be disabled
     if (!trimmedInput) return false
     
+    // Check validation rules: valid URL or description with 25+ characters
     const validation = validateInput(trimmedInput)
     return validation.isValid
   }
@@ -81,29 +84,41 @@ export default function LandingPage() {
     // Handle cases where error is an empty object or null
     let errorMessage = "Unknown error"
     
-    if (error) {
-      if (typeof error === 'string') {
-        errorMessage = error
-      } else if (error.message) {
-        errorMessage = error.message
-      } else if (error.error) {
-        errorMessage = error.error
-      } else if (typeof error === 'object' && Object.keys(error).length === 0) {
+    // Guard against undefined, null, or empty error objects
+    if (!error) {
+      errorMessage = "No error details provided"
+    } else if (typeof error === 'string') {
+      errorMessage = error
+    } else if (error.message) {
+      errorMessage = error.message
+    } else if (error.error) {
+      errorMessage = error.error
+    } else if (typeof error === 'object') {
+      const keys = Object.keys(error)
+      if (keys.length === 0) {
         errorMessage = "Empty error response"
       } else {
-        errorMessage = String(error)
+        // Try to extract meaningful info from object
+        errorMessage = error.toString !== Object.prototype.toString 
+          ? String(error) 
+          : `Error object with keys: ${keys.join(', ')}`
       }
+    } else {
+      errorMessage = String(error)
     }
     
-    console.error(`[HOMEPAGE] Error classification:`, {
-      errorMessage,
-      errorName: error?.name,
-      errorType: typeof error,
-      errorKeys: error && typeof error === 'object' ? Object.keys(error) : [],
-      responseStatus: response?.status,
-      responseStatusText: response?.statusText,
-      timestamp: new Date().toISOString()
-    })
+    // Only log if we have meaningful error info (prevent empty object logs)
+    if (error && (typeof error !== 'object' || Object.keys(error).length > 0)) {
+      console.error(`[HOMEPAGE] Error classification:`, {
+        errorMessage,
+        errorName: error?.name,
+        errorType: typeof error,
+        errorKeys: error && typeof error === 'object' ? Object.keys(error) : [],
+        responseStatus: response?.status,
+        responseStatusText: response?.statusText,
+        timestamp: new Date().toISOString()
+      })
+    }
 
     // Network-specific errors
     if (error?.name === 'AbortError' || errorMessage.includes('timeout')) {
@@ -327,16 +342,19 @@ export default function LandingPage() {
         }, 800)
       } else {
         // Classify and show specific error
-        const { type, message } = classifyError(data, response)
+        const { type, message } = classifyError(data || {}, response)
         setError(message)
         setErrorType(type)
 
-        console.error(`[HOMEPAGE] API returned error:`, {
-          errorType: type,
-          message: data.message,
-          originalError: data.error,
-          status: response.status
-        })
+        // Only log if we have meaningful data to prevent empty object logs
+        if (data && (typeof data !== 'object' || Object.keys(data).length > 0)) {
+          console.error(`[HOMEPAGE] API returned error:`, {
+            errorType: type,
+            message: data?.message || 'No message',
+            originalError: data?.error || 'No error details',
+            status: response?.status || 'No status'
+          })
+        }
 
         // Reset states
         setIsExtracting(false)
@@ -349,14 +367,17 @@ export default function LandingPage() {
       const totalTime = performance.now() - extractionStart
       const { type, message } = classifyError(error)
       
-      console.error(`[HOMEPAGE] Extraction failed after ${totalTime.toFixed(2)}ms:`, {
-        errorType: type,
-        originalError: error,
-        inputType: validation?.inputType,
-        url: validation?.cleanInput?.substring(0, 100),
-        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server',
-        timestamp: new Date().toISOString()
-      })
+      // Only log if we have meaningful error info
+      if (error && (typeof error !== 'object' || Object.keys(error).length > 0)) {
+        console.error(`[HOMEPAGE] Extraction failed after ${totalTime.toFixed(2)}ms:`, {
+          errorType: type,
+          originalError: error,
+          inputType: validation?.inputType,
+          url: validation?.cleanInput?.substring(0, 100),
+          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server',
+          timestamp: new Date().toISOString()
+        })
+      }
 
       setError(message)
       setErrorType(type)
@@ -384,12 +405,12 @@ export default function LandingPage() {
               <div className="inline-flex items-center rounded-full border px-4 py-1.5 text-sm font-medium mb-4 bg-gray-100 text-gray-800 border-gray-200">
                 AI Brand Voice & Style Guide
               </div>
-              <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl mb-4">
-                Create a style guide in minutes, not months
-              </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mb-8 hero-lead">
-                Generate a comprehensive brand voice and style guide tailored to your brand in a few clicks.
-              </p>
+                          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl mb-4">
+              Create a style guide in minutes, not months
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mb-8 hero-lead">
+              Generate a killer brand voice and complete content style guide to create clear, consistent, and compelling content. Every time.
+            </p>
 
               <form onSubmit={handleExtraction} className="w-full max-w-2xl">
                 {/* Mobile-optimized input layout */}
@@ -1288,8 +1309,8 @@ export default function LandingPage() {
                   <div className="flex flex-col items-center space-y-4 text-center">
                     <h3 className="text-2xl font-bold text-blue-700">Core Style Guide</h3>
                     <div className="space-y-1">
-                      <p className="text-5xl font-bold text-blue-700">$99</p>
-                      <p className="text-sm text-muted-foreground">One-time payment</p>
+                      <p className="text-5xl font-bold">$0</p>
+                      <p className="text-sm text-muted-foreground">Limited time</p>
                     </div>
                     <ul className="space-y-2 text-left">
                       <li className="flex items-center">
@@ -1320,7 +1341,7 @@ export default function LandingPage() {
                         location: 'homepage'
                       });
                       router.push("/brand-details");
-                    }}>Get Core Guide</Button>
+                    }}>Get Free Core Guide</Button>
                     
                     {/* Add guarantee */}
                     <div className="flex items-center justify-center gap-2 text-xs text-green-600 mt-3">

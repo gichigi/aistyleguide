@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from "react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { ArrowLeft, FileText, Loader2, Check, X, ChevronDown, RefreshCw } from "lucide-react"
+import { ArrowLeft, FileText, Loader2, Check, X, ChevronDown, RefreshCw, CheckCircle } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import {
   Dialog,
@@ -38,6 +38,58 @@ function FullAccessContent() {
   const [isRetrying, setIsRetrying] = useState(false)
   const [apiError, setApiError] = useState<ErrorDetails | null>(null)
   const [contentUpdated, setContentUpdated] = useState(false)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [isProcessingUpgrade, setIsProcessingUpgrade] = useState(false)
+
+  // Handle upgrade to Complete guide
+  const handleUpgrade = async () => {
+    try {
+      setIsProcessingUpgrade(true)
+      
+      // Track upgrade attempt
+      // track('Upgrade Started', { 
+      //   from: 'core',
+      //   to: 'complete',
+      //   location: 'full-access-nav'
+      // })
+      
+      // Create checkout session for Complete guide
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          guideType: 'complete',
+          brandDetails: brandDetails,
+          isUpgrade: true,
+          previousPlan: 'core'
+        }),
+      })
+      
+      const data = await response.json()
+      
+      if (data.url) {
+        // Store upgrade flow info
+        localStorage.setItem("upgradeFlow", "true")
+        localStorage.setItem("previousPlan", "core")
+        
+        // Redirect to Stripe
+        window.location.href = data.url
+      } else {
+        throw new Error(data.error || 'Failed to create checkout session')
+      }
+    } catch (error) {
+      console.error('Upgrade failed:', error)
+      toast({
+        title: "Upgrade failed",
+        description: "Please try again or contact support.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsProcessingUpgrade(false)
+    }
+  }
 
   // Function to generate the style guide (can be called multiple times)
   const generateStyleGuide = async () => {
@@ -431,41 +483,43 @@ function FullAccessContent() {
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <Header 
-        containerClass="max-w-5xl mx-auto px-8 flex h-16 items-center justify-between"
-        rightContent={
-          <div className="flex items-center gap-3">
-            {/* Retry button in case user wants to regenerate */}
-            <Button
-              onClick={handleRetry}
-              disabled={isRetrying}
-              variant="outline"
-              size="sm"
-              className="gap-2"
-            >
-              {isRetrying ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
-              ) : (
-                <RefreshCw className="h-3 w-3" />
+      <header className="fixed top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:bg-gray-950/95 dark:border-gray-800">
+        <Header 
+          containerClass="max-w-5xl mx-auto px-8 flex h-16 items-center justify-between"
+          rightContent={
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => setShowDownloadOptions(true)}
+                disabled={isDownloading}
+                variant="outline"
+                size="sm"
+                className="gap-2 bg-white hover:bg-gray-50 border-gray-200"
+              >
+                {isDownloading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                <ChevronDown className="h-4 w-4" />
+                )}
+                Download Core Guide
+              </Button>
+              
+              {/* Upgrade button - only show for Core guides */}
+              {guideType === 'core' && (
+                <Button
+                  onClick={() => setShowUpgradeModal(true)}
+                  size="sm"
+                  className="gap-2 bg-gray-900 hover:bg-gray-800 text-white shadow-sm hover:shadow-md transition-all duration-200"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                  Get the Complete Guide
+                </Button>
               )}
-              Regenerate
-            </Button>
-            
-            <Button
-              onClick={() => setShowDownloadOptions(true)}
-              disabled={isDownloading}
-              className="gap-2"
-            >
-              {isDownloading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-              <ChevronDown className="h-4 w-4" />
-              )}
-              Download
-            </Button>
-          </div>
-        }
-      />
+            </div>
+          }
+        />
+      </header>
 
       {/* Error message if there was an issue but we have existing content */}
       {apiError && (
@@ -503,7 +557,7 @@ function FullAccessContent() {
       </Dialog>
 
       {/* Main Content */}
-      <main className="flex-1 py-8">
+      <main className="flex-1 pt-24 pb-8">
         <div className="max-w-5xl mx-auto">
           <div className="mb-6 px-8">
             <Link
@@ -621,6 +675,72 @@ function FullAccessContent() {
                 <div className="font-medium text-gray-900">Markdown</div>
                 <div className="text-xs text-gray-500">Perfect for AI tools</div>
               </div>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Upgrade Modal */}
+      <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
+        <DialogContent className="sm:max-w-[600px] text-sm sm:text-base">
+          <DialogHeader className="space-y-4">
+            <DialogTitle className="text-base sm:text-xl">Upgrade to Complete Guide</DialogTitle>
+            <DialogDescription className="text-xs sm:text-base">
+              Get 99+ advanced writing rules and professional templates
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg sm:text-2xl font-bold">Complete Style Guide</h3>
+              <div className="mt-1 text-xl sm:text-3xl font-bold">$149</div>
+            </div>
+
+            <div className="rounded-lg bg-purple-50 p-4 space-y-2">
+              <h4 className="font-semibold text-purple-700 text-base sm:text-lg">99+ Comprehensive Rules</h4>
+              <p className="text-xs sm:text-sm text-purple-600">Everything you need for professional content</p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-500" />
+                <span>Everything in your Core Guide</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-500" />
+                <span>99+ advanced writing rules</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-500" />
+                <span>Professional content templates</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-500" />
+                <span>Advanced formatting standards</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-500" />
+                <span>Multiple download formats</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-500" />
+                <span>Perfect for agencies & larger teams</span>
+              </div>
+            </div>
+
+            <Button
+              onClick={handleUpgrade}
+              disabled={isProcessingUpgrade}
+              className="w-full text-base sm:text-lg py-4 sm:py-6"
+            >
+              {isProcessingUpgrade ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              )}
+              Upgrade to Complete Guide ($149)
             </Button>
           </div>
         </DialogContent>
