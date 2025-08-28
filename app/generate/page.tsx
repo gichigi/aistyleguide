@@ -45,13 +45,7 @@ export default function GeneratePage() {
   const [brandDetails, setBrandDetails] = useState<any>(null)
   const [fadeIn, setFadeIn] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
-  const [isPreviewMode, setIsPreviewMode] = useState(false)
 
-  useEffect(() => {
-    // Check if we're in preview mode
-    const mode = localStorage.getItem("generationMode")
-    setIsPreviewMode(mode === "preview")
-  }, [])
 
   useEffect(() => {
     // Trigger fade-in animation after component mounts
@@ -133,10 +127,6 @@ export default function GeneratePage() {
       setProgress(100)
 
       setTimeout(async () => {
-        if (isPreviewMode) {
-          // In preview mode, just redirect to preview
-          router.push("/preview")
-        } else {
           try {
             // Map brandName to name for API compatibility
             const mappedBrandDetails = {
@@ -188,8 +178,8 @@ export default function GeneratePage() {
             localStorage.setItem("generatedStyleGuide", data.styleGuide)
             localStorage.setItem("brandDetails", JSON.stringify(brandDetails))
 
-            // Navigate to preview
-            router.push("/preview")
+            // Navigate to core guide
+            router.push("/full-access")
           } catch (error) {
             console.error("Error during style guide generation:", error)
 
@@ -219,17 +209,16 @@ export default function GeneratePage() {
               localStorage.setItem("generatedStyleGuide", FALLBACK_CONTENT)
             }
 
-            // Navigate to preview
+            // Navigate to core guide
             setTimeout(() => {
-              router.push("/preview")
+              router.push("/full-access")
             }, 2000)
           }
-        }
       }, 500)
     }
 
     processSteps()
-  }, [brandDetails, router, toast, isGenerating, isPreviewMode])
+  }, [brandDetails, router, toast, isGenerating])
 
   // If there's an error, show an error message with a button to go back to brand details
   if (error) {

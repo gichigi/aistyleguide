@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ArrowLeft, FileText, Loader2, Check, X, ChevronDown, RefreshCw, CheckCircle } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { track } from "@vercel/analytics"
 import {
   Dialog,
   DialogContent,
@@ -20,6 +21,7 @@ import { StyleGuideHeader } from "@/components/StyleGuideHeader"
 import { MarkdownRenderer } from "@/components/MarkdownRenderer"
 import { ErrorMessage } from "@/components/ui/error-message"
 import { createErrorDetails, ErrorDetails } from "@/lib/api-utils"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 function FullAccessContent() {
   const router = useRouter()
@@ -40,6 +42,24 @@ function FullAccessContent() {
   const [contentUpdated, setContentUpdated] = useState(false)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [isProcessingUpgrade, setIsProcessingUpgrade] = useState(false)
+  
+  // Samples state (copied from preview page)
+  const [generatedSamples, setGeneratedSamples] = useState<{
+    linkedin?: string;
+    newsletter?: string;
+    blogPost?: string;
+  }>({})
+  const [loadingSamples, setLoadingSamples] = useState<{
+    linkedin: boolean;
+    newsletter: boolean;
+    blogPost: boolean;
+  }>({ linkedin: false, newsletter: false, blogPost: false })
+  const [sampleErrors, setSampleErrors] = useState<{
+    linkedin?: string;
+    newsletter?: string;
+    blogPost?: string;
+  }>({})
+  const [activeSampleTab, setActiveSampleTab] = useState<string>('linkedin')
 
   // Handle upgrade to Complete guide
   const handleUpgrade = async () => {
@@ -165,6 +185,53 @@ function FullAccessContent() {
     }
   }
 
+  // Generate individual content sample (copied from preview page)
+  const generateSample = async (sampleType: 'linkedin' | 'newsletter' | 'blogPost') => {
+    if (!brandDetails || loadingSamples[sampleType] || generatedSamples[sampleType]) return;
+
+    setLoadingSamples(prev => ({ ...prev, [sampleType]: true }));
+    setSampleErrors(prev => ({ ...prev, [sampleType]: undefined }));
+
+    try {
+      console.log(`[Full Access] Generating ${sampleType} sample...`);
+      
+      const response = await fetch('/api/generate-samples', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ brandDetails, sampleType }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to generate ${sampleType} sample: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || `Unknown error generating ${sampleType} sample`);
+      }
+
+      console.log(`[Full Access] ${sampleType} sample generated successfully`);
+      setGeneratedSamples(prev => ({ ...prev, [sampleType]: data.content }));
+      
+    } catch (error) {
+      console.error(`[Full Access] Error generating ${sampleType} sample:`, error);
+      const errorMessage = error instanceof Error ? error.message : `Failed to generate ${sampleType} sample`;
+      setSampleErrors(prev => ({ ...prev, [sampleType]: errorMessage }));
+      
+      // Show user-friendly toast for errors
+      toast({
+        title: `${sampleType.charAt(0).toUpperCase() + sampleType.slice(1)} sample failed`,
+        description: "Unable to generate this sample. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingSamples(prev => ({ ...prev, [sampleType]: false }));
+    }
+  };
+
   useEffect(() => {
     // Check if already generated
     const alreadyGenerated = searchParams.get("generated") === "true"
@@ -210,6 +277,100 @@ function FullAccessContent() {
     }, 100)
     return () => clearTimeout(timer)
   }, [router, searchParams, toast])
+
+  // Render samples section (copied from preview page)
+  const renderSamplesSection = (
+    samples: { linkedin?: string; newsletter?: string; blogPost?: string },
+    loadingStates: { linkedin: boolean; newsletter: boolean; blogPost: boolean },
+    errors: { linkedin?: string; newsletter?: string; blogPost?: string },
+    onGenerate: (type: 'linkedin' | 'newsletter' | 'blogPost') => void
+  ) => {
+    const sampleTypes = [
+      { key: 'linkedin' as const, label: 'LinkedIn', description: 'Professional post for your network' },
+      { key: 'newsletter' as const, label: 'Newsletter', description: 'Email content for subscribers' },
+      { key: 'blogPost' as const, label: 'Blog Post', description: 'Article introduction' }
+    ];
+
+    return (
+      <div className="my-8">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
+          <Tabs value={activeSampleTab} onValueChange={setActiveSampleTab}>
+            <TabsList className="grid w-full grid-cols-3 mb-4">
+              {sampleTypes.map((type) => (
+                <TabsTrigger key={type.key} value={type.key}>
+                  {type.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            {sampleTypes.map((type) => (
+              <TabsContent key={type.key} value={type.key} className="mt-0">
+                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                  {samples[type.key] ? (
+                    // Show generated content with smooth fade-in
+                    <div className="animate-in fade-in-0 slide-in-from-bottom-4 duration-700 ease-out">
+                      <div className="prose prose-slate dark:prose-invert max-w-none style-guide-content prose-sm sm:prose-base">
+                        <MarkdownRenderer 
+                          content={samples[type.key] || ""}
+                          className=""
+                        />
+                      </div>
+                    </div>
+                  ) : loadingStates[type.key] ? (
+                    // Show loading state
+                    <div className="text-center py-8">
+                      <div className="inline-flex items-center gap-2 text-gray-500 text-sm">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Generating your {type.label.toLowerCase()} sample...
+                      </div>
+                    </div>
+                  ) : errors[type.key] ? (
+                    // Show error state with retry
+                    <div className="text-center py-8">
+                      <p className="text-red-600 text-sm mb-4">
+                        Unable to generate {type.label.toLowerCase()} sample
+                      </p>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => onGenerate(type.key)}
+                      >
+                        Try again
+                      </Button>
+                    </div>
+                  ) : (
+                    // Show generate button (initial state)
+                    <div className="text-center py-8">
+                      <div className="mb-4">
+                        <h4 className="text-sm font-semibold text-gray-800 mb-2">
+                          {type.label}
+                        </h4>
+                        <p className="text-xs text-gray-500">
+                          {type.description}
+                        </p>
+                      </div>
+                      <Button
+                        onClick={() => onGenerate(type.key)}
+                        size="default"
+                      >
+                        Generate Sample
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
+          
+          <p className="text-gray-500 text-xs text-center mt-4">
+            Sample content is generated using the brand details and brand voice traits you provided.
+          </p>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const handleCopy = () => {
     setCopied(true)
@@ -274,12 +435,27 @@ function FullAccessContent() {
     }
   }
 
-  // Get guide content based on plan type
+  // Get guide content based on plan type and split around samples placeholder
   const getGuideContent = () => {
     if (!generatedStyleGuide) return null
     
-    // Always return full content - the template itself handles the content limits
-    return generatedStyleGuide
+    // Split content around the samples placeholder
+    const content = generatedStyleGuide
+    const samplesPlaceholder = '{{content_samples}}'
+    
+    if (content.includes(samplesPlaceholder)) {
+      const parts = content.split(samplesPlaceholder)
+      return {
+        beforeSamples: parts[0] || '',
+        afterSamples: parts[1] || ''
+      }
+    }
+    
+    // If no placeholder, return all content as "before samples"
+    return {
+      beforeSamples: content,
+      afterSamples: ''
+    }
   }
 
   const guideContent = getGuideContent()
@@ -471,7 +647,7 @@ function FullAccessContent() {
     )
   }
 
-  if (!guideContent) {
+  if (!guideContent || !guideContent.beforeSamples) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -584,10 +760,22 @@ function FullAccessContent() {
                 )}
                 
                 <div className={`max-w-2xl mx-auto space-y-12 transition-opacity duration-300 ${isRetrying ? 'opacity-50' : 'opacity-100'}`}>
+                  {/* Content before samples (About + How to Use + Brand Voice) */}
                   <MarkdownRenderer 
                     className="prose prose-slate dark:prose-invert max-w-none style-guide-content prose-sm sm:prose-base"
-                    content={guideContent}
+                    content={guideContent.beforeSamples}
                   />
+                  
+                  {/* Samples section - positioned after brand voice, before 25 rules */}
+                  {renderSamplesSection(generatedSamples, loadingSamples, sampleErrors, generateSample)}
+                  
+                  {/* Content after samples (25 Core Rules + Questions) */}
+                  {guideContent.afterSamples && (
+                    <MarkdownRenderer 
+                      className="prose prose-slate dark:prose-invert max-w-none style-guide-content prose-sm sm:prose-base"
+                      content={guideContent.afterSamples}
+                    />
+                  )}
                 </div>
               </div>
             </div>

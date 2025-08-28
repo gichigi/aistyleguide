@@ -37,11 +37,11 @@ export default function CancelPage() {
         </div>
         <div className="flex justify-center">
           <Button
-            onClick={() => router.push("/preview")}
+            onClick={() => router.push("/full-access")}
             className="gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Preview
+            Back to Guide
           </Button>
         </div>
       </div>

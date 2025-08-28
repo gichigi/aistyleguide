@@ -469,44 +469,17 @@ What It Doesn't Mean
 ✗ Using slang that not everyone will understand.
 ✗ Ignoring the needs or concerns of your audience.`;
 
-// Function to generate a preview of the core template
-export async function generateTemplatePreview(brandDetails: any): Promise<string> {
-  try {
-    // Load preview template
-    const template = await loadTemplate('core_template_preview');
-    
-    // Format current date
-    const currentDate = new Date();
-    const formattedDate = currentDate.toLocaleDateString('en-US', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
-    
-    // Replace basic variables
-    const preview = template
-      .replace(/{{DD MONTH YYYY}}/g, formattedDate)
-      .replace(/{{brand_name}}/g, brandDetails.name || 'Your Brand')
-      .replace(/{{voice_trait_1}}/g, GENERIC_VOICE_TRAIT_1)
-      .replace(/{{voice_trait_2}}/g, GENERIC_VOICE_TRAIT_2)
-      .replace(/{{rule_line}}/g, brandDetails.ruleLine || '');
-    
-    return await prepareMarkdownContent(preview);
-  } catch (error) {
-    console.error('Preview generation failed:', error);
-    throw new Error(`Preview generation failed: ${error}`);
-  }
-}
+
 
 // Shared function to render style guide template
 export async function renderStyleGuideTemplate({
   brandDetails,
   useAIContent = false,
-  templateType = "preview"
+  templateType = "core"
 }: {
   brandDetails: any,
   useAIContent?: boolean,
-  templateType?: "preview" | "core" | "complete"
+  templateType?: "core" | "complete"
 }): Promise<string> {
   console.log(`[renderStyleGuideTemplate] Called with:`, {
     useAIContent,
@@ -516,8 +489,7 @@ export async function renderStyleGuideTemplate({
   })
   
   // Pick template name
-  let templateName = "core_template_preview";
-  if (templateType === "core") templateName = "core_template";
+  let templateName = "core_template";
   if (templateType === "complete") templateName = "complete_template";
   
   console.log(`[renderStyleGuideTemplate] Selected template: "${templateName}"`)
@@ -624,9 +596,5 @@ export async function renderStyleGuideTemplate({
   }
 
   // Convert to HTML
-  if (templateType === "preview") {
-    // Remove 'General Guidelines' section for preview only
-    result = result.replace(/## General Guidelines[\s\S]*?(?=\n## |$)/, '');
-  }
   return await prepareMarkdownContent(result);
 }

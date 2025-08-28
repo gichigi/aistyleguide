@@ -165,7 +165,7 @@ export function createErrorDetails(error: any): ErrorDetails {
       suggestedAction = "Shorten your brand description to under 500 characters (about 100 words)"
       break
     case 'PAYMENT_TIMEOUT':
-      suggestedAction = "Start a new checkout session from the preview page"
+      suggestedAction = "Start a new checkout session from the core guide page"
       break
     case 'TEMPLATE_NOT_FOUND':
       suggestedAction = "Contact support with error code: TEMPLATE_MISSING"

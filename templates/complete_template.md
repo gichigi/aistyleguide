@@ -41,4 +41,4 @@ _blogs, newsletters, articles_
 
 ---
 
-Questions? Contact the {{brand_name}} content team.
+Questions? Contact the content team at {{brand_name}}.

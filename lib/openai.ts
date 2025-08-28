@@ -660,3 +660,145 @@ export async function extractBrandName(brandDetails: any): Promise<GenerationRes
   const prompt = `Extract only the brand name from the text below. Return just the brand name, nothing else.\n\nBrand Info:\n${brandDetails.brandDetailsText}`;
   return generateWithOpenAI(prompt, "You are a brand analyst. Extract only the brand name from the given text.", "markdown");
 }
+
+// Function to parse style guide rules and extract key formatting/voice guidelines for sample generation
+export async function parseRulesForSamples(rulesContent: string): Promise<{ voiceRules: string; formatRules: string }> {
+  const prompt = `Analyze the style guide rules below and extract the most important voice and formatting guidelines for content creation. Return ONLY the essential rules that affect how content should be written, formatted, and sound.
+
+Style Guide Rules:
+${rulesContent}
+
+Extract:
+1. VOICE RULES: Tone, personality, formality, reading level, pronouns, contractions
+2. FORMAT RULES: Capitalization, punctuation, numbers, dates, abbreviations, lists
+
+Output format:
+VOICE RULES:
+[key voice guidelines that affect tone and style]
+
+FORMAT RULES:
+[key formatting rules that affect structure and mechanics]`;
+
+  try {
+    const result = await generateWithOpenAI(prompt, "You are a content strategist. Extract only the most essential voice and formatting rules that content creators need to follow.", "markdown");
+    
+    if (!result.success || !result.content) {
+      return { voiceRules: "", formatRules: "" };
+    }
+
+    const content = result.content;
+    const voiceMatch = content.match(/VOICE RULES:\s*([\s\S]*?)(?=FORMAT RULES:|$)/);
+    const formatMatch = content.match(/FORMAT RULES:\s*([\s\S]*?)$/);
+
+    return {
+      voiceRules: voiceMatch ? voiceMatch[1].trim() : "",
+      formatRules: formatMatch ? formatMatch[1].trim() : ""
+    };
+  } catch (error) {
+    console.error("Error parsing rules for samples:", error);
+    return { voiceRules: "", formatRules: "" };
+  }
+}
+
+// Removed batch generateContentSamples function - only using single sample generation via user buttons
+
+// Function to generate a single content sample (for user-controlled generation)
+export async function generateSingleSample(
+  brandDetails: any,
+  sampleType: 'linkedin' | 'newsletter' | 'blogPost',
+  traitsContext?: string
+): Promise<GenerationResult> {
+  
+  const traitsSection = traitsContext ? `\nBrand Voice Traits:\n${traitsContext}\n` : '';
+  const baseContext = `Brand: ${brandDetails.name}
+Description: ${brandDetails.description || brandDetails.brandDetailsText}
+Audience: ${brandDetails.audience || 'Business professionals'}${traitsSection}`;
+
+  let prompt = "";
+  let wordCount = "";
+
+  switch (sampleType) {
+    case 'linkedin':
+      wordCount = "exactly 100 words";
+      prompt = `${baseContext}
+
+Write a professional LinkedIn post (${wordCount}) that showcases this brand's voice and personality. Format the response using clean markdown:
+
+**Requirements:**
+- Be engaging and relevant to their audience
+- Include a call-to-action or thought-provoking question
+- Reflect their specific voice traits and brand personality
+- Feel authentic to the brand
+
+**Formatting Guidelines:**
+- Use **bold** for key terms and important phrases
+- Write in short, scannable sentences
+- Include bullet points if listing multiple items
+- No emojis - focus on professional copy quality
+
+**Topic:** Share an industry insight or tip related to their business.`;
+      break;
+
+    case 'newsletter':
+      wordCount = "exactly 150 words";
+      prompt = `${baseContext}
+
+Write a newsletter section (${wordCount}) that showcases this brand's voice and personality. Format the response using clean markdown:
+
+**Requirements:**
+- Have an engaging subject line
+- Include valuable content for their audience
+- Reflect their specific voice traits and brand personality
+- Include a clear call-to-action
+
+**Formatting Guidelines:**
+- Start with a compelling subject line as an H2 heading (## Your Subject Line)
+- Use **bold** for key terms and important phrases
+- Write in short, scannable sentences
+- Include bullet points if listing multiple items
+- Use clear paragraph breaks for readability
+- No emojis - focus on professional copy quality
+
+**Structure:** Subject line as clean heading followed by newsletter content.`;
+      break;
+
+    case 'blogPost':
+      wordCount = "exactly 150 words";
+      prompt = `${baseContext}
+
+Write a blog post introduction (${wordCount}) that showcases this brand's voice and personality. Format the response using clean markdown:
+
+**Requirements:**
+- Hook the reader with an engaging opening
+- Clearly preview what the post will cover
+- Reflect their specific voice traits and brand personality
+- Set the tone for the full article
+
+**Formatting Guidelines:**
+- Start with an engaging article title as an H2 heading (## Your Article Title)
+- Use **bold** for key terms and important phrases
+- Write in short, scannable sentences
+- Include bullet points if listing what the post will cover
+- Use clear paragraph breaks for readability
+- No emojis - focus on professional copy quality
+
+**Topic:** Choose a relevant topic for their industry and audience.`;
+      break;
+  }
+
+  try {
+    return await generateWithOpenAI(
+      prompt, 
+      "You are a content writer creating authentic, engaging content that perfectly matches the brand's voice and personality.", 
+      "markdown", 
+      2000, 
+      "gpt-4o"
+    );
+  } catch (error) {
+    console.error(`Error generating ${sampleType} sample:`, error);
+    return {
+      success: false,
+      error: `Failed to generate ${sampleType} sample`
+    };
+  }
+}

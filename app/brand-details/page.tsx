@@ -436,37 +436,19 @@ export default function BrandDetailsPage() {
         readingLevel: brandDetails.readingLevel,
       }
 
-      // Generate preview as before
-      const response = await fetch("/api/preview", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ brandDetails: detailsWithName })
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to generate")
-      }
-
-      const data = await response.json()
-      if (!data.success) {
-        throw new Error(data.error || "Failed to generate")
-      }
-
-      // Save brand details and preview
+      // Save brand details (no preview generation needed - core guide generates its own content)
       console.log("[Brand Details] Saving to localStorage:", detailsWithName)
       localStorage.setItem("brandDetails", JSON.stringify(detailsWithName))
       localStorage.setItem("selectedTraits", JSON.stringify(selectedTraits))
-      localStorage.setItem("previewContent", data.preview)
-      console.log("[Brand Details] Successfully saved brand details with extracted name")
+      console.log("[Brand Details] Successfully saved brand details")
 
       setProcessingStep('complete')
       
       // Brief pause to show completion
       await new Promise(resolve => setTimeout(resolve, 500))
 
-      // Redirect to preview page
-      router.push("/preview")
+      // Redirect to core guide (skipping preview page)
+      router.push("/full-access")
     } catch (error) {
       setLoading(false)
       setProcessingStep('idle')
