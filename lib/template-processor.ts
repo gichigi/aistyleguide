@@ -262,6 +262,19 @@ async function prepareMarkdownContent(markdown: string): Promise<string> {
   return markdown
 }
 
+// Helper function to get first two paragraphs of text
+function getFirstTwoParagraphs(text: string): string {
+  if (!text) return text;
+  
+  // Split by double line breaks (paragraph separators)
+  const paragraphs = text.split(/\n\s*\n/);
+  
+  // Take first two paragraphs and join them back
+  const firstTwo = paragraphs.slice(0, 2).join('\n\n');
+  
+  return firstTwo;
+}
+
 // Main function to process a template with brand details
 export async function processTemplate(templateType: string, brandDetails: any, plan: string): Promise<string> {
   try {
@@ -312,7 +325,7 @@ export async function processTemplate(templateType: string, brandDetails: any, p
     // Replace basic placeholders
     template = template.replace(/{{DD MONTH YYYY}}/g, formatDate())
     template = template.replace(/{{brand_name}}/g, validatedDetails.name)
-    template = template.replace(/{{brand_description}}/g, validatedDetails.description)
+    template = template.replace(/{{brand_description}}/g, getFirstTwoParagraphs(validatedDetails.description))
     template = template.replace(/{{brand_audience}}/g, validatedDetails.audience)
     template = template.replace(
       /{{brand_contact_email}}/g,
@@ -515,7 +528,7 @@ export async function renderStyleGuideTemplate({
   let result = template
     .replace(/{{DD MONTH YYYY}}/g, formattedDate)
     .replace(/{{brand_name}}/g, brandName)
-    .replace(/{{brand_description}}/g, brandDetails.description || brandDetails.brandDetailsText || 'A innovative company focused on delivering exceptional results.')
+    .replace(/{{brand_description}}/g, getFirstTwoParagraphs(brandDetails.description || brandDetails.brandDetailsText || 'A innovative company focused on delivering exceptional results.'))
     .replace(/{{brand_audience}}/g, brandDetails.audience || 'Business professionals and decision makers');
     
   console.log(`[renderStyleGuideTemplate] Basic placeholders replaced`)

@@ -87,6 +87,13 @@ Note on terminology: "Clear" means remove the task from Active Tasks, add a shor
 
 ### Done/Completed
 
+**✅ UI & About Section Improvements (Aug 2025) - COMPLETE**
+- Updated homepage CTA from "Try it out" to "Get Free Guide" for clearer value proposition
+- Shortened navigation buttons to "Download" and "Upgrade" for better mobile UX
+- Added consistent line breaks between brand name and subtitle on mobile/desktop
+- Balanced h2 section margins (reduced top margin from 2rem to 1rem)
+- Optimized About section to show only first 2 paragraphs instead of full description
+
 **✅ Flow Simplification - Remove Preview Page (Jan 2025) - COMPLETE**
 Successfully migrated samples to Core guide and eliminated preview page entirely for a cleaner user journey.
 

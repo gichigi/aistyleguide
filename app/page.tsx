@@ -409,7 +409,7 @@ export default function LandingPage() {
               Create a style guide in minutes, not months
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mb-8 hero-lead">
-              Generate a killer brand voice and complete content style guide to create clear, consistent, and compelling content. Every time.
+              Generate a killer brand voice and complete content style guide in minutes. Create clear, consistent, and compelling content every time.
             </p>
 
               <form onSubmit={handleExtraction} className="w-full max-w-2xl">
@@ -484,7 +484,7 @@ export default function LandingPage() {
                         </>
                       ) : (
                         <>
-                          <span>Try it out</span> 
+                          <span>Get Free Guide</span> 
                           <ArrowRight className="ml-2 h-5 w-5" />
                         </>
                       )}
