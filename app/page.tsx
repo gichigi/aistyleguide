@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { track } from "@vercel/analytics"
@@ -55,6 +55,22 @@ export default function LandingPage() {
   const [errorType, setErrorType] = useState<string | null>(null) // Track error type for styling
   const [isExtracting, setIsExtracting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+
+  // Track email campaign clicks
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const utmSource = urlParams.get('utm_source')
+    const utmCampaign = urlParams.get('utm_campaign')
+    
+    if (utmSource === 'email' && utmCampaign === 'notion-weekly') {
+      track('Email Campaign Click', {
+        source: utmSource,
+        campaign: utmCampaign,
+        timestamp: new Date().toISOString()
+      })
+      console.log('📧 Email click tracked: notion-weekly campaign')
+    }
+  }, [])
 
   // Check if input is valid for submission
   const isInputValid = () => {
@@ -1309,7 +1325,10 @@ export default function LandingPage() {
                   <div className="flex flex-col items-center space-y-4 text-center">
                     <h3 className="text-2xl font-bold text-blue-700">Core Style Guide</h3>
                     <div className="space-y-1">
-                      <p className="text-5xl font-bold">$0</p>
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="text-2xl font-bold text-gray-400 line-through">$99</span>
+                        <p className="text-5xl font-bold">$0</p>
+                      </div>
                       <p className="text-sm text-muted-foreground">Limited time</p>
                     </div>
                     <ul className="space-y-2 text-left">
