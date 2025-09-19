@@ -1,4 +1,11 @@
-import { testOpenAIIntegration, testTemplateProcessing, testStyleGuideAPI } from './lib/test-utils'
+import { 
+  testOpenAIIntegration, 
+  testTemplateProcessing, 
+  testStyleGuideAPI,
+  testDescriptionCharacterLimits,
+  testInputDetectionAndRouting,
+  testBrandNameGeneration
+} from './lib/test-utils'
 
 async function runTests() {
   console.log('🧪 Starting tests...\n')
@@ -45,6 +52,31 @@ async function runTests() {
       console.log('Error:', apiResult.error)
     }
   }
+
+  console.log('\n=== NEW CRITICAL TESTS FOR DESCRIPTION-BASED GENERATION ===\n')
+
+  // Test 4: Description Character Limits
+  console.log('Test 4: Description Character Limits')
+  const charLimitResult = await testDescriptionCharacterLimits()
+  console.log('Result:', charLimitResult ? '✅ PASS' : '❌ FAIL', '\n')
+
+  // Test 5: Input Detection and API Routing  
+  console.log('Test 5: Input Detection and API Routing')
+  const inputDetectionResult = await testInputDetectionAndRouting()
+  console.log('Result:', inputDetectionResult ? '✅ PASS' : '❌ FAIL', '\n')
+
+  // Test 6: Brand Name Generation
+  console.log('Test 6: Brand Name Generation')
+  const brandNameResult = await testBrandNameGeneration()
+  console.log('Result:', brandNameResult ? '✅ PASS' : '❌ FAIL', '\n')
+
+  // Summary
+  const allNewTestsPassed = charLimitResult && inputDetectionResult && brandNameResult
+  console.log('=== CRITICAL TESTS SUMMARY ===')
+  console.log('Character Limits:', charLimitResult ? '✅' : '❌')
+  console.log('Input Detection:', inputDetectionResult ? '✅' : '❌') 
+  console.log('Brand Name Gen:', brandNameResult ? '✅' : '❌')
+  console.log('Overall Status:', allNewTestsPassed ? '🎉 ALL PASS' : '⚠️  SOME FAILED')
 
   console.log('\n🏁 Tests completed!')
 }

@@ -257,6 +257,15 @@ All samples functionality successfully implemented and refined:
 - **Visual feedback guides behavior** - Colors, disabled states help users understand what to do next
 - **Fix at source > downstream processing** - Remove duplicate content from templates rather than filtering it later
 
+### Unit Testing & Quality Assurance
+- **Simple > Complex for testing** - Self-contained JavaScript tests with inlined functions work better than Jest/TypeScript in Next.js projects with complex module configs
+- **Test pure functions only** - Avoid external dependencies (APIs, file system, databases) for true unit isolation
+- **Module resolution issues** - ESNext + Next.js can cause TypeScript compilation issues; plain JavaScript with manual test runners is more reliable
+- **Focus on core logic** - Input detection, validation rules, character limits, edge cases are the critical paths to test
+- **Fast feedback loops** - 18 unit tests should run in under 1 second; if slower, you're testing too much integration
+- **Self-contained test files** - Copy functions directly into test files to avoid import/require issues in mixed environments
+- **Manual test runners** - Simple assertEquals/assertTrue functions provide clear pass/fail without framework overhead
+
 ---
 
 ## 🗺️ Future Roadmap
