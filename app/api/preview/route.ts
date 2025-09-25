@@ -191,7 +191,10 @@ export async function POST(request: Request) {
       name: brandName,
       description: brandDetails.description,
       audience: brandDetails.audience || '',
-      traits: selectedTraits || []
+      traits: selectedTraits || [],
+      formalityLevel: brandDetails.formalityLevel,
+      readingLevel: brandDetails.readingLevel,
+      englishVariant: brandDetails.englishVariant,
     }
 
     // Load template preview (using core template for previews)
