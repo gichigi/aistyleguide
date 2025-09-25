@@ -9,7 +9,13 @@ export default function TraitCard({ traitName }: TraitCardProps) {
 
   return (
     <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 shadow-sm mb-6">
-      <h3 className="font-bold text-lg mb-1">{traitName}</h3>
+      <div className="flex items-center gap-2 mb-3">
+        <h3 className="font-bold text-lg">{traitName}</h3>
+        <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
+          Will be customized
+        </span>
+      </div>
+      
       <p className="italic text-gray-600 mb-4">{trait.definition}</p>
 
       <div className="grid md:grid-cols-2 gap-4 mb-4">
@@ -38,7 +44,7 @@ export default function TraitCard({ traitName }: TraitCardProps) {
         </div>
       </div>
 
-      <div className="border-t pt-3">
+      <div className="border-t pt-3 mb-3">
         <div className="font-mono text-xs text-gray-500">
           <div className="mb-1">
             <span className="font-semibold">Before:</span> {trait.example.before}
@@ -48,6 +54,7 @@ export default function TraitCard({ traitName }: TraitCardProps) {
           </div>
         </div>
       </div>
+
     </div>
   )
 } 

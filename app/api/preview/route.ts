@@ -3,6 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import Logger from '@/lib/logger'
 import { getBrandName } from '@/lib/utils'
+import { generateBrandVoiceTraits } from '@/lib/openai'
 
 // Cache for templates
 const templateCache: Record<string, string> = {}
@@ -121,12 +122,25 @@ async function processPreview(content: string, brandDetails: any): Promise<strin
         `support@${brandDetails.name.toLowerCase().replace(/\s+/g, '')}.com`
       )
 
-    // Use static generic voice traits instead of AI-generated ones
-    Logger.info('Using static voice traits for preview')
+    // Generate AI voice traits that respect formality and reading level
+    Logger.info('Generating AI voice traits for preview', { 
+      formality: brandDetails.formalityLevel,
+      readingLevel: brandDetails.readingLevel,
+      englishVariant: brandDetails.englishVariant
+    })
     
-    // Replace voice trait placeholders with generic content
-    preview = preview.replace(/{{voice_trait_1}}/g, GENERIC_VOICE_TRAIT_1)
-    preview = preview.replace(/{{voice_trait_2}}/g, GENERIC_VOICE_TRAIT_2)
+    try {
+      const traitsResult = await generateBrandVoiceTraits(brandDetails)
+      if (traitsResult.success && traitsResult.content) {
+        preview = preview.replace(/{{brand_voice_traits}}/g, traitsResult.content)
+      } else {
+        Logger.warn('Failed to generate voice traits, using static content')
+        preview = preview.replace(/{{brand_voice_traits}}/g, `${GENERIC_VOICE_TRAIT_1}\n\n${GENERIC_VOICE_TRAIT_2}`)
+      }
+    } catch (error) {
+      Logger.error('Error generating voice traits for preview', error)
+      preview = preview.replace(/{{brand_voice_traits}}/g, `${GENERIC_VOICE_TRAIT_1}\n\n${GENERIC_VOICE_TRAIT_2}`)
+    }
 
     // Remove any remaining template variables and clean up
     preview = cleanMarkdown(preview.replace(/{{.*?}}/g, ''))

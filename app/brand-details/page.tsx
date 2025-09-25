@@ -616,17 +616,17 @@ export default function BrandDetailsPage() {
                         value={brandDetails.readingLevel || "6-8"}
                       >
                         <SelectTrigger id="readingLevel" className="w-full [&>span]:text-left [&>span]:justify-start">
-                          <SelectValue placeholder="Select reading level">
-                            {brandDetails.readingLevel === "6-8" && "Grade 6-8"}
-                            {brandDetails.readingLevel === "10-12" && "Grade 10-12"}
-                            {brandDetails.readingLevel === "13+" && "Grade 13+"}
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="6-8">Grade 6-8 (General Public)</SelectItem>
-                          <SelectItem value="10-12">Grade 10-12 (Professional)</SelectItem>
-                          <SelectItem value="13+">Grade 13+ (Technical/Academic)</SelectItem>
-                        </SelectContent>
+                        <SelectValue placeholder="Select reading level">
+                          {brandDetails.readingLevel === "6-8" && "General Public"}
+                          {brandDetails.readingLevel === "10-12" && "Professional"}
+                          {brandDetails.readingLevel === "13+" && "Technical/Academic"}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="6-8">General Public</SelectItem>
+                        <SelectItem value="10-12">Professional</SelectItem>
+                        <SelectItem value="13+">Technical/Academic</SelectItem>
+                      </SelectContent>
                       </Select>
                     </div>
                   </div>

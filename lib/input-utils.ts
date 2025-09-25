@@ -123,8 +123,9 @@ export function validateInput(input: string): InputValidationResult {
 
   // Validate description text
   if (detection.inputType === 'description') {
-    // Check minimum length (approximately 5 words)
-    if (detection.cleanInput.length < 25) {
+    // Check minimum word count (exactly 5 words)
+    const wordCount = detection.cleanInput.trim().split(/\s+/).filter(word => word.length > 0).length
+    if (wordCount < 5) {
       return {
         isValid: false,
         cleanInput: detection.cleanInput,
