@@ -92,6 +92,9 @@ export async function POST(request: Request) {
       hasAudience: !!brandDetails.audience,
       hasBrandDetailsText: !!brandDetails.brandDetailsText,
       tone: brandDetails.tone,
+      formalityLevel: brandDetails.formalityLevel,
+      readingLevel: brandDetails.readingLevel,
+      englishVariant: brandDetails.englishVariant,
       keys: Object.keys(brandDetails)
     })
 

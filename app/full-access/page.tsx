@@ -892,7 +892,7 @@ function FullAccessContent() {
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-5 w-5 text-green-500" />
-                <span>Everything in your Core Guide <span className="text-gray-500">(was $99, now free)</span></span>
+                <span>Everything in your Core Guide <span className="text-gray-500">($99 value)</span></span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-5 w-5 text-green-500" />

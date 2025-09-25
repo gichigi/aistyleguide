@@ -732,8 +732,8 @@ export default function LandingPage() {
                     <tr className="border-b border-gray-200 bg-slate-50">
                       <td className="py-5 px-4 font-medium text-gray-700 text-lg sm:text-base">No prompt writing or AI skills needed</td>
                       <td className="py-5 px-4 text-center">
-                        <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center mx-auto">
-                          <X className="h-5 w-5 text-orange-600" />
+                        <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center mx-auto">
+                          <Check className="h-5 w-5 text-emerald-600" />
                         </div>
                       </td>
                       <td className="py-5 px-4 text-center">
@@ -750,8 +750,8 @@ export default function LandingPage() {
                     <tr className="border-b border-gray-200">
                       <td className="py-5 px-4 font-medium text-gray-700 text-lg sm:text-base">Consistent, professional structure</td>
                       <td className="py-5 px-4 text-center">
-                        <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center mx-auto">
-                          <X className="h-5 w-5 text-orange-600" />
+                        <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center mx-auto">
+                          <Check className="h-5 w-5 text-emerald-600" />
                         </div>
                       </td>
                       <td className="py-5 px-4 text-center">
@@ -937,8 +937,8 @@ export default function LandingPage() {
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div>
                       <div className="text-xs text-gray-500 mb-2">ChatGPT</div>
-                      <div className="w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center mx-auto">
-                        <X className="h-4 w-4 text-orange-600" />
+                      <div className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center mx-auto">
+                        <Check className="h-4 w-4 text-emerald-600" />
                       </div>
                     </div>
                     <div>
@@ -1326,10 +1326,9 @@ export default function LandingPage() {
                     <h3 className="text-2xl font-bold text-blue-700">Core Style Guide</h3>
                     <div className="space-y-1">
                       <div className="flex items-center justify-center gap-2">
-                        <span className="text-2xl font-bold text-gray-400 line-through">$99</span>
-                        <p className="text-5xl font-bold">$0</p>
+                        <p className="text-5xl font-bold text-blue-700">$99</p>
                       </div>
-                      <p className="text-sm text-muted-foreground">Limited time</p>
+                      <p className="text-sm text-muted-foreground">One-time payment</p>
                     </div>
                     <ul className="space-y-2 text-left">
                       <li className="flex items-center">

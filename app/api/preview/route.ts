@@ -162,9 +162,9 @@ function clearTemplateCache() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { brandDetails } = body
+    const { brandDetails, selectedTraits } = body
 
-    Logger.info('Static preview generation request received', { brand: brandDetails?.description })
+    Logger.info('Preview generation request received', { brand: brandDetails?.description })
 
     // Clear template cache to force refresh
     clearTemplateCache()
@@ -190,13 +190,14 @@ export async function POST(request: Request) {
       ...brandDetails,
       name: brandName,
       description: brandDetails.description,
-      audience: '',
+      audience: brandDetails.audience || '',
+      traits: selectedTraits || []
     }
 
     // Load template preview (using core template for previews)
     const templateContent = await loadTemplatePreview('core_template_preview')
 
-    // Process preview with brand details (static - no AI)
+    // Process preview with AI-generated brand voice traits
     const processedPreview = await processPreview(templateContent, processedBrandDetails)
 
     Logger.info('Static preview generation successful', { brand: processedBrandDetails.name })
