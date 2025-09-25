@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -23,7 +23,6 @@ import VoiceTraitSelector from "@/components/VoiceTraitSelector"
 const defaultBrandDetails = {
   name: "",
   brandDetailsText: "",
-  audience: "",
   englishVariant: "american" as "american" | "british",
   formalityLevel: "Neutral", // Default to neutral
   readingLevel: "6-8" as "6-8" | "10-12" | "13+", // Default to general public (6-8=General Public, 10-12=Professional, 13+=Technical/Academic)
@@ -31,7 +30,54 @@ const defaultBrandDetails = {
 
 
 
-
+// Inline brand name extraction function
+function extractBrandNameInline(brandDetailsText: string) {
+  try {
+    // Simple extraction logic - look for common patterns
+    const text = brandDetailsText.trim()
+    
+    // Look for patterns like "Nike is a..." or "Apple creates..." - updated to handle ® symbols
+    const patterns = [
+      /^([A-Z][a-zA-Z0-9\s&®™©-]{1,30}?)\s+(?:is|are|was|were|creates?|makes?|provides?|offers?|specializes?)/i,
+      /^([A-Z][a-zA-Z0-9\s&®™©-]{1,30}?)\s+(?:helps?|serves?|works?|focuses?)/i,
+      /(?:company|brand|business|startup|organization)\s+(?:called|named)\s+([A-Z][a-zA-Z0-9\s&®™©-]{1,30})/i,
+      /^([A-Z][a-zA-Z0-9\s&®™©-]{1,30}?)\s*[,.]?\s*(?:a|an|the)/i
+    ]
+    
+    // Try each pattern
+    for (const pattern of patterns) {
+      const match = text.match(pattern)
+      if (match && match[1]) {
+        let brandName = match[1].trim()
+        // Clean up trailing punctuation and symbols
+        brandName = brandName.replace(/[®™©]*$/, '').trim()
+        // Validate it's not too generic
+        const genericWords = ['company', 'business', 'brand', 'startup', 'organization', 'team', 'we', 'our', 'this', 'that']
+        if (!genericWords.includes(brandName.toLowerCase()) && brandName.length > 1) {
+          return { success: true, brandName }
+        }
+      }
+    }
+    
+    // Fallback: look for first capitalized word that's not too common
+    const words = text.split(/\s+/)
+    for (const word of words) {
+      if (/^[A-Z][a-zA-Z0-9&®™©-]{1,20}$/.test(word)) {
+        const cleanWord = word.replace(/[®™©]*$/, '').trim()
+        const commonWords = ['The', 'This', 'That', 'Our', 'We', 'Company', 'Business', 'Brand', 'Team']
+        if (!commonWords.includes(cleanWord)) {
+          return { success: true, brandName: cleanWord }
+        }
+      }
+    }
+    
+    // Final fallback
+    return { success: true, brandName: "Your Brand" }
+  } catch (error) {
+    console.error("Brand name extraction failed:", error)
+    return { success: true, brandName: "Your Brand" }
+  }
+}
 
 // Format auto-populated descriptions with paragraph breaks between sentences
 function formatAutoPopulatedDescription(description: string): string {
@@ -58,24 +104,17 @@ export default function BrandDetailsPage() {
   const fromExtraction = searchParams.get("fromExtraction") === "true"
   const fromPayment = searchParams.get("paymentComplete") === "true"
   const urlGuideType = searchParams.get("guideType")
-  const urlAudience = searchParams.get("audience") || ""
   const [guideType, setGuideType] = useState(urlGuideType || "core")
   const [selectedTraits, setSelectedTraits] = useState<string[]>([])
   const [paymentComplete, setPaymentComplete] = useState(false)
   const [fadeIn, setFadeIn] = useState(false)
   const [showCharCount, setShowCharCount] = useState(false)
-  const descRef = useRef<HTMLTextAreaElement | null>(null)
-  const keywordInputRef = useRef<HTMLTextAreaElement | null>(null)
-  const [descriptionHeight, setDescriptionHeight] = useState<number>(144)
   const [email, setEmail] = useState("")
   const [sessionToken, setSessionToken] = useState("")
   const [showEmailCapture, setShowEmailCapture] = useState(false)
 
   // Initialize state with default values to ensure inputs are always controlled
   const [brandDetails, setBrandDetails] = useState({ ...defaultBrandDetails })
-  const [keywordInput, setKeywordInput] = useState<string>("")
-  const [keywordTags, setKeywordTags] = useState<string[]>([])
-  const KEYWORD_LIMIT = 15
 
   // Trigger fade-in animation after component mounts
   useEffect(() => {
@@ -124,10 +163,10 @@ export default function BrandDetailsPage() {
   useEffect(() => {
     const textarea = document.getElementById('brandDetailsText') as HTMLTextAreaElement
     if (textarea) {
+      // Wait a bit for rendering to complete
       setTimeout(() => {
         textarea.style.height = "auto"
         textarea.style.height = textarea.scrollHeight + "px"
-        setDescriptionHeight(textarea.scrollHeight)
       }, 100)
     }
   }, [brandDetails.brandDetailsText])
@@ -160,19 +199,9 @@ export default function BrandDetailsPage() {
           englishVariant: parsedDetails.englishVariant || "american",
           formalityLevel: formalityLevelValue || "Neutral",
           readingLevel: parsedDetails.readingLevel || "6-8",
-          audience: urlAudience || parsedDetails.audience || ""
         }
 
         setBrandDetails(updatedDetails)
-        // Load saved keywords if present
-        const savedKeywords = localStorage.getItem("brandKeywords")
-        if (savedKeywords) {
-          const parsed = savedKeywords
-            .split(/\r?\n|,/) // support newlines or commas
-            .map(k => k.trim())
-            .filter(Boolean)
-          setKeywordTags(parsed)
-        }
 
         // Update localStorage with the validated details
         localStorage.setItem("brandDetails", JSON.stringify(updatedDetails))
@@ -199,40 +228,6 @@ export default function BrandDetailsPage() {
       }
     }
   }, [])
-
-  // Persist keywords to localStorage when tags change
-  useEffect(() => {
-    try {
-      localStorage.setItem("brandKeywords", keywordTags.join("\n"))
-    } catch {}
-  }, [keywordTags])
-
-  const addKeyword = () => {
-    const term = keywordInput.trim()
-    if (!term) return
-    if (keywordTags.includes(term)) {
-      setKeywordInput("")
-      return
-    }
-    if (keywordTags.length >= KEYWORD_LIMIT) return
-    setKeywordTags(prev => [...prev, term])
-    setKeywordInput("")
-  }
-
-  const removeKeyword = (term: string) => {
-    setKeywordTags(prev => prev.filter(t => t !== term))
-  }
-
-  const addKeywordsBulk = (terms: string[]) => {
-    const cleaned = terms
-      .map(t => t.trim())
-      .filter(Boolean)
-      .filter(t => !keywordTags.includes(t))
-    if (cleaned.length === 0) return
-    const available = Math.max(0, KEYWORD_LIMIT - keywordTags.length)
-    if (available === 0) return
-    setKeywordTags(prev => [...prev, ...cleaned.slice(0, available)])
-  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -426,29 +421,45 @@ export default function BrandDetailsPage() {
         name: brandName,
         // Map brandDetailsText to description for template processor compatibility
         description: brandDetails.brandDetailsText,
-        // Use extracted audience if present; otherwise leave empty (server will generate if needed)
-        audience: brandDetails.audience || "",
-        // Pass keywords (generated or user-edited) to backend
-        keywords: keywordTags,
+        // Set default audience since we no longer collect it separately
+        audience: "general audience",
         traits: selectedTraits,
         englishVariant: brandDetails.englishVariant,
         formalityLevel: brandDetails.formalityLevel,
         readingLevel: brandDetails.readingLevel,
       }
 
-      // Save brand details (no preview generation needed - core guide generates its own content)
+      // Generate preview as before
+      const response = await fetch("/api/preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brandDetails: detailsWithName })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to generate")
+      }
+
+      const data = await response.json()
+      if (!data.success) {
+        throw new Error(data.error || "Failed to generate")
+      }
+
+      // Save brand details and preview
       console.log("[Brand Details] Saving to localStorage:", detailsWithName)
       localStorage.setItem("brandDetails", JSON.stringify(detailsWithName))
       localStorage.setItem("selectedTraits", JSON.stringify(selectedTraits))
-      console.log("[Brand Details] Successfully saved brand details")
+      localStorage.setItem("previewContent", data.preview)
+      console.log("[Brand Details] Successfully saved brand details with extracted name")
 
       setProcessingStep('complete')
       
       // Brief pause to show completion
       await new Promise(resolve => setTimeout(resolve, 500))
 
-      // Redirect to core guide (skipping preview page)
-      router.push("/full-access")
+      // Redirect to preview page
+      router.push("/preview")
     } catch (error) {
       setLoading(false)
       setProcessingStep('idle')
@@ -509,85 +520,48 @@ export default function BrandDetailsPage() {
                       <div className="text-xs text-red-600 mt-1">{nameError}</div>
                     )}
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 items-start">
-                    {/* Left: Description (span 2 columns to align with left + middle fields below) */}
-                    <div className="grid gap-2 sm:col-span-2">
-                      <Label htmlFor="brandDetailsText">Description</Label>
-                      <Textarea
-                        ref={descRef}
-                        id="brandDetailsText"
-                        name="brandDetailsText"
-                        placeholder="Describe your brand in a few sentences. What do you do? Who do you serve?"
-                        value={brandDetails.brandDetailsText || ""}
-                        onChange={e => {
-                          const value = e.target.value.slice(0, 500)
-                          setBrandDetails(prev => {
-                            const updatedDetails = { ...prev, brandDetailsText: value }
-                            localStorage.setItem("brandDetails", JSON.stringify(updatedDetails))
-                            return updatedDetails
-                          })
-                          validateMainField(value)
-                          e.target.style.height = "auto"
-                          e.target.style.height = e.target.scrollHeight + "px"
-                          setDescriptionHeight(e.target.scrollHeight)
-                        }}
-                        rows={5}
-                        className="resize-none min-h-[144px] leading-relaxed text-sm p-3 placeholder:text-gray-400"
-                        onFocus={e => setShowCharCount(true)}
-                        onBlur={e => setShowCharCount(!!e.target.value)}
-                      />
-                      {showCharCount && (
-                        <div className={`text-xs mt-1 ${brandDetails.brandDetailsText?.length > 450 ? 'text-yellow-600' : 'text-muted-foreground'}`}>{brandDetails.brandDetailsText?.length || 0}/500 characters</div>
-                      )}
-                      {mainError && (
-                        <div className="text-xs text-red-600 mt-1">{mainError}</div>
-                      )}
-                    </div>
-                    {/* Right: Keywords (domain terms + lexicon) as tags */}
-                    <div className="grid gap-2">
-                      <Label htmlFor="keywordInput">Keywords (optional)</Label>
-                      <p className="text-xs text-muted-foreground">To use in your writing examples</p>
-                      {/* Tag list */}
-                      <div
-                        className="flex w-full max-h-48 overflow-y-auto rounded-md border border-input bg-background px-3 py-2 flex-wrap items-start gap-1 content-start"
-                        style={{ minHeight: `${descriptionHeight}px` }}
-                        onClick={() => keywordInputRef.current?.focus()}
-                      >
-                        {keywordTags.map(term => (
-                          <span key={term} className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800 border hover:bg-gray-200">
-                            {term}
-                            <button type="button" aria-label={`Remove ${term}`} onClick={() => removeKeyword(term)} className="text-gray-500 hover:text-gray-700 focus:outline-none">
-                              ×
-                            </button>
-                          </span>
-                        ))}
-                        {/* Inline input (textarea for wrapping placeholder) */}
-                        <textarea
-                          ref={keywordInputRef}
-                          aria-label="Add keyword"
-                          placeholder={keywordTags.length === 0 ? "Add keywords" : "+ Keyword"}
-                          value={keywordInput}
-                          onChange={e => setKeywordInput(e.target.value)}
-                          onKeyDown={e => {
-                            if (e.key === 'Enter') { e.preventDefault(); addKeyword(); }
-                            else if (e.key === 'Backspace' && keywordInput === '') { removeKeyword(keywordTags[keywordTags.length - 1]); }
-                            else if (e.key === 'v' && (e.metaKey || e.ctrlKey)) {
-                              // paste handled in onPaste
+                  <div className="grid gap-2">
+                    <Label htmlFor="brandDetailsText">Description</Label>
+                    <Textarea
+                      id="brandDetailsText"
+                      name="brandDetailsText"
+                      placeholder="Describe your brand in a few sentences. What do you do? Who do you serve?"
+                      value={brandDetails.brandDetailsText || ""}
+                      onChange={e => {
+                        const value = e.target.value.slice(0, 500) // Enforce max length
+                        setBrandDetails(prev => {
+                          const updatedDetails = { ...prev, brandDetailsText: value }
+                          
+                          // Auto-populate brand name if it's empty and we have enough text
+                          if (!prev.name?.trim() && value.trim().length > 10) {
+                            const extractionResult = extractBrandNameInline(value)
+                            if (extractionResult.success && extractionResult.brandName && extractionResult.brandName !== "Your Brand") {
+                              updatedDetails.name = extractionResult.brandName
+                              // Clear any previous name validation error
+                              setNameError("")
                             }
-                          }}
-                          onPaste={e => {
-                            const text = e.clipboardData.getData('text')
-                            const parts = text.split(/\r?\n|,|\t/)
-                            addKeywordsBulk(parts)
-                            e.preventDefault()
-                          }}
-                          rows={1}
-                          className={`${keywordTags.length === 0 ? 'w-full' : 'flex-1 min-w-[8rem]'} bg-transparent text-sm p-1.5 focus:outline-none focus:ring-2 focus:ring-gray-300 placeholder:text-muted-foreground resize-none whitespace-pre-wrap break-words`}
-                        />
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">{keywordTags.length}/{KEYWORD_LIMIT} keywords</div>
-                      {/* Input + Add button (counter/clear removed per design) */}
-                    </div>
+                          }
+                          
+                          // Save to localStorage
+                          localStorage.setItem("brandDetails", JSON.stringify(updatedDetails))
+                          return updatedDetails
+                        })
+                        validateMainField(value)
+                        // Auto-adjust height
+                        e.target.style.height = "auto"
+                        e.target.style.height = e.target.scrollHeight + "px"
+                      }}
+                      rows={5}
+                      className="resize-none min-h-[120px] leading-relaxed text-base p-4 font-medium placeholder:text-gray-400 placeholder:font-medium"
+                      onFocus={e => setShowCharCount(true)}
+                      onBlur={e => setShowCharCount(!!e.target.value)}
+                    />
+                    {showCharCount && (
+                      <div className={`text-xs mt-1 ${brandDetails.brandDetailsText?.length > 450 ? 'text-yellow-600' : 'text-muted-foreground'}`}>{brandDetails.brandDetailsText?.length || 0}/500 characters</div>
+                    )}
+                    {mainError && (
+                      <div className="text-xs text-red-600 mt-1">{mainError}</div>
+                    )}
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-6">
                     <div className="grid gap-2">
@@ -642,17 +616,17 @@ export default function BrandDetailsPage() {
                         value={brandDetails.readingLevel || "6-8"}
                       >
                         <SelectTrigger id="readingLevel" className="w-full [&>span]:text-left [&>span]:justify-start">
-                          <SelectValue placeholder="Select reading level">
-                            {brandDetails.readingLevel === "6-8" && "General Public"}
-                            {brandDetails.readingLevel === "10-12" && "Professional"}
-                            {brandDetails.readingLevel === "13+" && "Technical/Academic"}
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="6-8">General Public</SelectItem>
-                          <SelectItem value="10-12">Professional</SelectItem>
-                          <SelectItem value="13+">Technical/Academic</SelectItem>
-                        </SelectContent>
+                        <SelectValue placeholder="Select reading level">
+                          {brandDetails.readingLevel === "6-8" && "General Public"}
+                          {brandDetails.readingLevel === "10-12" && "Professional"}
+                          {brandDetails.readingLevel === "13+" && "Technical/Academic"}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="6-8">General Public</SelectItem>
+                        <SelectItem value="10-12">Professional</SelectItem>
+                        <SelectItem value="13+">Technical/Academic</SelectItem>
+                      </SelectContent>
                       </Select>
                     </div>
                   </div>

@@ -156,12 +156,16 @@ ${trait.dont.map(item => `✗ ${item}`).join('\n')}`
 
 // Function to generate custom trait description via AI
 async function generateCustomTraitDescription(traitName: string, brandDetails: any, index: number): Promise<string> {
+  const styleConstraints = `\nStyle Constraints:\n- Formality: ${brandDetails.formalityLevel || 'Neutral'} (Professional: avoid contractions; Casual: allow contractions; Very Formal: use third person)\n- Reading Level: ${brandDetails.readingLevel || '6-8'} (6–8: short sentences, simple vocab; 13+: technical precision allowed)\n- English Variant: ${brandDetails.englishVariant || 'american'} (apply spelling and punctuation accordingly)`;
+
   const prompt = `You are a brand strategist. Generate a brand voice trait description for the custom trait "${traitName}" based on this brand information.
 
 Brand Info:
 • Brand Name: ${brandDetails.name}
 • What they do: ${brandDetails.description}
 • Audience: ${brandDetails.audience}
+
+${styleConstraints}
 
 Create the trait description in this EXACT format:
 
@@ -183,7 +187,7 @@ Create the trait description in this EXACT format:
 
 These should guide HOW someone writes and speaks, not WHAT topics they cover. Focus on tone, word choice, and communication style tailored to the audience. Make each example specific to this brand and actionable, keeping them natural and conversational around 12 words. Use → (unicode arrow) and ✗ (unicode cross) exactly as shown.`;
 
-  const result = await generateWithOpenAI(prompt, "You are a brand strategist creating specific, actionable trait descriptions.", "markdown", 800, "gpt-4o-mini");
+  const result = await generateWithOpenAI(prompt, "You are a brand strategist creating specific, actionable trait descriptions.", "markdown", 800, "gpt-4o");
   
   if (result.success && result.content) {
     return result.content.trim()
@@ -229,9 +233,9 @@ export async function generateBrandVoiceTraits(brandDetails: any): Promise<Gener
       if (typeof trait === 'string') {
         // Handle string trait names (backward compatibility)
         if (Object.keys(TRAITS).includes(trait)) {
-          // It's a predefined trait
-          console.log(`📋 Using predefined trait: ${trait}`)
-          const markdown = predefinedTraitToMarkdown(trait as TraitName, index)
+          // It's a predefined trait - now generate AI description instead of using static one
+          console.log(`🎨 Generating AI description for predefined trait: ${trait}`)
+          const markdown = await generateCustomTraitDescription(trait, brandDetails, index)
           traitMarkdown.push(markdown)
         } else {
           // It's a custom trait name
@@ -242,8 +246,8 @@ export async function generateBrandVoiceTraits(brandDetails: any): Promise<Gener
       } else if (trait && typeof trait === 'object') {
         // Handle MixedTrait objects
         if (isPredefinedTrait(trait)) {
-          console.log(`📋 Using predefined trait: ${trait.name}`)
-          const markdown = predefinedTraitToMarkdown(trait.name, index)
+          console.log(`🎨 Generating AI description for predefined trait: ${trait.name}`)
+          const markdown = await generateCustomTraitDescription(trait.name, brandDetails, index)
           traitMarkdown.push(markdown)
         } else if (isCustomTrait(trait)) {
           console.log(`🎨 Generating custom trait: ${trait.name}`)
@@ -349,7 +353,6 @@ Instructions:
 - Make each rule unique, clear, and actionable.
 - Focus on how to write, edit, and format text for this brand.
 - **IMPORTANT**: Put each ✅ Right and ❌ Wrong example on separate lines with line breaks between them.
-- **FORMATTING**: Use clean markdown - no trailing spaces, no horizontal rule separators (---), no extra blank lines.
 
 Example rules:
 ### 1. Acronyms
@@ -379,7 +382,7 @@ Use the Oxford comma in lists of three or more items.
 
 ---
 Generate exactly 25 rules, each about a different aspect of writing style.`;
-  return generateWithOpenAI(prompt, "You are a writing style guide expert.", "markdown", 6000, "gpt-4o-mini");
+  return generateWithOpenAI(prompt, "You are a writing style guide expert.", "markdown", 6000, "gpt-4o");
 }
 
 // Function to generate the entire complete style guide in one go
@@ -416,7 +419,6 @@ Instructions:
 - Make each rule unique, clear, and actionable.
 - Focus on how to write, edit, and format text for this brand.
 - **IMPORTANT**: Put each ✅ Right and ❌ Wrong example on separate lines with line breaks between them.
-- **FORMATTING**: Use clean markdown - no trailing spaces, no horizontal rule separators (---), no extra blank lines.
 - Organize the rules into the following sections and topics, in this order:
 
 ## Spelling Conventions
@@ -599,7 +601,7 @@ Put the person before their condition or characteristic to show respect and dign
 - Make each rule unique, clear, and actionable.
 - Focus on how to write, edit, and format text for this brand.
 `;
-  return generateWithOpenAI(prompt, "You are a writing style guide expert.", "markdown", 9000, "gpt-4o-mini");
+  return generateWithOpenAI(prompt, "You are a writing style guide expert.", "markdown", 9000, "gpt-4o");
 }
 
 // Extract domain terms and a simple brand lexicon (preferred/banned terms)
@@ -630,7 +632,7 @@ Brand Description: ${description}`
     "You are a careful content taxonomist. Return strict JSON only.",
     "json",
     400,
-    "gpt-4o-mini"
+    "gpt-4o"
   )
 }
 
@@ -647,7 +649,7 @@ What they do: ${description}`
     "You are a brand strategist who writes precise, practical audience descriptions.",
     "markdown",
     200,
-    "gpt-4o-mini"
+    "gpt-4o"
   )
 }
 
@@ -662,7 +664,6 @@ export async function extractBrandName(brandDetails: any): Promise<GenerationRes
   const prompt = `Extract only the brand name from the text below. Return just the brand name, nothing else.\n\nBrand Info:\n${brandDetails.brandDetailsText}`;
   return generateWithOpenAI(prompt, "You are a brand analyst. Extract only the brand name from the given text.", "markdown");
 }
-
 // Function to parse style guide rules and extract key formatting/voice guidelines for sample generation
 export async function parseRulesForSamples(rulesContent: string): Promise<{ voiceRules: string; formatRules: string }> {
   const prompt = `Analyze the style guide rules below and extract the most important voice and formatting guidelines for content creation. Return ONLY the essential rules that affect how content should be written, formatted, and sound.
@@ -794,7 +795,7 @@ Write a blog post introduction (${wordCount}) that showcases this brand's voice 
       "You are a content writer creating authentic, engaging content that perfectly matches the brand's voice and personality.", 
       "markdown", 
       2000, 
-      "gpt-4o-mini"
+      "gpt-4o"
     );
   } catch (error) {
     console.error(`Error generating ${sampleType} sample:`, error);
@@ -804,3 +805,4 @@ Write a blog post introduction (${wordCount}) that showcases this brand's voice 
     };
   }
 }
+
