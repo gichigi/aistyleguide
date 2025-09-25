@@ -280,6 +280,9 @@ export async function processTemplate(templateType: string, brandDetails: any, p
       description: brandDetails.description.trim(),
       audience: brandDetails.audience.trim(),
       traits: brandDetails.traits || [],
+      formalityLevel: brandDetails.formalityLevel,
+      readingLevel: brandDetails.readingLevel,
+      englishVariant: brandDetails.englishVariant,
     }
     
     // For style guide rules generation (separate from voice traits)
@@ -549,6 +552,9 @@ export async function renderStyleGuideTemplate({
         description: brandDetails.description?.trim() || brandDetails.brandDetailsText || '',
         audience: brandDetails.audience?.trim() || '',
         traits: brandDetails.traits || [],
+        formalityLevel: brandDetails.formalityLevel,
+        readingLevel: brandDetails.readingLevel,
+        englishVariant: brandDetails.englishVariant,
       };
       
       // For style guide rules generation (separate from voice traits)

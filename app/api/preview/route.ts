@@ -190,7 +190,10 @@ export async function POST(request: Request) {
       ...brandDetails,
       name: brandName,
       description: brandDetails.description,
-      audience: '',
+      audience: brandDetails.audience || '',
+      formalityLevel: brandDetails.formalityLevel,
+      readingLevel: brandDetails.readingLevel,
+      englishVariant: brandDetails.englishVariant,
     }
 
     // Load template preview (using core template for previews)
