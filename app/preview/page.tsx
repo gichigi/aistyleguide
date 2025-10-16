@@ -243,10 +243,10 @@ export default function PreviewPage() {
             )}
 
             {/* Preview Content with Fade-out */}
-            {guideContent && (
+            {guideContent && guideContent.preview && (
               <ContentWithFadeout>
                 <div className="prose max-w-none">
-                  <MarkdownRenderer content={guideContent} />
+                  <MarkdownRenderer content={guideContent.preview} />
                 </div>
               </ContentWithFadeout>
             )}

@@ -128,7 +128,12 @@ export default function BrandDetailsPage() {
   // Generate session token on component mount
   useEffect(() => {
     if (!sessionToken) {
-      const token = crypto.randomUUID()
+      // Generate a simple UUID that works in both browser and Node.js
+      const token = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0
+        const v = c === 'x' ? r : (r & 0x3 | 0x8)
+        return v.toString(16)
+      })
       setSessionToken(token)
       localStorage.setItem("emailCaptureToken", token)
     }
