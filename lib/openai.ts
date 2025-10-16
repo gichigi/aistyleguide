@@ -161,7 +161,7 @@ async function generateCustomTraitDescription(traitName: string, brandDetails: a
     ? `\n• Keywords: ${brandDetails.keywords.slice(0, 10).join(', ')}`
     : '';
   
-  const prompt = `You are a brand strategist. Generate a brand voice trait description for the custom trait "${traitName}" based on this brand information.
+  const prompt = `You are a brand voice expert. Generate communication style guidelines for the trait "${traitName}" based on this brand information.
 
 Brand Info:
 • Brand Name: ${brandDetails.name}
@@ -176,9 +176,9 @@ Create the trait description in this EXACT format:
 
 ***What It Means***
 
-→ [Specific actionable example for the audience - around 10 words]
-→ [Specific actionable example for the audience - around 10 words] 
-→ [Specific actionable example for the audience - around 10 words]
+→ [Specific actionable writing instruction - around 10 words]
+→ [Specific actionable writing instruction - around 10 words] 
+→ [Specific actionable writing instruction - around 10 words]
 
 ***What It Doesn't Mean***
 
@@ -186,31 +186,32 @@ Create the trait description in this EXACT format:
 ✗ [Boundary or guardrail - around 10 words]
 ✗ [Boundary or guardrail - around 10 words]
 
-These should guide HOW someone writes and speaks, not WHAT topics they cover. Focus on tone, word choice, and communication style tailored to the audience. Make each example specific to this brand and actionable, keeping them natural and conversational around 10 words. 
+These should guide HOW someone writes and speaks, not WHAT topics they cover. Focus on tone, word choice, sentence structure, and communication style tailored to the audience. Make each example about writing style and language use, not content strategy. Keep examples around 10 words. 
 
-For "What It Doesn't Mean": Provide boundaries and guardrails that prevent the trait from being taken too far or misunderstood, rather than simply stating the opposite. Use → (unicode arrow) and ✗ (unicode cross) exactly as shown.`;
+For "What It Doesn't Mean": Show where each "What It Means" example could go wrong or be overused, providing specific boundaries that prevent the trait from being taken too far. Use → (unicode arrow) and ✗ (unicode cross) exactly as shown.`;
 
-  const result = await generateWithOpenAI(prompt, "You are a brand strategist creating specific, actionable trait descriptions.", "markdown", 800, "gpt-4o-mini");
+  const result = await generateWithOpenAI(prompt, "You are a brand voice expert creating specific, actionable communication style guidelines.", "markdown", 800, "gpt-4o-mini");
   
   if (result.success && result.content) {
     return result.content.trim()
   } else {
     // Fallback if AI generation fails
+    console.error(`Failed to generate trait description for ${traitName}:`, result.error)
     return `### ${index}. ${traitName}
 
-Custom trait - we'll help define what this means for your brand voice.
+This trait should be tailored specifically to ${brandDetails.name} and their ${brandDetails.audience || 'target audience'}.
 
 ***What It Means***
 
-→ Apply this trait consistently across all brand communications
-→ Use this trait to guide content creation decisions
-→ Let this trait influence your brand's unique voice
+→ Use clear, professional language appropriate for your audience
+→ Maintain consistent tone and style across all communications
+→ Structure content logically for easy comprehension
 
 ***What It Doesn't Mean***
 
-✗ Ignore your brand's core values and mission
-✗ Use this trait in ways that contradict your audience needs
-✗ Apply this trait without considering context and appropriateness`
+✗ Using generic examples that don't reflect your brand's uniqueness
+✗ Applying this trait without considering your audience's expectations
+✗ Taking this trait to extremes that don't align with your brand context`
   }
 }
 
