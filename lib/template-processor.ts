@@ -580,16 +580,28 @@ export async function renderStyleGuideTemplate({
           // Leave audience empty if summary fails; prompts will still work
         }
       }
-      // Brand voice traits
+      // Brand voice traits - check for preview traits first
       let traitsContextForRules: string | undefined
-      const brandVoiceResult = await generateBrandVoiceTraits(validatedDetails);
-      if (brandVoiceResult.success && brandVoiceResult.content) {
-        result = result.replace(/{{brand_voice_traits}}/g, formatMarkdownContent(brandVoiceResult.content));
-        traitsContextForRules = brandVoiceResult.content.slice(0, 4000)
+      let brandVoiceContent: string
+      
+      if (brandDetails.previewTraits) {
+        // Use preview traits if available
+        console.log('[Template Processor] Using preview traits for consistency')
+        brandVoiceContent = brandDetails.previewTraits
+        traitsContextForRules = brandVoiceContent.slice(0, 4000)
       } else {
-        result = result.replace(/{{brand_voice_traits}}/g, "_Could not generate brand voice traits for this brand._");
-        traitsContextForRules = undefined
+        // Generate new traits
+        const brandVoiceResult = await generateBrandVoiceTraits(validatedDetails);
+        if (brandVoiceResult.success && brandVoiceResult.content) {
+          brandVoiceContent = brandVoiceResult.content
+          traitsContextForRules = brandVoiceContent.slice(0, 4000)
+        } else {
+          brandVoiceContent = "_Could not generate brand voice traits for this brand._"
+          traitsContextForRules = undefined
+        }
       }
+      
+      result = result.replace(/{{brand_voice_traits}}/g, formatMarkdownContent(brandVoiceContent));
       if (templateType === "complete") {
         // Complete rules
         const completeRulesResult = await generateCompleteStyleGuide(rulesDetails, traitsContextForRules);

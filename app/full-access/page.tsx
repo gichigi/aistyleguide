@@ -46,12 +46,28 @@ function FullAccessContent() {
       
       const savedBrandDetails = localStorage.getItem("brandDetails")
       const savedGuideType = localStorage.getItem("styleGuidePlan")
+      const savedSelectedTraits = localStorage.getItem("selectedTraits")
+      const generatedPreviewTraits = localStorage.getItem("generatedPreviewTraits")
+      const previewTraitsTimestamp = localStorage.getItem("previewTraitsTimestamp")
       
       if (!savedBrandDetails) {
         throw new Error("No brand details found. Please fill them in again.")
       }
       
       const parsedBrandDetails = JSON.parse(savedBrandDetails)
+      const selectedTraits = savedSelectedTraits ? JSON.parse(savedSelectedTraits) : []
+      
+      // Check if we can reuse preview traits
+      const canReuseTraits = generatedPreviewTraits && 
+                            previewTraitsTimestamp && 
+                            selectedTraits.length > 0 &&
+                            (Date.now() - parseInt(previewTraitsTimestamp)) < 300000 // 5 minutes
+      
+      if (canReuseTraits) {
+        console.log("[Full Access] Reusing preview traits to save API calls")
+        // Add the preview traits to brandDetails for template processing
+        parsedBrandDetails.previewTraits = generatedPreviewTraits
+      }
       
       console.log("[Full Access] Generating style guide with plan:", savedGuideType)
       

@@ -182,10 +182,14 @@ export default function PreviewPage() {
       if (!brandDetails) return
       try {
         console.log('[Preview Page] Generating dynamic preview with AI content...')
-        const response = await fetch('/api/generate-preview', {
+        // Get selectedTraits from localStorage
+        const savedSelectedTraits = localStorage.getItem("selectedTraits")
+        const selectedTraits = savedSelectedTraits ? JSON.parse(savedSelectedTraits) : []
+        
+        const response = await fetch('/api/preview', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ brandDetails })
+          body: JSON.stringify({ brandDetails, selectedTraits })
         })
         
         if (!response.ok) {
@@ -198,6 +202,16 @@ export default function PreviewPage() {
         
         if (isMounted) {
           setPreviewContent(data.preview)
+          
+          // Save the generated trait descriptions for reuse in full-access
+          // Extract just the brand voice traits section from the preview
+          const brandVoiceMatch = data.preview.match(/## Brand Voice([\s\S]*?)(?=##|$)/)
+          if (brandVoiceMatch) {
+            const brandVoiceSection = `## Brand Voice${brandVoiceMatch[1]}`
+            localStorage.setItem("generatedPreviewTraits", brandVoiceSection)
+            localStorage.setItem("previewTraitsTimestamp", Date.now().toString())
+            console.log('[Preview Page] Saved generated traits for reuse')
+          }
         }
       } catch (error) {
         console.error("Error generating preview:", error)

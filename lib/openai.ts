@@ -155,12 +155,16 @@ ${trait.dont.map(item => `✗ ${item}`).join('\n')}`
 
 // Function to generate custom trait description via AI
 async function generateCustomTraitDescription(traitName: string, brandDetails: any, index: number): Promise<string> {
+  const keywordSection = Array.isArray(brandDetails.keywords) && brandDetails.keywords.length
+    ? `\n• Keywords: ${brandDetails.keywords.slice(0, 10).join(', ')}`
+    : '';
+  
   const prompt = `You are a brand strategist. Generate a brand voice trait description for the custom trait "${traitName}" based on this brand information.
 
 Brand Info:
 • Brand Name: ${brandDetails.name}
 • What they do: ${brandDetails.description}
-• Audience: ${brandDetails.audience}
+• Audience: ${brandDetails.audience}${keywordSection}
 
 Create the trait description in this EXACT format:
 
@@ -170,17 +174,19 @@ Create the trait description in this EXACT format:
 
 ***What It Means***
 
-→ [Specific actionable example for the audience - around 12 words]
-→ [Specific actionable example for the audience - around 12 words] 
-→ [Specific actionable example for the audience - around 12 words]
+→ [Specific actionable example for the audience - around 10 words]
+→ [Specific actionable example for the audience - around 10 words] 
+→ [Specific actionable example for the audience - around 10 words]
 
 ***What It Doesn't Mean***
 
-✗ [Specific clarification - around 12 words]
-✗ [Specific clarification - around 12 words]
-✗ [Specific clarification - around 12 words]
+✗ [Boundary or guardrail - around 10 words]
+✗ [Boundary or guardrail - around 10 words]
+✗ [Boundary or guardrail - around 10 words]
 
-These should guide HOW someone writes and speaks, not WHAT topics they cover. Focus on tone, word choice, and communication style tailored to the audience. Make each example specific to this brand and actionable, keeping them natural and conversational around 12 words. Use → (unicode arrow) and ✗ (unicode cross) exactly as shown.`;
+These should guide HOW someone writes and speaks, not WHAT topics they cover. Focus on tone, word choice, and communication style tailored to the audience. Make each example specific to this brand and actionable, keeping them natural and conversational around 10 words. 
+
+For "What It Doesn't Mean": Provide boundaries and guardrails that prevent the trait from being taken too far or misunderstood, rather than simply stating the opposite. Use → (unicode arrow) and ✗ (unicode cross) exactly as shown.`;
 
   const result = await generateWithOpenAI(prompt, "You are a brand strategist creating specific, actionable trait descriptions.", "markdown", 800, "gpt-4o-mini");
   
@@ -226,26 +232,18 @@ export async function generateBrandVoiceTraits(brandDetails: any): Promise<Gener
       const index = i + 1
       
       if (typeof trait === 'string') {
-        // Handle string trait names (backward compatibility)
-        if (Object.keys(TRAITS).includes(trait)) {
-          // It's a predefined trait
-          console.log(`📋 Using predefined trait: ${trait}`)
-          const markdown = predefinedTraitToMarkdown(trait as TraitName, index)
-          traitMarkdown.push(markdown)
-        } else {
-          // It's a custom trait name
-          console.log(`🎨 Generating custom trait: ${trait}`)
-          const markdown = await generateCustomTraitDescription(trait, brandDetails, index)
-          traitMarkdown.push(markdown)
-        }
+        // Generate AI description for ALL traits (both predefined and custom)
+        console.log(`🎨 Generating AI description for trait: ${trait}`)
+        const markdown = await generateCustomTraitDescription(trait, brandDetails, index)
+        traitMarkdown.push(markdown)
       } else if (trait && typeof trait === 'object') {
-        // Handle MixedTrait objects
+        // Handle MixedTrait objects - generate AI descriptions for ALL traits
         if (isPredefinedTrait(trait)) {
-          console.log(`📋 Using predefined trait: ${trait.name}`)
-          const markdown = predefinedTraitToMarkdown(trait.name, index)
+          console.log(`🎨 Generating AI description for predefined trait: ${trait.name}`)
+          const markdown = await generateCustomTraitDescription(trait.name, brandDetails, index)
           traitMarkdown.push(markdown)
         } else if (isCustomTrait(trait)) {
-          console.log(`🎨 Generating custom trait: ${trait.name}`)
+          console.log(`🎨 Generating AI description for custom trait: ${trait.name}`)
           const markdown = await generateCustomTraitDescription(trait.name, brandDetails, index)
           traitMarkdown.push(markdown)
         }
