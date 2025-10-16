@@ -322,7 +322,7 @@ export async function generateFullCoreStyleGuide(brandDetails: any, traitsContex
   const keywordSection = Array.isArray(brandDetails.keywords) && brandDetails.keywords.length
     ? `\nBrand Keywords (use naturally in examples where helpful):\n- ${brandDetails.keywords.slice(0, 15).join('\n- ')}`
     : '';
-  const prompt = `You are a writing style guide expert. Based on the brand info below, create a set of 25 specific writing style rules for this brand.
+  const prompt = `You are a writing style guide expert. Based on the brand info below, create a set of 25 specific writing style rules that support and reinforce the brand voice traits for this brand.
 
 Brand Info:
   • Brand Name: ${brandDetails.name}
@@ -340,8 +340,7 @@ Instructions:
 - Use rules like: Capitalization, Numbers, Pronouns, Abbreviations, Acronyms, Titles & Headings, Trademarks, Slang & Jargon, Proper Nouns, 1st person vs 3rd person, Contractions, Compound Adjectives, Serial/Oxford Comma, Emojis, Job Titles, Dates & Times, Measurements, Money, Addresses, Special Characters, Hyphens, Dashes, Apostrophes, Quotation marks, etc.
 - Each rule must:
   1. Start with a bold, single keyword (e.g., "Acronyms", "Capitalization", "Numbers").
-  2. Give a **ONE SENTENCE** description of the rule and why it matters.
-  3. Include a ✅ Right example and a ❌ Wrong example on separate lines.
+  2. Give a **ONE SENTENCE** description of the rule. Where relevant, include a brief reference to brand voice (e.g., "to support our professional voice", "reinforces our clear tone"). Not every rule needs this, but aim for 30-40% of rules.
   4. Be formatted in markdown.
 - List the 25 rules in alphabetical order by keyword.
 - Number each rule in the header: "### 1. Acronyms"
@@ -352,14 +351,14 @@ Instructions:
 
 Example rules:
 ### 1. Acronyms
-Spell out acronyms on first use, then use the acronym only.
+Spell out acronyms on first use for clarity and accessibility, supporting our clear voice.
 ✅ Right: "World Health Organization (WHO)"
 ❌ Wrong: "WHO"
 
-### 2. Capitalization
-Use sentence case for headings and titles.
-✅ Right: "How to write a style guide"
-❌ Wrong: "How To Write A Style Guide"
+### 2. Contractions
+Avoid contractions to maintain our professional tone.
+✅ Right: "We do not recommend..."
+❌ Wrong: "We don't recommend..."
 
 ### 3. Numbers
 Write out numbers one through nine; use numerals for 10 and above.
@@ -388,7 +387,7 @@ export async function generateCompleteStyleGuide(brandDetails: any, traitsContex
   const keywordSection = Array.isArray(brandDetails.keywords) && brandDetails.keywords.length
     ? `\nBrand Keywords (use naturally in examples where helpful):\n- ${brandDetails.keywords.slice(0, 15).join('\n- ')}`
     : '';
-  const prompt = `You are a writing style guide expert. Based on the brand info below, create a comprehensive set of writing style rules for this brand, covering all the detailed topics listed.
+  const prompt = `You are a writing style guide expert. Based on the brand info below, create a comprehensive set of writing style rules that support and reinforce the brand voice traits for this brand, covering all the detailed topics listed.
 
 Brand Info:
   • Brand Name: ${brandDetails.name}
@@ -408,7 +407,7 @@ Instructions:
 - Do NOT include general brand, marketing, or content strategy rules.
 - Each rule must:
   1. Start with an H3 heading with sequential number and keyword (e.g., "### 1. Company Name Spelling", "### 2. Proper Nouns").
-  2. Give a **ONE SENTENCE** description of the rule and why it matters.
+  2. Give a **ONE SENTENCE** description of the rule. Where relevant, include a brief reference to brand voice (e.g., "to support our professional voice", "reinforces our clear tone"). Not every rule needs this, but aim for 30-40% of rules.
   3. Include a ✅ Right example and a ❌ Wrong example on separate lines.
   4. Be formatted in markdown.
 - Do not repeat rules or examples.
@@ -547,12 +546,12 @@ Instructions:
 Example rules:
 
 ### 3. Company Name Spelling
-Always capitalize "${brandDetails.name}" consistently to maintain brand identity and recognition.
+Always capitalize "${brandDetails.name}" consistently to maintain brand identity and our professional voice.
 ✅ Right: ${brandDetails.name} offers innovative solutions for businesses.
 ❌ Wrong: ${brandDetails.name.toLowerCase()} offers innovative solutions for businesses.
 
 ### 11. Abbreviations
-Spell out abbreviations on first use, then use the shortened form consistently.
+Spell out abbreviations on first use to maintain clarity for all readers.
 ✅ Right: "The World Health Organization (WHO) recommends..."
 ❌ Wrong: "WHO recommends..." (without introduction)
 
@@ -571,10 +570,10 @@ Write out numbers one through nine; use numerals for 10 and above.
 ✅ Right: "We have five products and 12 team members."
 ❌ Wrong: "We have 5 products and twelve team members."
 
-### 27. Apostrophes
-Use apostrophes correctly for contractions and possessives to maintain professional writing standards.
-✅ Right: "The company's mission is to improve users' experiences."
-❌ Wrong: "The companys mission is to improve users experiences."
+### 16. Contractions
+Avoid contractions to support our authoritative tone.
+✅ Right: "We do not accept late submissions."
+❌ Wrong: "We don't accept late submissions."
 
 ### 49. Bold and Italics
 Use bold for emphasis and key terms; use italics for foreign words and publication titles.
