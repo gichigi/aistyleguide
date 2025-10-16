@@ -155,10 +155,19 @@ export default function PreviewPage() {
   const [shouldRedirect, setShouldRedirect] = useState(false)
 
   useEffect(() => {
-    // Load brand details
-    const savedBrandDetails = localStorage.getItem("brandDetails")
-    if (savedBrandDetails) {
-      setBrandDetails(JSON.parse(savedBrandDetails))
+    // Load brand details with error handling
+    try {
+      const savedBrandDetails = localStorage.getItem("brandDetails")
+      if (savedBrandDetails) {
+        setBrandDetails(JSON.parse(savedBrandDetails))
+      } else {
+        // No brand details found, redirect to home
+        setShouldRedirect(true)
+      }
+    } catch (error) {
+      console.error('[Preview Page] Failed to load brand details from localStorage:', error)
+      // If localStorage fails, redirect to home
+      setShouldRedirect(true)
     }
 
     // Trigger fade-in animation
@@ -180,11 +189,38 @@ export default function PreviewPage() {
 
     const loadPreview = async () => {
       if (!brandDetails) return
+      
       try {
-        console.log('[Preview Page] Generating dynamic preview with AI content...')
-        // Get selectedTraits from localStorage
-        const savedSelectedTraits = localStorage.getItem("selectedTraits")
-        const selectedTraits = savedSelectedTraits ? JSON.parse(savedSelectedTraits) : []
+        // Check if we already have the preview content saved from brand-details page
+        const savedPreviewContent = localStorage.getItem("previewContent")
+        if (savedPreviewContent) {
+          console.log('[Preview Page] Using saved preview content (no API call needed)')
+          if (isMounted) {
+            setPreviewContent(savedPreviewContent)
+            
+            // Extract and save the generated trait descriptions for reuse in full-access
+            const brandVoiceMatch = savedPreviewContent.match(/## Brand Voice([\s\S]*?)(?=##|$)/)
+            if (brandVoiceMatch) {
+              const brandVoiceSection = `## Brand Voice${brandVoiceMatch[1]}`
+              localStorage.setItem("generatedPreviewTraits", brandVoiceSection)
+              localStorage.setItem("previewTraitsTimestamp", Date.now().toString())
+              console.log('[Preview Page] Saved generated traits for reuse')
+            }
+          }
+          return
+        }
+        
+        // Only call API if no saved content exists (fallback case)
+        console.log('[Preview Page] No saved content found, generating dynamic preview with AI content...')
+        // Get selectedTraits from localStorage with error handling
+        let selectedTraits = []
+        try {
+          const savedSelectedTraits = localStorage.getItem("selectedTraits")
+          selectedTraits = savedSelectedTraits ? JSON.parse(savedSelectedTraits) : []
+        } catch (parseError) {
+          console.warn('[Preview Page] Failed to parse selectedTraits from localStorage:', parseError)
+          selectedTraits = []
+        }
         
         const response = await fetch('/api/preview', {
           method: 'POST',
