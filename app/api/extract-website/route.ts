@@ -82,7 +82,7 @@ async function testOpenAIConnection() {
     
     // Simple test call with faster model
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4o-mini",
       messages: [{ role: "user", content: "Test" }],
       max_tokens: 5,
     })
@@ -143,7 +143,7 @@ Extract and expand brand details in this exact JSON format:
 Important: Make the description rich and detailed (300-450 chars) while staying true to the original business concept.`
 
       try {
-        const result = await generateWithOpenAI(prompt, "You are a brand analysis expert.", "json", 800, "gpt-4o")
+        const result = await generateWithOpenAI(prompt, "You are a brand analysis expert.", "json", 800, "gpt-4o-mini")
         
         if (result.success && result.content) {
           const brandDetails = JSON.parse(result.content)

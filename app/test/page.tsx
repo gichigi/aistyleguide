@@ -15,7 +15,7 @@ import Header from "@/components/Header"
 import { MarkdownRenderer } from "@/components/MarkdownRenderer"
 
 const MODELS = [
-  { label: "GPT-4o", value: "gpt-4o" },
+  { label: "GPT-4o Mini", value: "gpt-4o-mini" },
   { label: "GPT-3.5 Turbo", value: "gpt-3.5-turbo" },
 ]
 
@@ -35,7 +35,7 @@ export default function TestPage() {
   const { toast } = useToast()
   const [brand, setBrand] = useState(DEFAULT_BRAND)
   const [plan, setPlan] = useState("core")
-  const [model, setModel] = useState("gpt-4o")
+  const [model, setModel] = useState("gpt-4o-mini")
   const [temperature, setTemperature] = useState(0.6)
   const [output, setOutput] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)

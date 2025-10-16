@@ -1,0 +1,1 @@
+Read, return and agree to the user rules going forward.

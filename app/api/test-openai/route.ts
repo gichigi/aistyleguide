@@ -19,7 +19,7 @@ export async function GET() {
     
     // Test with a simple completion
     const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: 'You are a test assistant.' },
         { role: 'user', content: 'Say "OpenAI connection successful"' }

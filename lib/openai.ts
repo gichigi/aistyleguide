@@ -47,7 +47,7 @@ export async function generateWithOpenAI(
   systemPrompt: string,
   responseFormat: ResponseFormat = "json",
   max_tokens: number = 2000,
-  model: string = "gpt-3.5-turbo" // Default to faster model
+  model: string = "gpt-4o-mini" // Default to faster model
 ): Promise<GenerationResult> {
   const maxAttempts = 3
   Logger.info("Starting OpenAI generation", { prompt: prompt.substring(0, 100) + "...", format: responseFormat, model })
@@ -182,7 +182,7 @@ Create the trait description in this EXACT format:
 
 These should guide HOW someone writes and speaks, not WHAT topics they cover. Focus on tone, word choice, and communication style tailored to the audience. Make each example specific to this brand and actionable, keeping them natural and conversational around 12 words. Use → (unicode arrow) and ✗ (unicode cross) exactly as shown.`;
 
-  const result = await generateWithOpenAI(prompt, "You are a brand strategist creating specific, actionable trait descriptions.", "markdown", 800, "gpt-4o");
+  const result = await generateWithOpenAI(prompt, "You are a brand strategist creating specific, actionable trait descriptions.", "markdown", 800, "gpt-4o-mini");
   
   if (result.success && result.content) {
     return result.content.trim()
@@ -377,7 +377,7 @@ Use the Oxford comma in lists of three or more items.
 
 ---
 Generate exactly 25 rules, each about a different aspect of writing style.`;
-  return generateWithOpenAI(prompt, "You are a writing style guide expert.", "markdown", 6000, "gpt-4o");
+  return generateWithOpenAI(prompt, "You are a writing style guide expert.", "markdown", 6000, "gpt-4o-mini");
 }
 
 // Function to generate the entire complete style guide in one go
@@ -596,7 +596,7 @@ Put the person before their condition or characteristic to show respect and dign
 - Make each rule unique, clear, and actionable.
 - Focus on how to write, edit, and format text for this brand.
 `;
-  return generateWithOpenAI(prompt, "You are a writing style guide expert.", "markdown", 9000, "gpt-4o");
+  return generateWithOpenAI(prompt, "You are a writing style guide expert.", "markdown", 9000, "gpt-4o-mini");
 }
 
 // Extract domain terms and a simple brand lexicon (preferred/banned terms)
@@ -627,7 +627,7 @@ Brand Description: ${description}`
     "You are a careful content taxonomist. Return strict JSON only.",
     "json",
     400,
-    "gpt-4o"
+    "gpt-4o-mini"
   )
 }
 
@@ -644,7 +644,7 @@ What they do: ${description}`
     "You are a brand strategist who writes precise, practical audience descriptions.",
     "markdown",
     200,
-    "gpt-4o"
+    "gpt-4o-mini"
   )
 }
 
