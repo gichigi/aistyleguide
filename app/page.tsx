@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { track } from "@vercel/analytics"
@@ -55,6 +55,29 @@ export default function LandingPage() {
   const [errorType, setErrorType] = useState<string | null>(null) // Track error type for styling
   const [isExtracting, setIsExtracting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [loadingMessage, setLoadingMessage] = useState("")
+  const [extractionStartTime, setExtractionStartTime] = useState<number | null>(null)
+
+  // Progressive loading word arrays
+  const descriptionWords = ["Thinking...", "Exploring...", "Assembling...", "Creating..."]
+  const urlWords = ["Reading...", "Understanding...", "Assembling...", "Creating..."]
+
+  // Cycle through loading messages
+  useEffect(() => {
+    if (!isExtracting || !extractionStartTime) return
+
+    // Determine input type from URL state
+    const isUrl = url.trim().startsWith('http') || url.trim().includes('.')
+    const words = isUrl ? urlWords : descriptionWords
+    
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - extractionStartTime
+      const wordIndex = Math.floor(elapsed / 2000) % words.length // Change word every 2 seconds
+      setLoadingMessage(words[wordIndex])
+    }, 200) // Update every 200ms for smooth transitions
+
+    return () => clearInterval(interval)
+  }, [isExtracting, extractionStartTime, url, urlWords, descriptionWords])
 
   // Check if input is valid for submission
   const isInputValid = () => {
@@ -90,26 +113,39 @@ export default function LandingPage() {
         errorMessage = error.error
       } else if (typeof error === 'object' && Object.keys(error).length === 0) {
         errorMessage = "Empty error response"
+      } else if (error.toString && error.toString() !== '[object Object]') {
+        errorMessage = error.toString()
       } else {
-        errorMessage = String(error)
+        errorMessage = "An unexpected error occurred"
       }
     }
     
-    console.error(`[HOMEPAGE] Error classification:`, {
-      errorMessage,
-      errorName: error?.name,
-      errorType: typeof error,
-      errorKeys: error && typeof error === 'object' ? Object.keys(error) : [],
-      responseStatus: response?.status,
-      responseStatusText: response?.statusText,
-      timestamp: new Date().toISOString()
-    })
+    try {
+      console.error(`[HOMEPAGE] Error classification:`, {
+        errorMessage,
+        errorName: error?.name,
+        errorType: typeof error,
+        errorKeys: error && typeof error === 'object' ? Object.keys(error) : [],
+        responseStatus: response?.status,
+        responseStatusText: response?.statusText,
+        timestamp: new Date().toISOString()
+      })
+    } catch (logError) {
+      console.error(`[HOMEPAGE] Error in error classification:`, logError)
+    }
 
     // Network-specific errors
     if (error?.name === 'AbortError' || errorMessage.includes('timeout')) {
       return {
         type: 'TIMEOUT',
         message: "Site didn't respond. Try again or add details manually."
+      }
+    }
+    
+    if (errorMessage.includes('ECONNRESET') || errorMessage.includes('connection reset')) {
+      return {
+        type: 'CONNECTION_RESET',
+        message: "Connection was interrupted. Try again or add details manually."
       }
     }
     
@@ -261,6 +297,14 @@ export default function LandingPage() {
     }
     
     setIsExtracting(true)
+    const startTime = Date.now()
+    setExtractionStartTime(startTime)
+    
+    // Set initial loading message
+    const isUrl = validation.inputType === 'url'
+    const words = isUrl ? urlWords : descriptionWords
+    setLoadingMessage(words[0])
+    
     console.log(`[HOMEPAGE] Starting ${validation.inputType} extraction for: ${validation.cleanInput.substring(0, 50)}...`)
 
     try {
@@ -286,13 +330,21 @@ export default function LandingPage() {
       const apiTime = performance.now() - apiStartTime
       console.log(`[PERFORMANCE] API call completed in ${apiTime.toFixed(2)}ms`)
 
-      const data = await response.json()
+      let data
+      try {
+        data = await response.json()
+      } catch (jsonError) {
+        console.error(`[HOMEPAGE] Failed to parse JSON response:`, jsonError)
+        data = { success: false, error: 'Invalid response format' }
+      }
+      
       console.log(`[HOMEPAGE] API response received:`, {
-        success: data.success,
-        hasName: !!data.brandName,
-        hasDescription: !!data.brandDetailsText,
+        success: data?.success,
+        hasName: !!data?.brandName,
+        hasDescription: !!data?.brandDetailsText,
         status: response.status,
-        responseTime: apiTime
+        responseTime: apiTime,
+        dataKeys: data && typeof data === 'object' ? Object.keys(data) : []
       })
 
       if (data.success) {
@@ -316,6 +368,8 @@ export default function LandingPage() {
         // Show success state briefly before redirecting
         setIsSuccess(true)
         setIsExtracting(false)
+        setLoadingMessage("")
+        setExtractionStartTime(null)
 
         const totalTime = performance.now() - extractionStart
         console.log(`[PERFORMANCE] Total extraction completed in ${totalTime.toFixed(2)}ms`)
@@ -327,20 +381,23 @@ export default function LandingPage() {
         }, 800)
       } else {
         // Classify and show specific error
-        const { type, message } = classifyError(data, response)
+        const { type, message } = classifyError(data || {}, response)
         setError(message)
         setErrorType(type)
 
         console.error(`[HOMEPAGE] API returned error:`, {
           errorType: type,
-          message: data.message,
-          originalError: data.error,
-          status: response.status
+          message: data?.message || 'No error message',
+          originalError: data?.error || 'No original error',
+          status: response?.status || 'No status',
+          dataKeys: data && typeof data === 'object' ? Object.keys(data) : []
         })
 
         // Reset states
         setIsExtracting(false)
         setIsSuccess(false)
+        setLoadingMessage("")
+        setExtractionStartTime(null)
 
         console.log(`[USER_JOURNEY] Error occurred - staying on homepage for retry`)
         // Don't redirect - let user fix the error and try again
@@ -364,6 +421,8 @@ export default function LandingPage() {
       // Reset states
       setIsExtracting(false)
       setIsSuccess(false)
+      setLoadingMessage("")
+      setExtractionStartTime(null)
 
       console.log(`[USER_JOURNEY] Exception occurred - staying on homepage for retry`)
     }
@@ -454,7 +513,7 @@ export default function LandingPage() {
                       {isExtracting ? (
                         <>
                           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                          <span>Processing</span>
+                          <span>{loadingMessage || "Processing"}</span>
                         </>
                       ) : isSuccess ? (
                         <>

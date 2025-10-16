@@ -54,6 +54,8 @@ export default function BrandDetailsPage() {
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [processingStep, setProcessingStep] = useState<'idle' | 'processing' | 'complete'>('idle')
+  const [loadingMessage, setLoadingMessage] = useState("")
+  const [generationStartTime, setGenerationStartTime] = useState<number | null>(null)
   const searchParams = useSearchParams()
   const fromExtraction = searchParams.get("fromExtraction") === "true"
   const fromPayment = searchParams.get("paymentComplete") === "true"
@@ -77,6 +79,9 @@ export default function BrandDetailsPage() {
   const [keywordTags, setKeywordTags] = useState<string[]>([])
   const KEYWORD_LIMIT = 15
 
+  // Progressive loading words for brand details generation
+  const loadingWords = ["Defining...", "Drafting...", "Crafting...", "Editing...", "Refining..."]
+
   // Trigger fade-in animation after component mounts
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -94,6 +99,24 @@ export default function BrandDetailsPage() {
       localStorage.setItem("emailCaptureToken", token)
     }
   }, [])
+
+  // Progressive loading message cycling with isMounted check
+  useEffect(() => {
+    if (!loading || !generationStartTime) return
+    
+    let isMounted = true
+    const interval = setInterval(() => {
+      if (!isMounted) return
+      const elapsed = Date.now() - generationStartTime
+      const wordIndex = Math.floor(elapsed / 2000) % loadingWords.length // Change word every 2 seconds
+      setLoadingMessage(loadingWords[wordIndex])
+    }, 200) // Update every 200ms for smooth transitions
+    
+    return () => {
+      isMounted = false
+      clearInterval(interval)
+    }
+  }, [loading, generationStartTime, loadingWords])
 
   // Check payment status and guide type from localStorage
   useEffect(() => {
@@ -412,11 +435,13 @@ export default function BrandDetailsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     setLoading(true)
     setProcessingStep('processing')
+    
+    // Set generation start time and initial loading message
+    const startTime = Date.now()
+    setGenerationStartTime(startTime)
+    setLoadingMessage(loadingWords[0])
 
     try {
-      // Show processing state for 5 seconds
-      await new Promise(resolve => setTimeout(resolve, 5000))
-      
       // Use the required brand name field
       const brandName = brandDetails.name?.trim() || ""
 
@@ -465,11 +490,17 @@ export default function BrandDetailsPage() {
       // Brief pause to show completion
       await new Promise(resolve => setTimeout(resolve, 500))
 
+      // Clean up loading state
+      setLoadingMessage("")
+      setGenerationStartTime(null)
+
       // Redirect to preview page
       router.push("/preview")
     } catch (error) {
       setLoading(false)
       setProcessingStep('idle')
+      setLoadingMessage("")
+      setGenerationStartTime(null)
       console.error("Error:", error)
       toast({
         title: "Error",
@@ -724,7 +755,7 @@ export default function BrandDetailsPage() {
                     {processingStep === 'processing' ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Processing...
+                        {loadingMessage || "Processing..."}
                       </>
                     ) : processingStep === 'complete' ? (
                       <>

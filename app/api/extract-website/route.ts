@@ -21,11 +21,7 @@ interface BrandDetails {
   name: string
   industry: string
   description: string
-  values: string[]
   targetAudience: TargetAudienceDetail | string
-  tone: string
-  competitors: string[]
-  uniqueSellingPoints: string[]
 }
 
 interface ProcessedBrandDetails extends Omit<BrandDetails, 'targetAudience'> {
@@ -35,13 +31,9 @@ interface ProcessedBrandDetails extends Omit<BrandDetails, 'targetAudience'> {
 
 const REQUIRED_FIELDS = [
   "name",
-  "industry",
+  "industry", 
   "description",
-  "values",
-  "targetAudience",
-  "tone",
-  "competitors",
-  "uniqueSellingPoints"
+  "targetAudience"
 ] as const
 
 // Function to flatten target audience object into a string
@@ -133,11 +125,7 @@ Extract and expand brand details in this exact JSON format:
   "name": "business name (if mentioned, extract exactly; if not mentioned, create a creative, memorable name that fits the business)",
   "industry": "specific industry category",
   "description": "rich, detailed business description (300-450 characters) that expands on the original input with specific details about what they do, their approach, and what makes them special",
-  "values": ["core value 1", "core value 2", "core value 3"],
-  "targetAudience": "detailed description of their ideal customers, including demographics, needs, and characteristics",
-  "tone": "brand communication tone that fits their business style",
-  "competitors": ["relevant competitor 1", "relevant competitor 2", "relevant competitor 3"],
-  "uniqueSellingPoints": ["specific differentiator 1", "specific differentiator 2", "specific differentiator 3"]
+  "targetAudience": "detailed description of their ideal customers, including demographics, needs, and characteristics"
 }
 
 Important: Make the description rich and detailed (300-450 chars) while staying true to the original business concept.`
@@ -147,31 +135,59 @@ Important: Make the description rich and detailed (300-450 chars) while staying 
         
         if (result.success && result.content) {
           const brandDetails = JSON.parse(result.content)
-          // Normalize audience to a concise string
+          
+          // Run audience generation and domain terms extraction in parallel
+          // TODO: Consider consolidating into single AI call for 20-25% performance improvement
+          // (eliminates network overhead, reduces token usage, better context sharing)
+          
+          // TEMPORARILY DISABLED: Audience generation for performance testing
+          // const [audienceResult, keywordsResult] = await Promise.all([
+          //   generateAudienceSummary({ 
+          //     name: brandDetails.name, 
+          //     description: brandDetails.description 
+          //   }).catch(err => ({ success: false, error: err.message })),
+          //   
+          //   extractDomainTermsAndLexicon({ 
+          //     name: brandDetails.name, 
+          //     description: brandDetails.description 
+          //   }).catch(err => ({ success: false, error: err.message }))
+          // ])
+          
+          // Only run keywords extraction for testing
+          const keywordsResult = await extractDomainTermsAndLexicon({ 
+            name: brandDetails.name, 
+            description: brandDetails.description 
+          }).catch(err => ({ success: false, error: err.message }))
+          
+          const audienceResult = { success: false, error: "Disabled for testing" }
+          
+          // Process audience with error handling
           let audienceStr = ''
-          try {
-            if (typeof brandDetails.targetAudience === 'string') {
-              audienceStr = brandDetails.targetAudience
-            } else if (brandDetails.targetAudience) {
-              audienceStr = flattenTargetAudience(brandDetails.targetAudience)
-            }
-          } catch {}
-
-          // Extract domain terms and lexicon
+          if (audienceResult?.success && audienceResult?.content) {
+            audienceStr = audienceResult.content.trim()
+          } else {
+            // Fallback to original targetAudience from brand details
+            try {
+              if (typeof brandDetails.targetAudience === 'string') {
+                audienceStr = brandDetails.targetAudience
+              } else if (brandDetails.targetAudience) {
+                audienceStr = flattenTargetAudience(brandDetails.targetAudience)
+              }
+            } catch {}
+          }
+          
+          // Process keywords with error handling
           let keywords = ''
           let domainTerms: string[] | undefined
           let lexicon: any | undefined
-          try {
-            const terms = await extractDomainTermsAndLexicon({ name: brandDetails.name, description: brandDetails.description })
-            if (terms.success && terms.content) {
-              const parsed = JSON.parse(terms.content)
-              domainTerms = Array.isArray(parsed.domainTerms) ? parsed.domainTerms : []
-              lexicon = parsed.lexicon || {}
-              const preferred = Array.isArray(lexicon.preferred) ? lexicon.preferred : []
-              const combined = [...new Set([...(domainTerms || []), ...preferred])]
-              keywords = combined.join('\n')
-            }
-          } catch {}
+          if (keywordsResult?.success && keywordsResult?.content) {
+            const parsed = JSON.parse(keywordsResult.content)
+            domainTerms = Array.isArray(parsed.domainTerms) ? parsed.domainTerms : []
+            lexicon = parsed.lexicon || {}
+            const preferred = Array.isArray(lexicon.preferred) ? lexicon.preferred : []
+            const combined = [...new Set([...(domainTerms || []), ...preferred])]
+            keywords = combined.join('\n')
+          }
 
           Logger.info("Successfully generated brand details from description")
           
@@ -180,10 +196,7 @@ Important: Make the description rich and detailed (300-450 chars) while staying 
             brandName: brandDetails.name,
             brandDetailsText: brandDetails.description,
             audience: audienceStr,
-            keywords,
-            domainTerms,
-            lexicon,
-            extractedData: brandDetails
+            keywords
           })
         } else {
           throw new Error("Failed to generate brand details")
@@ -224,18 +237,47 @@ Important: Make the description rich and detailed (300-450 chars) while staying 
     }
 
     // Fetch the website HTML
-    const siteResponse = await fetch(urlValidation.url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'DNT': '1',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
+    let siteResponse, html
+    try {
+      siteResponse = await fetch(urlValidation.url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'DNT': '1',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+        }
+      })
+      html = await siteResponse.text()
+    } catch (fetchError: any) {
+      Logger.error("Failed to fetch website", fetchError)
+      
+      // Handle specific network errors
+      if (fetchError.code === 'ECONNRESET' || fetchError.message?.includes('ECONNRESET')) {
+        return NextResponse.json({
+          success: false,
+          message: "Connection was interrupted. Try again or add details manually.",
+          error: "Connection reset by peer"
+        }, { status: 400 })
       }
-    })
-    let html = await siteResponse.text()
+      
+      if (fetchError.message?.includes('timeout')) {
+        return NextResponse.json({
+          success: false,
+          message: "Site didn't respond. Try again or add details manually.",
+          error: "Request timeout"
+        }, { status: 400 })
+      }
+      
+      // Generic network error
+      return NextResponse.json({
+        success: false,
+        message: "Can't reach this site. Try again later.",
+        error: fetchError.message || "Network error"
+      }, { status: 400 })
+    }
     
     // Debug: Log what we actually got
     Logger.debug("Fetched HTML preview", { 
@@ -275,8 +317,8 @@ Important: Make the description rich and detailed (300-450 chars) while staying 
         if (!subpageLinks.includes(url)) subpageLinks.push(url)
       }
     })
-    // Limit to 2 subpages
-    const subpagesToCrawl = subpageLinks.slice(0, 2)
+    // Limit to 1 subpage
+    const subpagesToCrawl = subpageLinks.slice(0, 1)
     let subpageText = ''
     
     // Fetch subpages in parallel for better performance
@@ -284,7 +326,7 @@ Important: Make the description rich and detailed (300-450 chars) while staying 
       const subpagePromises = subpagesToCrawl.map(async (subUrl) => {
         try {
           const subRes = await fetch(subUrl, { 
-            signal: AbortSignal.timeout(5000), // 5 second timeout
+            signal: AbortSignal.timeout(3000), // 3 second timeout
             headers: {
               'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
               'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -302,7 +344,7 @@ Important: Make the description rich and detailed (300-450 chars) while staying 
           const subH1 = $sub('h1').first().text()
           const subH2 = $sub('h2').first().text()
           let subMain = $sub('main').text() || $sub('body').text()
-          subMain = subMain.replace(/\s+/g, ' ').trim().slice(0, 2000)
+          subMain = subMain.replace(/\s+/g, ' ').trim().slice(0, 1500)
           return `\n[Subpage: ${subUrl}]\n${subTitle}\n${subMeta}\n${subH1}\n${subH2}\n${subMain}`
         } catch (e) { 
           console.log(`Failed to fetch subpage ${subUrl}:`, e)
@@ -317,8 +359,8 @@ Important: Make the description rich and detailed (300-450 chars) while staying 
 
     // Combine all extracted text
     let summary = [title, metaDesc, h1, h2, mainContent, subpageText].filter(Boolean).join('\n')
-    // Reduce to 10k chars for faster processing
-    summary = summary.slice(0, 10000)
+    // Reduce to 7k chars for faster processing while maintaining quality
+    summary = summary.slice(0, 7000)
 
     // Generate prompt for website extraction with improved guidance
     const prompt = `Analyze the following website content and extract the brand's core identity.
@@ -364,39 +406,53 @@ ${summary}
     const brandNameMatch = brandDetailsText.match(/^([^.]+?)\s+is\s+/i)
     const brandName = brandNameMatch ? brandNameMatch[1].trim() : ""
 
-    // Generate a concise audience description from crawled content (internal use)
-    let audience = ''
-    try {
-      const aud = await generateAudienceSummary({ name: brandName || 'Brand', description: brandDetailsText })
-      if (aud.success && aud.content) audience = aud.content.trim()
-    } catch {}
+    // Generate audience and keywords in parallel
+    // TODO: Consider consolidating into single AI call for 20-25% performance improvement
+    // (eliminates network overhead, reduces token usage, better context sharing)
+    
+    // TEMPORARILY DISABLED: Audience generation for performance testing
+    // const [audienceResult, keywordsResult] = await Promise.all([
+    //   generateAudienceSummary({ 
+    //     name: brandName || 'Brand', 
+    //     description: brandDetailsText 
+    //   }).catch(err => ({ success: false, error: err.message })),
+    //   
+    //   extractDomainTermsAndLexicon({
+    
+    // Only run keywords extraction for testing
+    const keywordsResult = await extractDomainTermsAndLexicon({ 
+        name: brandName || 'Brand', 
+        description: brandDetailsText 
+      }).catch(err => ({ success: false, error: err.message }))
+    
+    const audienceResult = { success: false, error: "Disabled for testing" }
 
-    // Extract domain terms and lexicon from crawled content
+    // Process audience with error handling
+    let audience = ''
+    if (audienceResult?.success && audienceResult?.content) {
+      audience = audienceResult.content.trim()
+    }
+
+    // Process keywords with error handling
     let keywords = ''
     let domainTerms: string[] | undefined
     let lexicon: any | undefined
-    try {
-      const terms = await extractDomainTermsAndLexicon({ name: brandName || 'Brand', description: brandDetailsText })
-      if (terms.success && terms.content) {
-        const parsed = JSON.parse(terms.content)
-        domainTerms = Array.isArray(parsed.domainTerms) ? parsed.domainTerms : []
-        lexicon = parsed.lexicon || {}
-        const preferred = Array.isArray(lexicon.preferred) ? lexicon.preferred : []
-        const combined = [...new Set([...(domainTerms || []), ...preferred])]
-        keywords = combined.join('\n')
-      }
-    } catch {}
+    if (keywordsResult?.success && keywordsResult?.content) {
+      const parsed = JSON.parse(keywordsResult.content)
+      domainTerms = Array.isArray(parsed.domainTerms) ? parsed.domainTerms : []
+      lexicon = parsed.lexicon || {}
+      const preferred = Array.isArray(lexicon.preferred) ? lexicon.preferred : []
+      const combined = [...new Set([...(domainTerms || []), ...preferred])]
+      keywords = combined.join('\n')
+    }
 
     Logger.info("Successfully extracted brand information")
     return NextResponse.json({
       success: true,
-      message: "Successfully extracted brand information",
       brandDetailsText,
       brandName,
       audience,
-      keywords,
-      domainTerms,
-      lexicon,
+      keywords
     })
   } catch (error) {
     Logger.error(

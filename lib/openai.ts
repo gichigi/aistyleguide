@@ -228,35 +228,48 @@ export async function generateBrandVoiceTraits(brandDetails: any): Promise<Gener
 
     console.log(`🎯 Processing ${brandDetails.traits.length} selected traits:`, brandDetails.traits)
 
-    const traitMarkdown: string[] = []
-    
-    for (let i = 0; i < brandDetails.traits.length; i++) {
-      const trait = brandDetails.traits[i]
+    // Create array of trait generation promises for parallel processing
+    const traitPromises = brandDetails.traits.map((trait: any, i: number) => {
       const index = i + 1
       
       if (typeof trait === 'string') {
         // Generate AI description for ALL traits (both predefined and custom)
         console.log(`🎨 Generating AI description for trait: ${trait}`)
-        const markdown = await generateCustomTraitDescription(trait, brandDetails, index)
-        traitMarkdown.push(markdown)
+        return generateCustomTraitDescription(trait, brandDetails, index)
       } else if (trait && typeof trait === 'object') {
         // Handle MixedTrait objects - generate AI descriptions for ALL traits
         if (isPredefinedTrait(trait)) {
           console.log(`🎨 Generating AI description for predefined trait: ${trait.name}`)
-          const markdown = await generateCustomTraitDescription(trait.name, brandDetails, index)
-          traitMarkdown.push(markdown)
+          return generateCustomTraitDescription(trait.name, brandDetails, index)
         } else if (isCustomTrait(trait)) {
           console.log(`🎨 Generating AI description for custom trait: ${trait.name}`)
-          const markdown = await generateCustomTraitDescription(trait.name, brandDetails, index)
-          traitMarkdown.push(markdown)
+          return generateCustomTraitDescription(trait.name, brandDetails, index)
         }
       }
-    }
+      return Promise.resolve("") // Fallback for invalid traits
+    })
 
-    if (traitMarkdown.length === 0) {
+    // Execute all trait generations in parallel with error resilience
+    console.log(`🚀 Starting parallel generation of ${traitPromises.length} traits...`)
+    const traitResults = await Promise.allSettled(traitPromises)
+    
+    // Filter successful results and log any failures
+    const traitMarkdown: string[] = []
+    traitResults.forEach((result, i) => {
+      if (result.status === 'fulfilled' && result.value) {
+        traitMarkdown.push(result.value)
+      } else if (result.status === 'rejected') {
+        console.error(`❌ Trait ${i+1} failed:`, result.reason)
+      }
+    })
+
+    // Require minimum 2 out of 3 traits to succeed (or all if less than 3)
+    const minRequired = Math.min(2, brandDetails.traits.length)
+    if (traitMarkdown.length < minRequired) {
+      console.error(`❌ Only ${traitMarkdown.length} out of ${brandDetails.traits.length} traits succeeded (minimum ${minRequired} required)`)
       return {
         success: false,
-        error: "No valid traits could be processed"
+        error: `Only ${traitMarkdown.length} out of ${brandDetails.traits.length} traits could be generated (minimum ${minRequired} required)`
       }
     }
 
