@@ -734,9 +734,9 @@ export default function BrandDetailsPage() {
                         Complete
                       </>
                     ) : showEmailCapture ? (
-                      "Generate Style Guide"
+                      "Generate Preview"
                     ) : (
-                      "Generate Style Guide"
+                      "Generate Preview"
                     )}
                   </Button>
                 </div>

@@ -463,7 +463,7 @@ export default function LandingPage() {
                         </>
                       ) : (
                         <>
-                          <span>Try it out</span> 
+                          <span>Get started</span> 
                           <ArrowRight className="ml-2 h-5 w-5" />
                         </>
                       )}

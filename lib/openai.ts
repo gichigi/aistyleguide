@@ -51,6 +51,7 @@ export async function generateWithOpenAI(
 ): Promise<GenerationResult> {
   const maxAttempts = 3
   Logger.info("Starting OpenAI generation", { prompt: prompt.substring(0, 100) + "...", format: responseFormat, model })
+  Logger.debug("Full prompt", { prompt })
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
@@ -155,6 +156,7 @@ ${trait.dont.map(item => `✗ ${item}`).join('\n')}`
 
 // Function to generate custom trait description via AI
 async function generateCustomTraitDescription(traitName: string, brandDetails: any, index: number): Promise<string> {
+  console.log(`🔧 [DEBUG] generateCustomTraitDescription called for trait: ${traitName}`)
   const keywordSection = Array.isArray(brandDetails.keywords) && brandDetails.keywords.length
     ? `\n• Keywords: ${brandDetails.keywords.slice(0, 10).join(', ')}`
     : '';
