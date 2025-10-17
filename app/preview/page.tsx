@@ -324,9 +324,9 @@ export default function PreviewPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-900 pt-16">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:bg-gray-950/95 dark:border-gray-800">
+      <header className="fixed top-0 left-0 right-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:bg-gray-950/95 dark:border-gray-800">
         <div className="max-w-5xl mx-auto px-8 h-16 flex items-center justify-between">
           <Logo size="md" linkToHome={true} />
         </div>
@@ -510,6 +510,7 @@ export default function PreviewPage() {
             <StyleGuideHeader 
               brandName={brandDetails?.name || 'Your Brand'} 
               guideType="core"
+              showPreviewBadge={true}
             />
             <div className="p-8 bg-white">
               <div className="max-w-2xl mx-auto space-y-12">

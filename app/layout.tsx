@@ -1,11 +1,12 @@
 import type React from "react"
-import { Inter } from "next/font/google"
+import { Geist, Geist_Mono } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import "./globals.css"
 import { Toaster } from "@/components/ui/toaster"
 import { Analytics } from "@vercel/analytics/next"
 
-const inter = Inter({ subsets: ["latin"], display: "swap" })
+const geistSans = Geist({ subsets: ["latin"], display: "swap" })
+const geistMono = Geist_Mono({ subsets: ["latin"], display: "swap" })
 
 export const metadata = {
   title: "Generate 99+ content style guidelines in minutes | AI Style Guide",
@@ -70,7 +71,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className={`${inter.className} overflow-x-hidden`}>
+      <body className={`${geistMono.className} ${geistSans.className} overflow-x-hidden`}>
         <ThemeProvider attribute="class" defaultTheme="light">
           {children}
           <Toaster />

@@ -48,7 +48,7 @@ export default function Header({
                 href="https://calendly.com/l-gichigi/customer-chat"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hidden sm:inline-flex items-center gap-2 text-sm font-medium"
+                className="hidden md:inline-flex items-center gap-2 text-sm font-medium"
               >
                 <PhoneCall className="h-4 w-4" />
                 Book a Call

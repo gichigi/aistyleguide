@@ -253,7 +253,7 @@
   color: #111827;
   font-size: 1.5rem;
   font-weight: 700;
-  margin-top: 2rem;
+  margin-top: 1rem;
   margin-bottom: 1rem;
   line-height: 2rem;
 }
@@ -289,6 +289,11 @@ html, body {
   width: 100%;
   max-width: 100vw;
   overflow-x: hidden;
+}
+
+/* Use Geist Sans for all headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Geist', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
 }
 
 @layer utilities {
