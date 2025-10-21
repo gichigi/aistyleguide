@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
+import { emailService } from "@/lib/email-service"
 
 // Pick the right Stripe secret key and webhook secret based on STRIPE_MODE
 type StripeMode = 'test' | 'live';
@@ -79,8 +80,7 @@ async function handlePaymentSuccess(session: Stripe.Checkout.Session) {
     }
     
     // Send personal follow-up email from Tahi
-    const { emailService } = await import('@/lib/email-service')
-    console.log('✅ Email service imported successfully')
+    console.log('🔄 Sending thank you email...')
     const emailResult = await emailService.sendThankYouEmail({
       customerEmail,
       customerName: customerName || undefined,
@@ -152,9 +152,8 @@ async function handleSessionExpired(session: Stripe.Checkout.Session) {
     // Generate discount code
     const discountCode = generateDiscountCode();
     
-    // Send abandoned cart recovery email (with cache busting for development)
-    const cacheBust = process.env.NODE_ENV === 'development' ? `?v=${Date.now()}` : ''
-    const { emailService } = await import(`@/lib/email-service${cacheBust}`)
+    // Send abandoned cart recovery email
+    console.log('🔄 Sending abandoned cart email...')
     const emailResult = await emailService.sendAbandonedCartEmail({
       customerEmail,
       customerName: customerName || undefined,
