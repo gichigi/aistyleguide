@@ -1,37 +1,50 @@
 // app/api/post-to-webflow/route.js
+import { NextResponse } from "next/server";
 
 export async function POST(req) {
-      const { title, slug, body } = await req.json();
-    
-      try {
-        const WEBFLOW_TOKEN = process.env.WEBFLOW_API_KEY;
-        const COLLECTION_ID = 'YOUR_COLLECTION_ID_HERE'; // replace this with your real one
-    
-        const response = await fetch(
-          `https://api.webflow.com/v2/collections/${COLLECTION_ID}/items`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${WEBFLOW_TOKEN}`,
-            },
-            body: JSON.stringify({
-              isArchived: false,
-              isDraft: false,
-              fieldData: {
-                name: title,
-                slug,
-                "post-body": body, // change this key to match your CMS field slug
-              },
-            }),
-          }
-        );
-    
-        const data = await response.json();
-        return Response.json({ success: true, data });
-      } catch (err) {
-        console.error(err);
-        return Response.json({ success: false, error: err.message }, { status: 500 });
-      }
+  try {
+    const { title, slug, body } = await req.json();
+
+    if (!title || !slug || !body) {
+      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
-    
+
+    // 1. Your Webflow credentials
+    const WEBFLOW_SITE_ID = process.env.WEBFLOW_SITE_ID;
+    const WEBFLOW_COLLECTION_ID = process.env.WEBFLOW_COLLECTION_ID;
+    const WEBFLOW_TOKEN = process.env.WEBFLOW_TOKEN;
+
+    // 2. Webflow CMS API endpoint
+    const endpoint = `https://api.webflow.com/v2/sites/${WEBFLOW_SITE_ID}/collections/${WEBFLOW_COLLECTION_ID}/items`;
+
+    // 3. Create the item
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${WEBFLOW_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        isArchived: false,
+        isDraft: false,
+        fieldData: {
+          name: title,
+          slug: slug,
+          "post-body": body,
+        },
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("Webflow API error:", data);
+      return NextResponse.json({ error: data }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, data });
+  } catch (err) {
+    console.error("Error in /api/post-to-webflow:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
