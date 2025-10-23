@@ -3,10 +3,10 @@ import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
-    const { title, slug, body } = await req.json();
+    const { title, slug, body, location = "Default Location", category = "68f8ff5305fca0c8ae56ed38", contentSummary = "Default summary" } = await req.json();
 
     if (!title || !slug || !body) {
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+      return NextResponse.json({ error: "Missing required fields: title, slug, body" }, { status: 400 });
     }
 
     // 1. Your Webflow credentials
@@ -30,7 +30,10 @@ export async function POST(req) {
         fieldData: {
           name: title,
           slug: slug,
-          "post-body": body,
+          content: body,
+          location: location,
+          category: category,
+          "content-summary": contentSummary,
         },
       }),
     });
