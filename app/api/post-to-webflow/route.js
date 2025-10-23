@@ -3,21 +3,14 @@ import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
-    const { title, slug, body, location = "Default Location", category = "68f8ff5305fca0c8ae56ed38", contentSummary = "Default summary" } = await req.json();
+    const { title, slug, body, contentSummary = "Default summary" } = await req.json();
 
-    //if (!title || !slug || !body) {
-    //  return NextResponse.json({ error: "Missing required fields: title, slug, body" }, { status: 400 });
-    //}
-
-    // 1. Your Webflow credentials
     const WEBFLOW_SITE_ID = process.env.WEBFLOW_SITE_ID;
     const WEBFLOW_COLLECTION_ID = process.env.WEBFLOW_COLLECTION_ID;
     const WEBFLOW_TOKEN = process.env.WEBFLOW_TOKEN;
 
-    // 2. Webflow CMS API endpoint
     const endpoint = `https://api.webflow.com/v2/sites/${WEBFLOW_SITE_ID}/collections/${WEBFLOW_COLLECTION_ID}/items`;
 
-    // 3. Create the item
     const response = await fetch(endpoint, {
       method: "POST",
       headers: {
@@ -30,10 +23,10 @@ export async function POST(req) {
         fieldData: {
           name: title,
           slug: slug,
+          location: "Lisbon", // Always use Lisbon as location
           content: body,
-          location: location,
-          category: category,
           "content-summary": contentSummary,
+          category: "68f8ff5305fca0c8ae56ed38", // Always use Business category
         },
       }),
     });
