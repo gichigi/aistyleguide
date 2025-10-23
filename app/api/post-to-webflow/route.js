@@ -5,6 +5,13 @@ export async function POST(req) {
   try {
     const { title, slug, body, contentSummary = "Default summary" } = await req.json();
 
+    // Validate required fields
+    if (!title || !slug || !body) {
+      return NextResponse.json({ 
+        error: "Missing required fields. Need: title, slug, body" 
+      }, { status: 400 });
+    }
+
     const WEBFLOW_SITE_ID = process.env.WEBFLOW_SITE_ID;
     const WEBFLOW_COLLECTION_ID = process.env.WEBFLOW_COLLECTION_ID;
     const WEBFLOW_TOKEN = process.env.WEBFLOW_TOKEN;
@@ -35,6 +42,14 @@ export async function POST(req) {
 
     if (!response.ok) {
       console.error("Webflow API error:", data);
+      console.error("Request payload was:", {
+        name: title,
+        slug: slug,
+        location: "Lisbon",
+        content: body,
+        "content-summary": contentSummary,
+        category: "68f8ff5305fca0c8ae56ed38"
+      });
       return NextResponse.json({ error: data }, { status: 500 });
     }
 
