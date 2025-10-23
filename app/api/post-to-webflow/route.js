@@ -3,12 +3,19 @@ import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
-    const { title, slug, body, contentSummary = "Default summary" } = await req.json();
+    const requestBody = await req.json();
+    console.log("Received request body:", requestBody);
+
+    // Try multiple field name variations that Zapier might send
+    const title = requestBody.title || requestBody.name || requestBody.Title;
+    const slug = requestBody.slug || requestBody.Slug;
+    const body = requestBody.body || requestBody.content || requestBody.Body || requestBody.Content;
+    const contentSummary = requestBody.contentSummary || requestBody.summary || requestBody.Summary || "Default summary";
 
     // Validate required fields
     if (!title || !slug || !body) {
       return NextResponse.json({ 
-        error: "Missing required fields. Need: title, slug, body" 
+        error: `Missing required fields. Received: ${JSON.stringify(requestBody)}. Need: title, slug, body` 
       }, { status: 400 });
     }
 
