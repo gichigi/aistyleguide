@@ -5,9 +5,9 @@ export async function POST(req) {
   try {
     const { title, slug, body, location = "Default Location", category = "68f8ff5305fca0c8ae56ed38", contentSummary = "Default summary" } = await req.json();
 
-    if (!title || !slug || !body) {
-      return NextResponse.json({ error: "Missing required fields: title, slug, body" }, { status: 400 });
-    }
+    //if (!title || !slug || !body) {
+    //  return NextResponse.json({ error: "Missing required fields: title, slug, body" }, { status: 400 });
+    //}
 
     // 1. Your Webflow credentials
     const WEBFLOW_SITE_ID = process.env.WEBFLOW_SITE_ID;
