@@ -38,6 +38,12 @@ This document outlines the current state, optimizations, and future roadmap for 
 - **SEO Compliance**: Follows official Schema.org BlogPosting specifications
 - **Content Structure**: Proper separation of title and body content
 
+### **6. Brand Voice Foundation**
+- **Brand Voice Beliefs**: Core principles that guide all content generation
+- **Voice Consistency**: Ensures all content reflects the brand's unique voice
+- **Emotional Connection**: Content that creates memorable experiences
+- **Voice as Competitive Advantage**: Brand voice as the unique differentiator
+
 ## 📋 **Future Roadmap (2025-2026)**
 
 ### **Q1 2025: Content Expansion & SEO Enhancement**
@@ -46,6 +52,12 @@ This document outlines the current state, optimizations, and future roadmap for 
   - [ ] **Priority 2**: Add `isPartOf` property to indicate blog membership
   - [ ] **Priority 3**: Add `inLanguage` property (en-US) for language specification
   - [ ] **Priority 4**: Add `genre` property for content classification
+- [ ] **Content Generation Script Updates**: Update prompt and schema to match final Schema.org implementation
+  - [ ] **Update AI Prompt**: Align with Schema.org BlogPosting requirements
+  - [ ] **Update Generated Schema**: Ensure output matches hardcoded vs dynamic property strategy
+  - [ ] **Add Featured Image Support**: Include image generation/selection in content creation
+  - [ ] **Enhanced Metadata**: Include all required Schema.org properties in generation
+  - [ ] **Brand Voice Integration**: Incorporate brand voice beliefs into content generation prompts
 - [ ] **Content Generation Pipeline**: Automated blog post creation from topic lists
 - [ ] **AI Content Enhancement**: Improve content quality with better prompts
 - [ ] **Content Scheduling**: Automated publishing system
@@ -297,3 +309,28 @@ git push origin main
 - **Production**: https://aistyleguide.com/blog
 - **API**: https://aistyleguide.com/api/blog
 - **Supabase**: https://supabase.com/dashboard
+
+## 🎭 **Brand Voice Beliefs**
+
+### **Core Principles That Guide All Content Generation**
+
+These beliefs form the foundation of our brand voice and should be reflected in all AI-generated content:
+
+1. **Brand voice is the moat** — it's what makes every brand unique.
+2. **Content is what you say; brand voice is how you say it.**
+3. **Brand voice comes from what you do, why you do it, and who you do it for.**
+4. **Brand voice and tone of voice mean the same thing** — voice doesn't change based on circumstance, it just flexes as you lean into different voice traits.
+5. **A good brand voice is made up of 3 traits** that are single word adjectives and supported by spelling, grammar, punctuation and formatting rules that reinforce the voice.
+6. **Strong visuals exist to strengthen the voice.**
+7. **A strong voice makes even simple ideas memorable.**
+8. **Voice is the bridge between brand and emotion.**
+9. **When voice is right, you don't need to shout.**
+10. **People don't remember what you wrote; they remember how it felt.**
+
+### **Implementation in Content Generation**
+
+These beliefs should be integrated into the AI content generation prompts to ensure:
+- **Consistent Brand Voice**: All content reflects these core principles
+- **Emotional Connection**: Content that creates memorable experiences
+- **Unique Differentiation**: Brand voice as the competitive advantage
+- **Voice-Driven Content**: How you say it matters as much as what you say

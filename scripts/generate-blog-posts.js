@@ -32,7 +32,7 @@ const supabase = createClient(
 )
 
 // Blog post generation prompt
-const BLOG_POST_PROMPT = `You are an expert content strategist and copywriter specializing in brand voice and content marketing. 
+const BLOG_POST_PROMPT = `You are a brand voice and content style guide expert specializing in copywriting, and content marketing. 
 
 Write a comprehensive, SEO-optimized blog post about the given topic. The post should be:
 
@@ -95,7 +95,7 @@ async function generateBlogPost(topic) {
       messages: [
         {
           role: "system",
-          content: "You are an expert content strategist. Always respond with valid JSON only."
+          content: "You are a brand voice and content style guide expert. Always respond with valid JSON only."
         },
         {
           role: "user",
