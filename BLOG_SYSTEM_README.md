@@ -224,3 +224,4 @@ Your blog system is now complete with:
 - ✅ Performance optimizations
 
 Visit `/blog` to see your blog in action!
+

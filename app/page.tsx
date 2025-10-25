@@ -444,10 +444,10 @@ export default function LandingPage() {
                 AI Brand Voice & Style Guide
               </div>
               <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl mb-4">
-                Create style guides in minutes, not months
+                Build your unique brand tone of voice in minutes
               </h1>
               <p className="text-xl text-muted-foreground max-w-2xl mb-8 hero-lead">
-                Generate a comprehensive brand voice and style guide tailored to your brand in a few clicks.
+                Generate a full content style guide — tone, rules, and real examples — tailored to your brand.
               </p>
 
               <form onSubmit={handleExtraction} className="w-full max-w-2xl">
