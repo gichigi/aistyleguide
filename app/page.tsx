@@ -440,8 +440,11 @@ export default function LandingPage() {
         <section id="hero" className="w-full py-12 md:py-20 lg:py-24 bg-gradient-to-b from-background to-muted">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
-              <div className="inline-flex items-center rounded-full border px-4 py-1.5 text-sm font-medium mb-4 bg-gray-100 text-gray-800 border-gray-200">
-                AI Brand Voice & Style Guide
+              <div className="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-semibold mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-900 border border-blue-200 shadow-sm transition-all duration-200 hover:shadow-md">
+                <svg className="w-3 h-3 mr-1.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                AI-Powered Brand Voice Guidelines
               </div>
               <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl mb-4">
                 Build your unique brand tone of voice in minutes
